@@ -38,6 +38,7 @@ class VigenereCipher(Cipher):
 
     def decode(self, ciphertext: str = "vpxzgiaxivwpubttmjpwizitwzt"):
         intList = Cipher.textToInt(ciphertext.lower())
+        print("intList: ", intList)
         for i in range(len(intList)):
             intList[i] -= self.key[i % self.m]
             intList[i] = (intList[i] % self.zm)

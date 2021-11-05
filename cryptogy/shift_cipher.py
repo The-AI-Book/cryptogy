@@ -34,12 +34,10 @@ class ShiftCryptAnalizer(CryptAnalizer):
         super().__init__()
 
     def bruteForceSearch(self, ciphertext):
+        ciphertext = ciphertext.lower()
         decodedTexts = list()
-        print("ciphertext: ", ciphertext)
         for i in range(0, 26):
             intList = Cipher.textToInt(ciphertext)
-            if i == 0:
-                print(intList)
             candidateKey = i
             for j in range(len(intList)):
                 intList[j] -= candidateKey
@@ -48,13 +46,10 @@ class ShiftCryptAnalizer(CryptAnalizer):
             decodedTexts.append(decodedText)
         return decodedTexts
     
-    def getPossibleKey(self, ic_values):
-        return np.argsort(ic_values)[-10:]
-
     def breakCipher(self, ciphertext):
         decodedTexts = self.bruteForceSearch(ciphertext)
         for i in range(len(decodedTexts)):
-            print("Key: ", i, " => ", decodedTexts[i])
+            print("Key {key} generates text: {text}".format(key = i, text = decodedTexts[i]))
     
 if __name__ == "__main__":
     cipher = ShiftCipher("ShiftCipher", key = 11)
