@@ -1,4 +1,7 @@
 from typing import List
+import copy
+import string
+#import numpy as np
 
 class Cipher:
     def __init__(self, name):
@@ -19,6 +22,8 @@ class Cipher:
     def iniKey(self, key):
         if key == "":
             return self.generateRandomKey()
+        elif not self.validKey(key):
+            raise Exception("An error occured when trying to set a key: invalid key.")
         else: 
             return key
 
@@ -47,6 +52,10 @@ class Cipher:
 class CryptAnalizer:
     def __init__(self):
         pass
+
+    @staticmethod
+    def getAlphabet():
+        return list(string.ascii_lowercase)
 
     @staticmethod
     def getDiccLettersProbability():
@@ -108,6 +117,23 @@ class CryptAnalizer:
         for i in range(0, 25):
             sum_ += (frequencies[i]) * (frequencies[i] - 1)
         return sum_ / (n * (n-1))
+
+    @staticmethod
+    def getArgMaxIndex(list_: List[float]):
+        index_list = list()
+        ban_positions = list()
+        biggest = min(list_)
+        candidate_index = -1
+        for j in range(0, len(list_)):
+            for i in range(0, len(list_)):
+                element = list_[i]
+                if element >= biggest and i not in ban_positions:
+                    biggest = element
+                    candidate_index = i
+            index_list.append(candidate_index)
+            ban_positions.append(candidate_index)
+            biggest = min(list_)
+        return index_list
 
     def getPossibleKey(self):
         pass
