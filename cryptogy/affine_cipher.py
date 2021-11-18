@@ -1,4 +1,4 @@
-from cipher import Cipher, CryptAnalizer
+from .cipher import Cipher, CryptAnalizer
 import random 
 import numpy as np
 import math
@@ -6,8 +6,8 @@ import sympy
 from typing import List
 
 class AffineCipher(Cipher):
-    def __init__(self, name: str, key = ""):
-        super().__init__(name)
+    def __init__(self, key = ""):
+        super().__init__()
         self.key = self.iniKey(key)
 
     def validKey(self, key):
@@ -55,17 +55,19 @@ class AffineCryptAnalizer(CryptAnalizer):
     def validKey(key): 
         return (math.gcd(key[0], 26) == 1)
 
-    def breakCipher(self, ciphertext: str = "FMXVEDKAPHFERBNDKRXRSREFMORUDSDKDVSHVUFEDKAPRKDLYEVLRHHRH", max_tries: int = 5):
+    def breakCipher(self, ciphertext: str = "FMXVEDKAPHFERBNDKRXRSREFMORUDSDKDVSHVUFEDKAPRKDLYEVLRHHRH", max_tries: int = 8):
         frecuency = CryptAnalizer.getLettersFrecuency(ciphertext)
         index_frequency = CryptAnalizer.getArgMaxIndex(frecuency)
         possible_keys = self.getPossibleKey(index_frequency, max_tries = max_tries)
         decodedTexts = self.getDecodedTexts(ciphertext, possible_keys)
+        result = ""
         for i in range(len(decodedTexts)): 
-            print("Key: {key} generates text: {text}".format(key = possible_keys[i], text = decodedTexts[i]))
+            result += "Key {key} generates text: {text} \n".format(key = possible_keys[i], text = decodedTexts[i])
+        return result 
 
     def getDecodedTexts(self, ciphertext: str, possible_keys):
         decoded_texts = list()
-        cipher = AffineCipher("AffineCipher", key = "")
+        cipher = AffineCipher(key = "")
         for key in possible_keys:
             cipher.setKey(key)
             text = cipher.decode(ciphertext)
@@ -77,8 +79,7 @@ class AffineCryptAnalizer(CryptAnalizer):
 
         probability = CryptAnalizer.getListLettersProbability()
         index_probability = CryptAnalizer.getArgMaxIndex(probability)
-        alphabet = CryptAnalizer.getAlphabet()
-
+        
         first_probable_index = index_probability[0] #e
         second_probable_index = index_probability[1] #t
         for i in range(max_tries):
@@ -108,7 +109,7 @@ class AffineCryptAnalizer(CryptAnalizer):
         return possible_keys
 
 if __name__ == "__main__":
-    cipher = AffineCipher("AffineCipher", key = (7, 3))
+    cipher = AffineCipher(key = (7, 3))
     encode = cipher.encode("hot")
     print(encode)
     decode = cipher.decode(encode)

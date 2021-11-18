@@ -1,10 +1,10 @@
-from cipher import Cipher, CryptAnalizer
+from .cipher import Cipher, CryptAnalizer
 import numpy as np 
 import copy
 
 class SubstitutionCipher(Cipher):
-    def __init__(self, name: str, key = ""):
-        super().__init__(name)
+    def __init__(self, key = ""):
+        super().__init__()
         self.key = self.iniKey(key)
 
     def validKey(self, key: list):
@@ -14,8 +14,11 @@ class SubstitutionCipher(Cipher):
         return (range_ == key_)
 
     def generateRandomKey(self):
-        range_ = np.array(list(range(26)))
-        return list(np.random.permutation(range_))
+        range_ = np.array(list(range(26)), dtype = int)
+        key = list(np.random.permutation(range_, ))
+        for i in range(len(key)):
+            key[i] = int(key[i])
+        return key
 
     def encode(self, cleartext: str = "letsmeettomorrowmorning"):
         intList = Cipher.textToInt(cleartext)
@@ -44,7 +47,6 @@ class SubstitutionCryptAnalizer(CryptAnalizer):
 
 if __name__ == "__main__":
     cipher = SubstitutionCipher(
-                "SubtitutionCipher", 
                 key = [9, 23, 24, 25, 14, 16, 2, 3, 15, 4, 10, 20, 18, 8, 22, 11, 1, 12, 19, 0, 17, 7, 6, 13, 5, 21])
     print(cipher.key)
     cleartext = "letsmeettomorrowmorning"

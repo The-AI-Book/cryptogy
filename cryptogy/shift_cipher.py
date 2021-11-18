@@ -1,10 +1,10 @@
-from cipher import Cipher, CryptAnalizer
+from .cipher import Cipher, CryptAnalizer
 import random 
 import numpy as np
 
 class ShiftCipher(Cipher):
-    def __init__(self, name: str, key = ""):
-        super().__init__(name)
+    def __init__(self, key = ""):
+        super().__init__()
         self.key = self.iniKey(key)
 
     def validKey(self, key):
@@ -47,13 +47,16 @@ class ShiftCryptAnalizer(CryptAnalizer):
         return decodedTexts
     
     def breakCipher(self, ciphertext):
+        result = ""
         decodedTexts = self.bruteForceSearch(ciphertext)
         for i in range(len(decodedTexts)):
-            print("Key {key} generates text: {text}".format(key = i, text = decodedTexts[i]))
+            result += "Key {key} generates text: {text} \n".format(key = i, text = decodedTexts[i])
+        return result
     
 if __name__ == "__main__":
-    cipher = ShiftCipher("ShiftCipher", key = 11)
+    cipher = ShiftCipher(key = 11)
     encode = cipher.encode("wewillmeetatmidnight")
     print(encode)
     analyzer = ShiftCryptAnalizer()
-    analyzer.breakCipher(encode)
+    result = analyzer.breakCipher(encode)
+    print(result)

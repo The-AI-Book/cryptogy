@@ -1,0 +1,113 @@
+<app-header></app-header>
+<!-- ======= Services Section ======= -->
+<section id="services" class="services section-bg">
+    <div class="container">
+        <div class="row justify-content-center" data-aos="fade-down">
+            <img src="assets/img/llave.png" style="width: 200px;">
+        </div>
+        <div class="row section-title" data-aos="fade-down">
+            <h2>Classic Cryptosystems</h2>
+            <p>Interact with ciphers such as: shift, affine, permutation, stream, vigenere and hill.</p>
+
+        </div>
+
+        <form [formGroup]="form" class="row justify-content-center" data-aos="fade-up">
+
+            <div class="form-group col-10">
+
+                <label class="mb-2" for="cipher">Select cryptosystem</label>
+                <select class="form-control" id="cipher" formControlName="cipher" (change)="cryptosystem_change()">
+                    <option value="shift">Shift</option>
+                    <option value="substitution">Substitution</option>
+                    <option value="affine">Affine</option>
+                    <option value="vigenere">Vigenere</option>
+                    <option value="hill">Hill</option>
+                    <option value="permutation">Permutation</option>
+                    <option value="stream">Stream</option>
+                </select>
+                
+                <div class="form-group mt-3" *ngIf = "form.value.cipher == 'vigenere'">
+                    <label for="key" class="mb-2">Key Length</label>
+                    <input type="text" class="form-control" id="key" formControlName="keyLength">
+                </div>
+
+                <button *ngIf="!randomKeyLoading" type="submit" (click)="generate_random_key()"
+                    class="btn btn-outline-primary mt-3">Generate random key</button>
+                <button *ngIf="randomKeyLoading" class="btn btn-primary mt-3" type="submit" style="width: 166px;">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Loading...
+                </button>
+
+                <p *ngIf="errorRandomKey" class="alert alert-danger mt-2">
+                    Unexpected error while generating random key.
+                </p>
+            </div>
+
+            <div class="col-10 form-group mt-4">
+                <label for="key" class="mb-2">Enter Key (K)</label>
+                <input type="text" class="form-control" id="key" formControlName="key">
+                <p *ngIf="invalidKey" class="alert alert-danger">
+                    Invalid key.
+                </p>
+            </div>
+            <div class="col-10 col-lg-5 mt-3">
+
+                <div class="form-group mt-3">
+                    <label class="mb-2" for="cleartext">Clear text</label>
+                    <textarea class="form-control" id="cleartext" rows="3" style="min-height: 170px;"
+                        formControlName="cleartext"></textarea>
+                </div>
+
+                <div class="d-flex mt-4 justify-content-center">
+                    <button *ngIf="!encryptLoading" type="submit" class="btn btn-outline-primary me-1"
+                        [disabled]="form.invalid || form.value.cleartext == ''" (click)="encrypt()" >Encrypt</button>
+                    <button class = "btn btn-outline-info" (click)="clearText()" [disabled]="form.value.cleartext == ''">Clear</button>
+                    <button *ngIf="encryptLoading" class="btn btn-primary me-1" type="submit" style="width: 120px;">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    </button>
+                </div>
+                <p *ngIf="errorEncrypt" class="alert alert-danger mt-2">
+                    Unexpected error while encrypting clear text.
+                </p>
+            </div>
+            <div class="col-10 col-lg-5 mt-3">
+                <div class="form-group mt-3">
+                    <label class="mb-2" for="ciphertext">Cipher text</label>
+                    <textarea class="form-control" id="ciphertext" rows="3" style="min-height: 170px;"
+                        formControlName="ciphertext"></textarea>
+                </div>
+                <div class="d-flex mt-4 justify-content-center">
+
+                    <button *ngIf="!decryptLoading" type="submit" class="btn btn-outline-primary me-1"
+                        [disabled]="form.invalid || form.value.ciphertext == '' || analyzeLoading" (click)="decrypt()">Decrpyt</button>
+                    <button *ngIf="decryptLoading" class="btn btn-primary me-1" type="submit" style="width: 120px;">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    </button>
+
+                    <button *ngIf="!analyzeLoading" type="submit"
+                        class="btn btn-outline-secondary ms-1" [disabled]="this.form.value.ciphertext == '' || decryptLoading" (click)="analyze()">Analyze</button>
+                    <button *ngIf="analyzeLoading" class="btn btn-secondary ms-1" type="submit" style="width: 120px;">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Loading...
+                    </button>
+
+                    <button class = "btn btn-outline-info ms-2" (click)="clearCipherText()" [disabled]="form.value.ciphertext == ''">Clear</button>
+
+                </div>
+                <p *ngIf="errorDecrypt" class="alert alert-danger mt-2">
+                    Unexpected error while decrypting cipher text.
+                </p>
+                <p *ngIf="errorAnalyze" class="alert alert-danger mt-2">
+                     {{ this.errorAnalyzeMessage }}
+                </p>
+            </div>
+
+
+
+        </form>
+
+    </div>
+</section><!-- End Services Section -->
+<app-footer></app-footer>

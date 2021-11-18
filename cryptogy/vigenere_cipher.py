@@ -1,19 +1,19 @@
-from cipher import Cipher, CryptAnalizer
+from .cipher import Cipher, CryptAnalizer
 import random 
 from typing import List
 import re 
 import math 
 
 class VigenereCipher(Cipher):
-    def __init__(self, name, m: int, zm: int, key = ""):
-        super().__init__(name)
+    def __init__(self, m: int, zm: int = 26, key = ""):
+        super().__init__()
         self.m = m
         self.key = self.iniKey(key)
         self.zm = zm
 
     def validKey(self, key):
         if len(key) != self.m:
-            print("Key length in different from m!")
+            print("Key length is different from m!")
             return False
         for value in key:
             if type(value) != int:
@@ -38,7 +38,7 @@ class VigenereCipher(Cipher):
 
     def decode(self, ciphertext: str = "vpxzgiaxivwpubttmjpwizitwzt"):
         intList = Cipher.textToInt(ciphertext.lower())
-        print("intList: ", intList)
+        #print("intList: ", intList)
         for i in range(len(intList)):
             intList[i] -= self.key[i % self.m]
             intList[i] = (intList[i] % self.zm)
@@ -76,7 +76,11 @@ class VigenereCryptAnalizer(CryptAnalizer):
         yis = self.breakText(ciphertext, m)
         mg_values = VigenereCryptAnalizer.getMgValues(yis)
         key = self.getPossibleKey(mg_values)
-        return key
+        cipher = VigenereCipher(len(key))
+        cipher.setKey(key)
+        decodeText = cipher.decode(ciphertext)
+        res = "Key: " + str(key) + " \n" + decodeText
+        return res
 
     def getPossibleKey(self, mg_values):
         key = list()
@@ -110,7 +114,7 @@ class VigenereCryptAnalizer(CryptAnalizer):
     
 
 if __name__ == "__main__":
-    cipher = VigenereCipher("VigenereCipher", m = 6, zm = 26)
+    cipher = VigenereCipher(m = 6)
     cipher.setKey(key = [2, 8, 15, 7, 4, 17])
     ciphertext = cipher.encode(cleartext = "thiscryptosystemisnotsecure")
     decodedText = cipher.decode(ciphertext)
