@@ -4,8 +4,7 @@ import string
 #import numpy as np
 
 class Cipher:
-    def __init__(self, name):
-        self.name = name
+    def __init__(self):
         self.key = None
     
     @staticmethod
@@ -15,9 +14,6 @@ class Cipher:
     @staticmethod
     def intToText(integers: List[int]):
         return [chr(number + 96 + 1) for number in integers]
-
-    def explain(self):
-        print(self.name)
 
     def iniKey(self, key):
         if key == "":
