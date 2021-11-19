@@ -25,8 +25,8 @@ def root():
     return send_from_directory("./static", 'index.html')
 
 # Main page.
-@app.route('/static', methods = ["GET"])
-def static():
+@app.route('/classic', methods = ["GET"])
+def classic():
     """
     Return the frontend of the application.
     """
