@@ -117,8 +117,7 @@ class HillCryptAnalizer(CryptAnalizer):
     def validKey(key): 
         return (np.linalg.det(key) != 0)
 
-    def breakCipher(self, ciphertext, cleartext):
-        m = 2 # Este m es el orden de la matriz clave, debe ser a libre elección
+    def breakCipher(self, ciphertext, cleartext, m):
         mat = []
 
         for i in range(0, len(cleartext), m):
@@ -156,4 +155,4 @@ if __name__ == "_main_":
     decode = cipher.decode(encode)
     print(decode)
     analyzer = HillCryptAnalizer()
-    analyzer.breakCipher(encode, decode)
+    analyzer.breakCipher(encode, decode, m)
