@@ -24,6 +24,14 @@ def root():
     """
     return send_from_directory("./static", 'index.html')
 
+# Main page.
+@app.route('/static', methods = ["GET"])
+def static():
+    """
+    Return the frontend of the application.
+    """
+    return send_from_directory("./static", 'index.html')
+
 @app.route("/api/generate_random_key", methods = ["POST"])
 def generate_random_key():
     data=request.get_json()
