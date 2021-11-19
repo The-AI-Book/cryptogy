@@ -131,5 +131,7 @@ class CryptAnalizer:
             biggest = min(list_)
         return index_list
 
+    
+
     def getPossibleKey(self):
         pass
