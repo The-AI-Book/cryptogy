@@ -17,16 +17,8 @@ def static_proxy(path):
   return send_from_directory('./static', path)
 
 # Main page.
-@app.route('/')
+@app.route('/', methods = ["GET"])
 def root():
-    """
-    Return the frontend of the application.
-    """
-    return send_from_directory("./static", 'index.html')
-
-# Main page.
-@app.route('/classic')
-def classic():
     """
     Return the frontend of the application.
     """
@@ -89,4 +81,4 @@ def analyze():
 
 
 if __name__ == '__main__':
-    app.run(debug = True)
+    app.run(debug = False)
