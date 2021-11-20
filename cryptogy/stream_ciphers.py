@@ -12,7 +12,7 @@ class AutokeyCipher(Cipher):
         self.key_stream = [self.key]
 
     def validKey(self, key):
-        return True
+        return key in range(0, 26)
 
     def generateRandomKey(self):
         a = random.randint(0, 25)
@@ -35,9 +35,31 @@ class AutokeyCipher(Cipher):
         plaintext = ''.join( Cipher.intToText(plaintext) )
         return plaintext
 
+class AutokeyCryptAnalizer(CryptAnalizer):
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def validKey(key): 
+        return key in range(0, 26)
+
+    def breakCipher(self, cleartext, ciphertext):
+        cleartext = cleartext.lower()
+        intListCleartext = Cipher.textToInt(cleartext)
+
+        ciphertext = ciphertext.lower()
+        intListCiphertext = Cipher.textToInt(ciphertext)
+
+        keystream = [(y - z) % 26 for y, z in zip(intListCiphertext, intListCleartext)]
+        k = keystream[0]
+        return k, keystream
+
 if __name__ == "__main__":
     cipher = AutokeyCipher(key = 8)
     encode = cipher.encode("rendezvous")
     print(encode)
     decode = cipher.decode(encode)
     print(decode)
+    analyzer = AutokeyCryptAnalizer()
+    result = analyzer.breakCipher(decode, encode)
+    print(result)

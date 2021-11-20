@@ -124,8 +124,8 @@ class HillCryptAnalizer(CryptAnalizer):
             l_plaintext = []
             l_ciphertext = []
             for j in range(i, i + m):
-                l_plaintext.append( self.chrToInt(cleartext[j]) )
-                l_ciphertext.append( self.chrToInt(ciphertext[j]) )
+                l_plaintext.append( ord(cleartext[j].upper()) - 65 )
+                l_ciphertext.append( ord(ciphertext[j].upper()) - 65 )
             mat.append( (l_plaintext, l_ciphertext) )
 
         possible_comb_of_matrices = list( combinations(mat, m) )
@@ -144,15 +144,16 @@ class HillCryptAnalizer(CryptAnalizer):
                 K = np.dot(inverseX, mY[i])
                 break
 
-        result = "The key {} encrypts {} to {}".format(K % 26, ciphertext, cleartext)
+        key_guessed = K % 26
+        result = "The key is: \n{}".format(key_guessed)
         return result
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     cipher = HillCipher(key=1)
-    cleartext = "helloworld"
+    cleartext = "friday"
     encode = cipher.encode(cleartext)
     print(encode)
     decode = cipher.decode(encode)
     print(decode)
     analyzer = HillCryptAnalizer()
-    analyzer.breakCipher(encode, decode, m)
+    print( analyzer.breakCipher("pqcfku", "friday", 2) )
