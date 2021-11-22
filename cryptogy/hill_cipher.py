@@ -1,4 +1,4 @@
-from cipher import Cipher, CryptAnalizer
+from .cipher import Cipher, CryptAnalizer
 import numpy as np
 import math
 import random
@@ -10,6 +10,10 @@ class HillCipher(Cipher):
     def _init_(self, key = ""):
         super().__init__()
         self.key = self.iniKey(key)
+
+    def generateRandomKey(self, n):
+        matRand = (25 * np.random.random((n,n))).astype(int)
+        return matRand
 
     def validKey(self, key):
         return True
@@ -70,65 +74,62 @@ class HillCipher(Cipher):
 
         return "".join(decodedText)
 
-        def generateRandomKey(self, n):
-            matRand = 26*np.random.random((n,n))
-            return matRand
 
-        def generateProperKey(key):
-            keyMat = [[0] * key for i in range(key)]
-            k = 0
-            for i in range(3):
-                for j in range(3):
-                    keyMat[i][j] = ord(key[k]) % 65
-                    k += 1
-            return keyMat
+    def generateProperKey(key):
+        keyMat = [[0] * key for i in range(key)]
+        k = 0
+        for i in range(3):
+            for j in range(3):
+                keyMat[i][j] = ord(key[k]) % 65
+                k += 1
+        return keyMat
 
-        @staticmethod
-        def findMultInv(det):
-            multInv = -1
-            for i in range(26):
-                inverse = det * i
-                if inverse % 26 == 1:
-                    multInv = i
-                    break
-            return multInv
+    @staticmethod
+    def findMultInv(det):
+        multInv = -1
+        for i in range(26):
+            inverse = det * i
+            if inverse % 26 == 1:
+                multInv = i
+                break
+        return multInv
 
-        @staticmethod
-        def makeKey():
-            det = 0
-            A = None
-            while True:
-                cipher = input("Input 4 letter cipher: ")
-                A = HillCipher.createMatrixIntToStr(cipher)
-                det = A[0][0] * A[1][1] - A[0][1] * A[1][0]
-                det = det % 26
-                invElement = HillCipher.findMultInv(det)
-                if invElement == -1:
-                    print("Determinant is not relatively prime to 26, uninvertible key")
-                elif np.amax(A) > 26 and np.amin(A) < 0:
-                    print("Only a-z characters are accepted")
-                    print(np.amax(A), np.amin(A))
-                else:
-                    break
-            return A
+    @staticmethod
+    def makeKey():
+        det = 0
+        A = None
+        while True:
+            cipher = input("Input 4 letter cipher: ")
+            A = HillCipher.createMatrixIntToStr(cipher)
+            det = A[0][0] * A[1][1] - A[0][1] * A[1][0]
+            det = det % 26
+            invElement = HillCipher.findMultInv(det)
+            if invElement == -1:
+                print("Determinant is not relatively prime to 26, uninvertible key")
+            elif np.amax(A) > 26 and np.amin(A) < 0:
+                print("Only a-z characters are accepted")
+                print(np.amax(A), np.amin(A))
+            else:
+                break
+        return A
 
-        @staticmethod
-        def createMatrixIntToStr(string):
-            ints = [HillCipher.chrToInt(c) for c in string]
-            leng = len(ints)
-            M = np.zeros((2, int(leng / 2)), dtype=np.int32)
-            i = 0
-            for column in range(int(leng / 2)):
-                for row in range(2):
-                    M[row][column] = ints[i]
-                    i += 1
-            return M
+    @staticmethod
+    def createMatrixIntToStr(string):
+        ints = [HillCipher.chrToInt(c) for c in string]
+        leng = len(ints)
+        M = np.zeros((2, int(leng / 2)), dtype=np.int32)
+        i = 0
+        for column in range(int(leng / 2)):
+            for row in range(2):
+                M[row][column] = ints[i]
+                i += 1
+        return M
 
-        @staticmethod
-        def chrToInt(c):
-            c = c.upper()
-            n = ord(c) - 65
-            return n
+    @staticmethod
+    def chrToInt(c):
+        c = c.upper()
+        n = ord(c) - 65
+        return n
 
 class HillCryptAnalizer(CryptAnalizer):
     def __init__(self):
