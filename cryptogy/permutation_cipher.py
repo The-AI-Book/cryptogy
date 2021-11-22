@@ -1,4 +1,3 @@
-from _typeshed import Self
 from cipher import Cipher, CryptAnalizer
 import numpy as np
 import math

@@ -1,19 +1,14 @@
-from _typeshed import Self
 from cipher import Cipher, CryptAnalizer
 import numpy as np
 import math
 import random
-import egcd
+from egcd import egcd
 
 class HillCipher(Cipher):
-    def _init_(self, key = "", alphabet = "abcdefghijklmnopqrstuvwxyz"):
+    def _init_(self, key = ""):
         super().__init__()
         self.key = self.iniKey(key)
-        self.alphabet = alphabet
 
-    def generateRandomKey(self):
-        return ""
-    
     def validKey(self, key):
         return True
 
@@ -41,24 +36,19 @@ class HillCipher(Cipher):
 
         return "".join(encodeText).upper()
 
-    def egcd(a, b):
-        if a == 0:
-            return (b, 0, 1)
-        else:
-            g, y, x = egcd(b % a, a)
-            return (g, x - (b // a) * y, y)
-
-    def matrixModInv(matrix, modulus):
+    def matrixModInv(matrix, modu):
 
         det = int(np.round(np.linalg.det(matrix)))
-        detInv = egcd(det, modulus)[1] % modulus 
-        matrixModulusInv = (
-            detInv * np.round(det * np.linalg.inv(matrix)).astype(int) % modulus
+        detInv = egcd(det, modu)[1] % modu 
+        matrixModuInv = (
+            detInv * np.round(det * np.linalg.inv(matrix)).astype(int) % modu
         )
 
-        return matrixModulusInv
+        return matrixModuInv
 
-    def decode(self, ciphertext: str, keyInv):
+    def decode(self, ciphertext: str, key):
+        keyMat = generateProperKey(key)
+        keyInv = matrixModInv(keyMat, key)
         decodedText = ""
         ciphertextNum = Cipher.textToInt(ciphertext)
 
@@ -78,15 +68,29 @@ class HillCipher(Cipher):
 
         return "".join(decodedText)
 
+        def generateRandomKey(self, n):
+            matRand = 26*np.random.random((n,n))
+            return matRand
+
+        def generateProperKey(key):
+            keyMat = [[0] * key for i in range(key)]
+            k = 0
+            for i in range(3):
+                for j in range(3):
+                    keyMat[i][j] = ord(key[k]) % 65
+                    k += 1
+            return keyMat
+
 class HillCryptAnalizer(CryptAnalizer):
     def __init__(self):
         super().__init__()
 
-if __name__ == "_main_":
+if __name__ == "__main__":
+    print("cualquier cosa")
     cipher = HillCipher(key=1)
     cleartext = "helloworld"
     ciphertext = ""
-    encode = cipher.encode(cleartext)
+    encode = Cipher.encode(cleartext, )
     print(encode)
-    decode = cipher.decode(ciphertext)
+    decode = Cipher.decode(ciphertext, )
     print(decode)
