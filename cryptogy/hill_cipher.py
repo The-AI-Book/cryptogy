@@ -1,113 +1,134 @@
 from cipher import Cipher, CryptAnalizer
 import numpy as np
+import math
+import random
+from egcd import egcd
 from sympy import Matrix
 from itertools import combinations
 
 class HillCipher(Cipher):
     def _init_(self, key = ""):
+        super().__init__()
         self.key = self.iniKey(key)
 
-    def generateRandomKey(self):
-        return ""
-    
     def validKey(self, key):
-        #
-        #
-        #
-        return super().validKey(key)
+        return True
 
-    def encode(self, cleartext: str):
-        m = cleartext.replace(" ", "")
-        C = makeKey()
-        len_check = len(m) % 2 == 0
-        if not len_check:
-            m += "0"
-        P = HillCipher.createMatrixIntToStr(m)
-        m_len = int(len(m) / 2)
-        encodeText = ""
-        for i in range(m_len):
-            row_0 = P[0][i] * C[0][0] + P[1][i] * C[0][1]
-            integer = int(row_0 % 26 + 65)
-            encodeText += chr(integer)
-            row_1 = P[0][i] * C[1][0] + P[1][i] * C[1][1]
-            integer = int(row_1 % 26 + 65)
-            encodeText += chr(integer)
+    def encode(self, cleartext: str, key):
+        cleartextNum = Cipher.textToInt(cleartext.lower())
+
+        splitCleartext = [
+            cleartextNum[i : i + int(key.shape[0])]
+            for i in range(0, len(cleartextNum), int(key.shape[0]))
+        ]
+
+        for splitCleartextNum in splitCleartext:
+            splitCleartextNum = np.transpose(np.asarray(splitCleartextNum))[:, np.newaxis]
+
+            while splitCleartextNum.shape[0] != key.shape[0]:
+                splitCleartextNum = np.append(splitCleartextNum, Cipher.textToInt([" "]))[:, np.newaxis]
+
+            numbers = np.dot(key, splitCleartextNum) % 26
+            n = numbers.shape[0]  # length ciphertext (numbers)
+
+            for idx in range(n):
+                number = int(numbers[idx, 0])
+            
+            encodeText = Cipher.intToText(number)
+
         return "".join(encodeText).upper()
 
-    def decode(self, ciphertext: str =""):
-        A = HillCipher.makeKey()
-        det = A[0][0] * A[1][1] - A[0][1] * A[1][0]
-        det = det % 26
-        multInv = HillCipher.findMultInv(det)
-        A_inv = A
-        A_inv[0][0], A_inv[1][1] = A_inv[1, 1], A_inv[0, 0]
-        A[0][1] *= -1
-        A[1][0] *= -1
-        for row in range(2):
-            for column in range(2):
-                A_inv[row][column] *= multInv
-                A_inv[row][column] = A_inv[row][column] % 26
+    def matrixModInv(matrix, modu):
 
-        P = HillCipher.createMatrixIntToStr(ciphertext)
-        msg_len = int(len(ciphertext) / 2)
+        det = int(np.round(np.linalg.det(matrix)))
+        detInv = egcd(det, modu)[1] % modu 
+        matrixModuInv = (
+            detInv * np.round(det * np.linalg.inv(matrix)).astype(int) % modu
+        )
+
+        return matrixModuInv
+
+    def decode(self, ciphertext: str, key):
+        keyMat = generateProperKey(key)
+        keyInv = matrixModInv(keyMat, key)
         decodedText = ""
-        for i in range(msg_len):
-            column_0 = P[0][i] * A_inv[0][0] + P[1][i] * A_inv[0][1]
-            n = int(column_0 % 26 + 65)
-            decodedText += chr(n)
-            column_1 = P[0][i] * A_inv[1][0] + P[1][i] * A_inv[1][1]
-            n = int(column_1 % 26 + 65)
-            decodedText += chr(n)
-        if decodedText[-1] == "0":
-            decodedText = decodedText[:-1]
+        ciphertextNum = Cipher.textToInt(ciphertext)
+
+        splitCiphertext = [
+            ciphertextNum[i : i + int(keyInv.shape[0])]
+            for i in range(0, len(ciphertextNum), int(keyInv.shape[0]))
+        ]
+
+        for splitCiphertextNum in splitCiphertext:
+            splitCiphertextNum = np.transpose(np.asarray(splitCiphertextNum))[:, np.newaxis]
+            numbers = np.dot(keyInv, splitCiphertextNum) % 26
+            n = numbers.shape[0]
+
+            for idx in range(n):
+                number = int(numbers[idx, 0])
+            decodedText += Cipher.intToText(number)
+
         return "".join(decodedText)
 
-    @staticmethod
-    def findMultInv(det):
-        multInv = -1
-        for i in range(26):
-            inverse = det * i
-            if inverse % 26 == 1:
-                multInv = i
-                break
-        return multInv
+        def generateRandomKey(self, n):
+            matRand = 26*np.random.random((n,n))
+            return matRand
 
-    @staticmethod
-    def makeKey():
-        det = 0
-        A = None
-        while True:
-            cipher = input("Input 4 letter cipher: ")
-            A = HillCipher.createMatrixIntToStr(cipher)
-            det = A[0][0] * A[1][1] - A[0][1] * A[1][0]
-            det = det % 26
-            invElement = HillCipher.findMultInv(det)
-            if invElement == -1:
-                print("Determinant is not relatively prime to 26, uninvertible key")
-            elif np.amax(A) > 26 and np.amin(A) < 0:
-                print("Only a-z characters are accepted")
-                print(np.amax(A), np.amin(A))
-            else:
-                break
-        return A
+        def generateProperKey(key):
+            keyMat = [[0] * key for i in range(key)]
+            k = 0
+            for i in range(3):
+                for j in range(3):
+                    keyMat[i][j] = ord(key[k]) % 65
+                    k += 1
+            return keyMat
 
-    @staticmethod
-    def createMatrixIntToStr(string):
-        ints = [HillCipher.chrToInt(c) for c in string]
-        leng = len(ints)
-        M = np.zeros((2, int(leng / 2)), dtype=np.int32)
-        i = 0
-        for column in range(int(leng / 2)):
-            for row in range(2):
-                M[row][column] = ints[i]
-                i += 1
-        return M
+        @staticmethod
+        def findMultInv(det):
+            multInv = -1
+            for i in range(26):
+                inverse = det * i
+                if inverse % 26 == 1:
+                    multInv = i
+                    break
+            return multInv
 
-    @staticmethod
-    def chrToInt(c):
-        c = c.upper()
-        n = ord(c) - 65
-        return n
+        @staticmethod
+        def makeKey():
+            det = 0
+            A = None
+            while True:
+                cipher = input("Input 4 letter cipher: ")
+                A = HillCipher.createMatrixIntToStr(cipher)
+                det = A[0][0] * A[1][1] - A[0][1] * A[1][0]
+                det = det % 26
+                invElement = HillCipher.findMultInv(det)
+                if invElement == -1:
+                    print("Determinant is not relatively prime to 26, uninvertible key")
+                elif np.amax(A) > 26 and np.amin(A) < 0:
+                    print("Only a-z characters are accepted")
+                    print(np.amax(A), np.amin(A))
+                else:
+                    break
+            return A
+
+        @staticmethod
+        def createMatrixIntToStr(string):
+            ints = [HillCipher.chrToInt(c) for c in string]
+            leng = len(ints)
+            M = np.zeros((2, int(leng / 2)), dtype=np.int32)
+            i = 0
+            for column in range(int(leng / 2)):
+                for row in range(2):
+                    M[row][column] = ints[i]
+                    i += 1
+            return M
+
+        @staticmethod
+        def chrToInt(c):
+            c = c.upper()
+            n = ord(c) - 65
+            return n
 
 class HillCryptAnalizer(CryptAnalizer):
     def __init__(self):
@@ -157,3 +178,13 @@ if __name__ == "__main__":
     print(decode)
     analyzer = HillCryptAnalizer()
     print( analyzer.breakCipher("pqcfku", "friday", 2) )
+    
+    print("cualquier cosa")
+    cipher = HillCipher(key=1)
+    cleartext = "helloworld"
+    ciphertext = ""
+    encode = Cipher.encode(cleartext, )
+    print(encode)
+    decode = Cipher.decode(ciphertext, )
+    print(decode)
+
