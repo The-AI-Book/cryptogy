@@ -1,5 +1,7 @@
 from cipher import Cipher, CryptAnalizer
 import numpy as np
+from sympy import Matrix
+from itertools import combinations
 
 class HillCipher(Cipher):
     def _init_(self, key = ""):
@@ -107,8 +109,51 @@ class HillCipher(Cipher):
         n = ord(c) - 65
         return n
 
-if __name__ == "_main_":
+class HillCryptAnalizer(CryptAnalizer):
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def validKey(key): 
+        return (np.linalg.det(key) != 0)
+
+    def breakCipher(self, ciphertext, cleartext, m):
+        mat = []
+
+        for i in range(0, len(cleartext), m):
+            l_plaintext = []
+            l_ciphertext = []
+            for j in range(i, i + m):
+                l_plaintext.append( ord(cleartext[j].upper()) - 65 )
+                l_ciphertext.append( ord(ciphertext[j].upper()) - 65 )
+            mat.append( (l_plaintext, l_ciphertext) )
+
+        possible_comb_of_matrices = list( combinations(mat, m) )
+
+        mX = []
+        mY = []
+        for i in possible_comb_of_matrices:
+            mX.append( np.array([i[0][0], i[1][0]]) )
+            mY.append( np.array([i[0][1], i[1][1]]) )
+
+        for i in range( len(mX) ):
+            detX = np.linalg.det(mX[i])
+            if detX != 0:
+                mat = Matrix(mX[i])
+                inverseX = mat.inv_mod(26)
+                K = np.dot(inverseX, mY[i])
+                break
+
+        key_guessed = K % 26
+        result = "The key is: \n{}".format(key_guessed)
+        return result
+
+if __name__ == "__main__":
     cipher = HillCipher(key=1)
-    cleartext = "helloworld"
+    cleartext = "friday"
     encode = cipher.encode(cleartext)
     print(encode)
+    decode = cipher.decode(encode)
+    print(decode)
+    analyzer = HillCryptAnalizer()
+    print( analyzer.breakCipher("pqcfku", "friday", 2) )
