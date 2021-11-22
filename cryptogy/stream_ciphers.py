@@ -1,4 +1,4 @@
-from cipher import Cipher, CryptAnalizer
+from .cipher import Cipher, CryptAnalizer
 import numpy as np
 
 import random 
@@ -189,12 +189,8 @@ class StreamCipher(Cipher):
             n += 1
         return "".join(decodeText)
 
-class PermutationCryptAnalizer(CryptAnalizer):
-    def __init__(self):
-        super().__init__()
-
 class AutokeyCipher(Cipher):
-    def __init__(self, key = "", key_stream = []):
+    def __init__(self, key = ""):
         super().__init__()
         self.key = self.iniKey(key)
         self.key_stream = [self.key]
@@ -213,14 +209,20 @@ class AutokeyCipher(Cipher):
 
         ciphertext = [sum(x) % 26 for x in zip(intList, self.key_stream)]
         ciphertext = ''.join( Cipher.intToText(ciphertext) )
-        return ciphertext
+        return ciphertext, self.key_stream
 
-    def decode(self, ciphertext: str = "AXG"):
-        a = self.key
+    def decode(self, key_stream: List[int], ciphertext: str = "AXG"):
+        
+        print("decode")
         ciphertext = ciphertext.lower()
+        print("ciphertext: ", ciphertext)
         intList = Cipher.textToInt(ciphertext)
-        plaintext = [(y - z) % 26 for y, z in zip(intList, self.key_stream)]
+        print(intList)
+    
+        plaintext = [(y - z) % 26 for y, z in zip(intList, key_stream)]
+        print(plaintext)
         plaintext = ''.join( Cipher.intToText(plaintext) )
+        print(plaintext)
         return plaintext
 
 class AutokeyCryptAnalizer(CryptAnalizer):
@@ -238,9 +240,11 @@ class AutokeyCryptAnalizer(CryptAnalizer):
         ciphertext = ciphertext.lower()
         intListCiphertext = Cipher.textToInt(ciphertext)
 
-        keystream = [(y - z) % 26 for y, z in zip(intListCiphertext, intListCleartext)]
+        keystream = [str((y - z) % 26) for y, z in zip(intListCiphertext, intListCleartext)]
         k = keystream[0]
-        return k, keystream
+
+        string = "Keystream: " + "-".join(keystream) + "\n" + cleartext
+        return string
 
 if __name__ == "__main__":
     cipher = AutokeyCipher(key = 8)
