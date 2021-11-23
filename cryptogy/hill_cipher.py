@@ -7,6 +7,7 @@ from sympy import Matrix
 from itertools import combinations
 import requests
 from PIL import Image
+import PIL
 from io import BytesIO
 
 class HillCipher(Cipher):
@@ -102,6 +103,11 @@ class HillCipher(Cipher):
                         B = imgTemp[n,m,i]*0.11
                         cont = cont + B
                 imgAux[n,i] = cont
+        """
+        imgRes = PIL.Image.fromarray(np.uint8(imgAux))
+        """
+        
+        return imgAux
 
     @staticmethod
     def matrixModInv(self):
