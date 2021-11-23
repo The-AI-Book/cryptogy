@@ -32,7 +32,7 @@ def classic():
     """
     Return the frontend of the application.
     """
-    return send_from_directory("./static", 'index.html')
+    return send_from_directory("./static2", 'index.html')
 
 @app.route("/api/generate_random_key", methods = ["POST"])
 def generate_random_key():
