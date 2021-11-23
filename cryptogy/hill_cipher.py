@@ -5,6 +5,10 @@ import random
 from egcd import egcd
 from sympy import Matrix
 from itertools import combinations
+import requests
+from PIL import Image
+import PIL
+from io import BytesIO
 
 class HillCipher(Cipher):
     def _init_(self, m: int, key = ""):
@@ -72,6 +76,38 @@ class HillCipher(Cipher):
             decodedText += Cipher.intToText(number)
 
         return "".join(decodedText)
+
+    @staticmethod
+    def imagToMat():
+        url = " "
+        r = requests.get(url)
+
+        img = Image.open(BytesIO(r.content))
+        img = img.resize([32,32])
+        imgTemp = np.array(img)
+        imgAux = np.zeros([32,32])
+        for n in (range(imgTemp.shape[0])):
+            for m in (range(imgTemp.shape[1])):
+                R = 0
+                G = 0
+                B = 0
+                cont = 0
+                for i in (range(imgTemp.shape[2])):
+                    if i == 0: 
+                        R = imgTemp[n,m,i]*0.3
+                        cont = cont + R
+                    elif i == 1: 
+                        G = imgTemp[n,m,i]*0.59
+                        cont = cont + G
+                    else: 
+                        B = imgTemp[n,m,i]*0.11
+                        cont = cont + B
+                imgAux[n,i] = cont
+        """
+        imgRes = PIL.Image.fromarray(np.uint8(imgAux))
+        """
+        
+        return imgAux
 
     @staticmethod
     def matrixModInv(self):
