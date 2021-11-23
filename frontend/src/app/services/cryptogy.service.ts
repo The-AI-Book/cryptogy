@@ -3,10 +3,7 @@ import { Router } from "@angular/router";
 import { Subject } from "rxjs";
 import { environment } from "src/environments/environment";
 import { HttpClient } from "@angular/common/http";
-import { Encrypt } from "../models/encrypt.model";
-import { Decrypt } from "../models/decrypt.model";
-import { RandomKey } from "../models/random_key.model";
-import { Analyze } from "../models/analyze.model";
+import { Crypto } from "../models/crypto.model";
 
 @Injectable({ providedIn: 'root' })
 export class CryptogyService {
@@ -15,51 +12,74 @@ export class CryptogyService {
 
     get_random_key(
         cipher: string,
-        keyLength: string
+        keyLength: string, 
+        numPartitions: string
     ){
-        const RandomKey: RandomKey = {
+        const CryptoData: Crypto = {
            cipher: cipher,
-           keyLength: keyLength
+           keyLength: keyLength,
+           key: "",
+           cleartext: "",
+           ciphertext: "",
+           keyStream: "", 
+           numPartitions: numPartitions
         }
-        return this.http.post(this.endpoint + "/api/generate_random_key", RandomKey);
+        return this.http.post(this.endpoint + "/api/generate_random_key", CryptoData);
     }
 
     encrypt(
         key: string, 
         cipher: string, 
         cleartext: string,
-        keyLength: string
+        keyLength: string, 
+        numPartitions: string
     ){
-        const EncryptData: Encrypt = {
+        const CryptoData: Crypto = {
             key: key,
             cipher: cipher, 
             cleartext: cleartext, 
-            keyLength: keyLength
+            keyLength: keyLength, 
+            ciphertext: "", 
+            keyStream: "", 
+            numPartitions: numPartitions
         }
-        return this.http.post(this.endpoint + "/api/encrypt", EncryptData);
+        return this.http.post(this.endpoint + "/api/encrypt", CryptoData);
     }
     decrypt(
         key: string, 
         cipher: string, 
         ciphertext: string, 
-        keyLength: string
+        keyLength: string, 
+        keyStream: string, 
+        numPartitions: string
     ){
-        const DecryptData: Decrypt = {
+        const CryptoData: Crypto = {
             key: key, 
             cipher: cipher, 
             ciphertext: ciphertext, 
-            keyLength: keyLength
+            keyLength: keyLength, 
+            keyStream: keyStream, 
+            cleartext: "", 
+            numPartitions: numPartitions
         }
-        return this.http.post(this.endpoint + "/api/decrypt", DecryptData);
+        console.log(CryptoData);
+        return this.http.post(this.endpoint + "/api/decrypt", CryptoData);
     }
     analize(
         cipher: string,
-        ciphertext: string
+        ciphertext: string,
+        cleartext: string, 
+        numPartitions: string
     ){
-        const AnalyzeData: Analyze = {
+        const CryptoData: Crypto = {
             cipher: cipher, 
-            ciphertext: ciphertext
+            ciphertext: ciphertext, 
+            cleartext: cleartext,
+            keyStream: "", 
+            key: "", 
+            keyLength: "", 
+            numPartitions: numPartitions
         }
-        return this.http.post(this.endpoint + "/api/analyze", AnalyzeData);
+        return this.http.post(this.endpoint + "/api/analyze", CryptoData);
     }
 }
