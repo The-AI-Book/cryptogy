@@ -25,10 +25,16 @@
                     <option value="permutation">Permutation</option>
                     <option value="stream">Stream</option>
                 </select>
-                
-                <div class="form-group mt-3" *ngIf = "form.value.cipher == 'vigenere'">
+
+                <div class="form-group mt-3" *ngIf="form.value.cipher == 'vigenere'">
                     <label for="key" class="mb-2">Key Length</label>
                     <input type="text" class="form-control" id="key" formControlName="keyLength">
+                </div>
+
+                <div *ngIf = "form.value.cipher == 'hill'" class="form-group mt-3">
+                    <label for="key" class="mb-2">Number of partitions (m)</label>
+                    <small class = "text-primary ms-2">(From 2 to 32)</small>
+                    <input type="text" class="form-control" id="key" formControlName="numPartitions">
                 </div>
 
                 <button *ngIf="!randomKeyLoading" type="submit" (click)="generate_random_key()"
@@ -50,6 +56,17 @@
                     Invalid key.
                 </p>
             </div>
+
+            
+
+            <div *ngIf = "form.value.cipher == 'stream'" class="col-10 form-group mt-4">
+                <label for="key" class="mb-2">Key Stream</label>
+                <input type="text" class="form-control" id="key" formControlName="keyStream">
+                <p *ngIf="invalidKey" class="alert alert-danger">
+                    Invalid key.
+                </p>
+            </div>
+
             <div class="col-10 col-lg-5 mt-3">
 
                 <div class="form-group mt-3">
@@ -60,12 +77,14 @@
 
                 <div class="d-flex mt-4 justify-content-center">
                     <button *ngIf="!encryptLoading" type="submit" class="btn btn-outline-primary me-1"
-                        [disabled]="form.invalid || form.value.cleartext == ''" (click)="encrypt()" >Encrypt</button>
-                    <button class = "btn btn-outline-info" (click)="clearText()" [disabled]="form.value.cleartext == ''">Clear</button>
+                        [disabled]="form.invalid || form.value.cleartext == ''" (click)="encrypt()">Encrypt</button>
                     <button *ngIf="encryptLoading" class="btn btn-primary me-1" type="submit" style="width: 120px;">
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         Loading...
                     </button>
+                    <button class="btn btn-outline-info" (click)="clearText()"
+                        [disabled]="form.value.cleartext == ''">Clear</button>
+
                 </div>
                 <p *ngIf="errorEncrypt" class="alert alert-danger mt-2">
                     Unexpected error while encrypting clear text.
@@ -80,30 +99,39 @@
                 <div class="d-flex mt-4 justify-content-center">
 
                     <button *ngIf="!decryptLoading" type="submit" class="btn btn-outline-primary me-1"
-                        [disabled]="form.invalid || form.value.ciphertext == '' || analyzeLoading" (click)="decrypt()">Decrpyt</button>
+                        [disabled]="form.invalid || form.value.ciphertext == '' || analyzeLoading"
+                        (click)="decrypt()">Decrpyt</button>
                     <button *ngIf="decryptLoading" class="btn btn-primary me-1" type="submit" style="width: 120px;">
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         Loading...
                     </button>
 
-                    <button *ngIf="!analyzeLoading" type="submit"
-                        class="btn btn-outline-secondary ms-1" [disabled]="this.form.value.ciphertext == '' || decryptLoading" (click)="analyze()">Analyze</button>
+                    <button *ngIf="!analyzeLoading && this.form.value.cipher != 'stream' && this.form.value.cipher != 'hill'" type="submit" class="btn btn-outline-secondary ms-1"
+                        [disabled]="this.form.value.ciphertext == '' || decryptLoading "
+                        (click)="analyze()">Analyze</button>
+                    <button *ngIf="!analyzeLoading && (this.form.value.cipher == 'stream' || this.form.value.cipher == 'hill')" type="submit" class="btn btn-outline-secondary ms-1"
+                        [disabled]="this.form.value.cleartext == '' || this.form.value.ciphertext == '' "
+                        (click)="analyze()">Analyze</button>
+
                     <button *ngIf="analyzeLoading" class="btn btn-secondary ms-1" type="submit" style="width: 120px;">
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         Loading...
                     </button>
 
-                    <button class = "btn btn-outline-info ms-2" (click)="clearCipherText()" [disabled]="form.value.ciphertext == ''">Clear</button>
+                    <button class="btn btn-outline-info ms-2" (click)="clearCipherText()"
+                        [disabled]="form.value.ciphertext == ''">Clear</button>
 
                 </div>
                 <p *ngIf="errorDecrypt" class="alert alert-danger mt-2">
                     Unexpected error while decrypting cipher text.
                 </p>
                 <p *ngIf="errorAnalyze" class="alert alert-danger mt-2">
-                     {{ this.errorAnalyzeMessage }}
+                    {{ this.errorAnalyzeMessage }}
                 </p>
             </div>
-
+            <div *ngIf = "form.value.cipher == 'stream' || form.value.cipher == 'hill'" class="col-10 mt-3 alert alert-warning">
+                Cryptoanalysis of this cipher requires a pair of cleartext and ciphertext.
+            </div>
 
 
         </form>

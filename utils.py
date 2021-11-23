@@ -1,7 +1,21 @@
 import cryptogy
-
+import numpy as np 
 def format_key(key):
-    if type(key) == list or type(key) == int:
+
+    try:
+        if key.find(";") != -1:
+            matrix = list()
+            rows = key.split(";")[:-1]
+            for row in rows: 
+                values = list()
+                for number in row.split(","):
+                    values.append(int(number))
+                matrix.append(values)
+            return np.array(matrix)
+    except: 
+        pass
+
+    if isinstance(key, list) or isinstance(key, int):
         return key
     try:
         return int(key)
@@ -11,6 +25,17 @@ def format_key(key):
             list_.append(int(val))
         return list_
 
+def format_darray(matrix: np.array):
+    n = matrix.shape[0]
+    m = matrix.shape[1]
+    string = ""
+    for i in range(n):
+        for j in range(m):
+            string += str(matrix[i][j]) 
+            if (j < m - 1):
+                string += ","
+        string += ";" 
+    return string
 
 def get_analyzer(data: dict): 
     cipher = data["cipher"]
@@ -23,11 +48,11 @@ def get_analyzer(data: dict):
     elif cipher == "vigenere":
         return cryptogy.VigenereCryptAnalizer()
     elif cipher == "hill":
-        return None
+        return cryptogy.HillCryptAnalizer()
     elif cipher == "permutation":
         return None
     elif cipher == "stream":
-        return None
+        return cryptogy.AutokeyCryptAnalizer()
 
 def get_cipher(data: dict):
    
@@ -41,8 +66,8 @@ def get_cipher(data: dict):
     elif cipher == "vigenere":
         return cryptogy.VigenereCipher(m = int(data["keyLength"]))
     elif cipher == "hill":
-        return None
+        return cryptogy.HillCipher(m = int(data["numPartitions"]))
     elif cipher == "permutation":
         return None
     elif cipher == "stream":
-        return None
+        return cryptogy.AutokeyCipher()

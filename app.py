@@ -3,6 +3,8 @@ from flask.helpers import send_from_directory
 from flask_cors import CORS
 import logging
 import cryptogy
+from cryptogy.hill_cipher import HillCipher, HillCryptAnalizer
+from cryptogy.stream_ciphers import AutokeyCipher, AutokeyCryptAnalizer, StreamCipher
 import utils
 import json
 
@@ -42,7 +44,9 @@ def generate_random_key():
     except Exception as e: 
         return jsonify("Invalid Key"), 401
     random_key = cipher.generateRandomKey()
-    return jsonify(random_key), 200
+    if isinstance(cipher, HillCipher):
+        random_key = utils.format_darray(random_key)
+    return jsonify({"random_key":random_key}), 200
 
 @app.route("/api/encrypt", methods = ["POST"])
 def encrypt():
@@ -50,15 +54,15 @@ def encrypt():
     if data == None:
         data = request.values
     cleartext = data["cleartext"]
-    print(data["key"])
     key = utils.format_key(data["key"])
     cipher = utils.get_cipher(data)
-    try:
-        cipher.setKey(key)
-    except Exception as e:
-        return jsonify("Invalid Key"), 401
+ 
+    cipher.setKey(key)
     encode_text = cipher.encode(cleartext)
-    return jsonify(encode_text), 200
+    if isinstance(cipher, AutokeyCipher):
+        return jsonify({"ciphertext":encode_text[0], "key_stream": encode_text[1]}), 200
+    else:
+        return jsonify({"ciphertext":encode_text}), 200
 
 @app.route("/api/decrypt", methods = ["POST"])
 def decrypt():
@@ -68,10 +72,13 @@ def decrypt():
     ciphertext = data["ciphertext"]
     cipher = utils.get_cipher(data)
     key = utils.format_key(data["key"])
-
-    cipher.setKey(key)
-    cleartext = cipher.decode(ciphertext)
-    return jsonify(cleartext), 200
+    if isinstance(cipher, AutokeyCipher):
+        key_stream = utils.format_key(data["keyStream"])
+        cleartext = cipher.decode(key_stream, ciphertext)
+    else:
+        cipher.setKey(key)
+        cleartext = cipher.decode(ciphertext)
+    return jsonify({"cleartext":cleartext}), 200
 
 @app.route("/api/analyze", methods = ["POST"])
 def analyze():
@@ -81,10 +88,18 @@ def analyze():
     ciphertext = data["ciphertext"]
     analyzer = utils.get_analyzer(data)
     try:
-        results = analyzer.breakCipher(ciphertext)
+        if isinstance(analyzer, AutokeyCryptAnalizer):
+            cleartext = data["cleartext"]
+            results = analyzer.breakCipher(cleartext, ciphertext)
+        elif isinstance(analyzer, HillCryptAnalizer):
+            cleartext = data["cleartext"]
+            numPartitions = data["numPartitions"]
+            results = analyzer.breakCipher(ciphertext, cleartext, numPartitions)
+        else:
+            results = analyzer.breakCipher(ciphertext)
     except Exception as e: 
         return jsonify(str(e)), 404
-    return jsonify(results), 200
+    return jsonify({"cleartext":results}), 200
 
 
 
