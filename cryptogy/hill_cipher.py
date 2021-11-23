@@ -1,80 +1,73 @@
-from cipher import Cipher, CryptAnalizer
+from sympy.series.residues import residue
+from .cipher import Cipher, CryptAnalizer
 import numpy as np
 import math
 import random
 from egcd import egcd
-from sympy import Matrix
+import sympy
 from itertools import combinations
 import requests
 from PIL import Image
-import PIL
 from io import BytesIO
 
 class HillCipher(Cipher):
-    def _init_(self, m: int, key = ""):
+    def __init__(self, m: int, key = ""):
         super().__init__()
         self.m = m
         self.key = self.iniKey(key)
 
     def generateRandomKey(self):
         matRand = (25 * np.random.random((self.m,self.m))).astype(int)
-        if self.validKey(matRand):
-            return matRand
-        return None
+        while not self.validKey(matRand):
+            matRand = (25 * np.random.random((self.m,self.m))).astype(int)
+        return matRand
 
     def setKey(self, key):
         return super().setKey(key)
 
     def validKey(self, key):
-        det = int(np.round(np.linalg.det(key)))
-        if det == 0:
+        try:
+            matrix_inv = sympy.Matrix(key)
+            matrix_inv = matrix_inv.inv_mod(26)
+            return True
+        except: 
             return False
-        return True
 
     def encode(self, cleartext: str):
         cleartextNum = Cipher.textToInt(cleartext.lower())
+        residue = len(cleartextNum) % self.m
+        dummytextNum = [23] * residue
+        cleartextNum = cleartextNum + dummytextNum
 
         splitCleartext = [
             cleartextNum[i : i + int(self.key.shape[0])]
             for i in range(0, len(cleartextNum), int(self.key.shape[0]))
         ]
-
-        for splitCleartextNum in splitCleartext:
-            splitCleartextNum = np.transpose(np.asarray(splitCleartextNum))[:, np.newaxis]
-
-            while splitCleartextNum.shape[0] != self.key.shape[0]:
-                splitCleartextNum = np.append(splitCleartextNum, Cipher.textToInt([" "]))[:, np.newaxis]
-
-            numbers = np.dot(self.key, splitCleartextNum) % 26
-            n = numbers.shape[0]
-
-            for idx in range(n):
-                number = int(numbers[idx, 0])
-            
-            encodeText = Cipher.intToText(number)
-
-        return "".join(encodeText).upper()
+        encodedText = ""
+        for vector in splitCleartext:
+            if len(vector) == self.key.shape[0]:
+                encoded_partition = np.dot(vector, self.key) % 26
+                encodedText += "".join(Cipher.intToText(encoded_partition))
+        return "".join(encodedText).upper()
 
     def decode(self, ciphertext: str):
-        keyMat = self.key
-        keyInv = HillCipher.matrixModInv(keyMat, self.key)
-        decodedText = ""
+        ciphertext = ciphertext.lower()
+        key_inv = HillCipher.matrixModInv(self.key)
+
         ciphertextNum = Cipher.textToInt(ciphertext)
+        residue = len(ciphertextNum) % self.m
+        dummytextNum = [23] * residue
+        ciphertextNum = ciphertextNum + dummytextNum
 
         splitCiphertext = [
-            ciphertextNum[i : i + int(keyInv.shape[0])]
-            for i in range(0, len(ciphertextNum), int(keyInv.shape[0]))
+            ciphertextNum[i : i + int(key_inv.shape[0])]
+            for i in range(0, len(ciphertextNum), int(key_inv.shape[0]))
         ]
-
-        for splitCiphertextNum in splitCiphertext:
-            splitCiphertextNum = np.transpose(np.asarray(splitCiphertextNum))[:, np.newaxis]
-            numbers = np.dot(keyInv, splitCiphertextNum) % 26
-            n = numbers.shape[0]
-
-            for idx in range(n):
-                number = int(numbers[idx, 0])
-            decodedText += Cipher.intToText(number)
-
+        decodedText = ""
+        for vector in splitCiphertext:
+            if len(vector) == key_inv.shape[0]:
+                res = np.dot(vector, key_inv) % 26
+                decodedText += "".join(Cipher.intToText(res))
         return "".join(decodedText)
 
     @staticmethod
@@ -110,17 +103,10 @@ class HillCipher(Cipher):
         return imgAux
 
     @staticmethod
-    def matrixModInv(self):
-
-        matrixModuInv = np.empty((self.m, self.m))
-        det = int(np.round(np.linalg.det(self.key)))
-        if det != 0:
-            detInv = egcd(det, self.m)[1] % self.m
-            matrixModuInv = (
-                detInv * np.round(det * np.linalg.inv(self.key)).astype(int) % self.m
-            )
-
-        return matrixModuInv
+    def matrixModInv(key):
+        matrix_inv = sympy.Matrix(key)
+        matrix_inv = matrix_inv.inv_mod(26)
+        return np.array(matrix_inv)
 
     @staticmethod
     def generateProperKey(self, m):
@@ -147,11 +133,11 @@ class HillCryptAnalizer(CryptAnalizer):
             l_plaintext = []
             l_ciphertext = []
             for j in range(i, i + m):
-                l_plaintext.append( ord(cleartext[j].upper()) - 65 )
-                l_ciphertext.append( ord(ciphertext[j].upper()) - 65 )
-            mat.append( (l_plaintext, l_ciphertext) )
+                l_plaintext.append(ord(cleartext[j].upper()) - 65)
+                l_ciphertext.append(ord(ciphertext[j].upper()) - 65)
+            mat.append((l_plaintext, l_ciphertext))
 
-        possible_comb_of_matrices = list( combinations(mat, m) )
+        possible_comb_of_matrices = list(combinations(mat, m))
 
         mX = []
         mY = []
@@ -159,34 +145,29 @@ class HillCryptAnalizer(CryptAnalizer):
             mX.append( np.array([i[0][0], i[1][0]]) )
             mY.append( np.array([i[0][1], i[1][1]]) )
 
-        for i in range( len(mX) ):
-            detX = np.linalg.det(mX[i])
-            if detX != 0:
-                mat = Matrix(mX[i])
-                inverseX = mat.inv_mod(26)
+        cipher = HillCipher(m = m)
+        for i in range( len(mX)):
+            if cipher.validKey(mX[i]):
+                inverseX = HillCipher.matrixModInv(mX[i])
                 K = np.dot(inverseX, mY[i])
                 break
 
         key_guessed = K % 26
-        result = "The key is: \n{}".format(key_guessed)
+        result = "The key is: \n{}".format(key_guessed) + "\n" + cleartext
         return result
 
 if __name__ == "__main__":
-    cipher = HillCipher(key=1)
+    cipher = HillCipher(m = 2, key = np.array([[11, 8], [3, 7]]))
     cleartext = "friday"
     encode = cipher.encode(cleartext)
     print(encode)
     decode = cipher.decode(encode)
-    print(decode)
+    print("decoded: ", decode)
     analyzer = HillCryptAnalizer()
     print( analyzer.breakCipher("pqcfku", "friday", 2) )
     
-    print("cualquier cosa")
-    cipher = HillCipher(key=1)
-    cleartext = "helloworld"
-    ciphertext = ""
-    encode = Cipher.encode(cleartext, )
-    print(encode)
-    decode = Cipher.decode(ciphertext, )
-    print(decode)
 
+    a = np.array([5, 17])
+    b = np.array([[18, 14], [5, 14]])
+    res = np.dot(a, b) % 26
+    print(res)

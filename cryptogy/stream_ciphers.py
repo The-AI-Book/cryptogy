@@ -213,16 +213,16 @@ class AutokeyCipher(Cipher):
 
     def decode(self, key_stream: List[int], ciphertext: str = "AXG"):
         
-        print("decode")
+        #print("decode")
         ciphertext = ciphertext.lower()
-        print("ciphertext: ", ciphertext)
+        #print("ciphertext: ", ciphertext)
         intList = Cipher.textToInt(ciphertext)
-        print(intList)
+        #print(intList)
     
         plaintext = [(y - z) % 26 for y, z in zip(intList, key_stream)]
-        print(plaintext)
+        #print(plaintext)
         plaintext = ''.join( Cipher.intToText(plaintext) )
-        print(plaintext)
+        #print(plaintext)
         return plaintext
 
 class AutokeyCryptAnalizer(CryptAnalizer):
