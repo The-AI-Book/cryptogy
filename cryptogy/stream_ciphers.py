@@ -8,7 +8,7 @@ import sympy
 from typing import List
 
 class StreamCipher(Cipher):
-    def __init__(self):
+    def __init__(self,key):
         super().__init__()
         self.key = self.iniKey(key)
 
@@ -18,7 +18,7 @@ class StreamCipher(Cipher):
         except TypeError:
             pass
 
-    def encode(cleartext, key):
+    def encode(self, cleartext: str):
         encodeText = list(cleartext)
         n = 0
         while n < len(encodeText):
@@ -101,7 +101,7 @@ class StreamCipher(Cipher):
         return "".join(encodeText).upper()
    
         
-    def decode(ciphertext, key):
+    def decode(self, ciphertext: str):
         decodeText = list(ciphertext)
         i = 0
         while i < len(decodeText):

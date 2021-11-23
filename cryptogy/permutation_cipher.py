@@ -48,5 +48,5 @@ class PermutationCipher(Cipher):
         return "".join(decodeText)
 
 class PermutationCryptAnalizer(CryptAnalizer):
-        def __init__(self):
+    def __init__(self):
             super().__init__()
