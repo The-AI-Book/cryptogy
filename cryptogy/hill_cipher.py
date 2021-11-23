@@ -5,9 +5,9 @@ import random
 from egcd import egcd
 from sympy import Matrix
 from itertools import combinations
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import numpy as gfg 
+import requests
+from PIL import Image
+from io import BytesIO
 
 class HillCipher(Cipher):
     def _init_(self, m: int, key = ""):
@@ -78,11 +78,30 @@ class HillCipher(Cipher):
 
     @staticmethod
     def imagToMat():
-        img = mpimg.imread("imgInput.jpg")
-        R, G, B = img[:,:,0], img[:,:,1], img[:,:,2]
-        imgGray = 0.2989 * R + 0.5870 * G + 0.1140 * B
-        imgMat = gfg.asarray(imgGray)
-        return imgMat
+        url = " "
+        r = requests.get(url)
+
+        img = Image.open(BytesIO(r.content))
+        img = img.resize([32,32])
+        imgTemp = np.array(img)
+        imgAux = np.zeros([32,32])
+        for n in (range(imgTemp.shape[0])):
+            for m in (range(imgTemp.shape[1])):
+                R = 0
+                G = 0
+                B = 0
+                cont = 0
+                for i in (range(imgTemp.shape[2])):
+                    if i == 0: 
+                        R = imgTemp[n,m,i]*0.3
+                        cont = cont + R
+                    elif i == 1: 
+                        G = imgTemp[n,m,i]*0.59
+                        cont = cont + G
+                    else: 
+                        B = imgTemp[n,m,i]*0.11
+                        cont = cont + B
+                imgAux[n,i] = cont
 
     @staticmethod
     def matrixModInv(self):
