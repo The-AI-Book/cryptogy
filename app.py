@@ -16,7 +16,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route('/<path:path>', methods=['GET'])
 def static_proxy(path):
-  return send_from_directory('./static', path)
+  return send_from_directory('./static2', path)
 
 # Main page.
 @app.route('/', methods = ["GET"])
@@ -24,7 +24,7 @@ def root():
     """
     Return the frontend of the application.
     """
-    return send_from_directory("./static", 'index.html')
+    return send_from_directory("./static2", 'index.html')
 
 # Main page.
 @app.route('/classic', methods = ["GET"])
