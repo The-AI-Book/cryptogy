@@ -21,8 +21,8 @@
                     <option value="substitution">Substitution</option>
                     <option value="affine">Affine</option>
                     <option value="vigenere">Vigenere</option>
-                    <option value="hill">Hill</option>
                     <option value="permutation">Permutation</option>
+                    <option value="hill">Hill</option>
                     <option value="stream">Stream</option>
                 </select>
 
@@ -31,9 +31,9 @@
                     <input type="text" class="form-control" id="key" formControlName="keyLength">
                 </div>
 
-                <div *ngIf = "form.value.cipher == 'hill'" class="form-group mt-3">
+                <div *ngIf="form.value.cipher == 'hill' || form.value.cipher == 'permutation'" class="form-group mt-3">
                     <label for="key" class="mb-2">Number of partitions (m)</label>
-                    <small class = "text-primary ms-2">(From 2 to 32)</small>
+                    <small class="text-primary ms-2">(From 2 to 32)</small>
                     <input type="text" class="form-control" id="key" formControlName="numPartitions">
                 </div>
 
@@ -57,9 +57,7 @@
                 </p>
             </div>
 
-            
-
-            <div *ngIf = "form.value.cipher == 'stream'" class="col-10 form-group mt-4">
+            <div *ngIf="form.value.cipher == 'stream'" class="col-10 form-group mt-4">
                 <label for="key" class="mb-2">Key Stream</label>
                 <input type="text" class="form-control" id="key" formControlName="keyStream">
                 <p *ngIf="invalidKey" class="alert alert-danger">
@@ -90,6 +88,7 @@
                     Unexpected error while encrypting clear text.
                 </p>
             </div>
+
             <div class="col-10 col-lg-5 mt-3">
                 <div class="form-group mt-3">
                     <label class="mb-2" for="ciphertext">Cipher text</label>
@@ -106,10 +105,14 @@
                         Loading...
                     </button>
 
-                    <button *ngIf="!analyzeLoading && this.form.value.cipher != 'stream' && this.form.value.cipher != 'hill'" type="submit" class="btn btn-outline-secondary ms-1"
+                    <button
+                        *ngIf="!analyzeLoading && this.form.value.cipher != 'stream' && this.form.value.cipher != 'hill'"
+                        type="submit" class="btn btn-outline-secondary ms-1"
                         [disabled]="this.form.value.ciphertext == '' || decryptLoading "
                         (click)="analyze()">Analyze</button>
-                    <button *ngIf="!analyzeLoading && (this.form.value.cipher == 'stream' || this.form.value.cipher == 'hill')" type="submit" class="btn btn-outline-secondary ms-1"
+                    <button
+                        *ngIf="!analyzeLoading && (this.form.value.cipher == 'stream' || this.form.value.cipher == 'hill')"
+                        type="submit" class="btn btn-outline-secondary ms-1"
                         [disabled]="this.form.value.cleartext == '' || this.form.value.ciphertext == '' "
                         (click)="analyze()">Analyze</button>
 
@@ -129,10 +132,47 @@
                     {{ this.errorAnalyzeMessage }}
                 </p>
             </div>
-            <div *ngIf = "form.value.cipher == 'stream' || form.value.cipher == 'hill'" class="col-10 mt-3 alert alert-warning">
+
+            <div *ngIf="form.value.cipher == 'stream' || form.value.cipher == 'hill'"
+                class="col-10 mt-3 alert alert-warning">
                 Cryptoanalysis of this cipher requires a pair of cleartext and ciphertext.
             </div>
 
+            <!-- Encriptado de imágenes -->
+            <div *ngIf="form.value.cipher == 'hill' || form.value.cipher == 'permutation'" class="col-10 col-lg-5 mt-4">
+                <div class="form-group mt-3 d-flex justify-content-center" *ngIf="this.urlImage1 != null">
+                    <img src={{this.urlImage1}}
+                        style="width: 400px; height: 300px; max-width: 400px; max-height: 300px;">
+                </div>
+    
+                <div *ngIf="this.urlImage1 == null" class="d-flex justify-content-center border border-secondary"
+                    style="width: 450px; height: 300px; max-width: 450px; max-height: 300px;">
+
+                </div>
+                <div class="d-flex justify-content-center mt-3">
+                    <button [disabled]="this.imageLoading" type="button" class="btn btn-outline-primary"
+                        style="width: 100px;" (click)="filePicker1.click()"> Subir </button>
+                    <input type="file" #filePicker1 style="display:none" accept="image/*"
+                        (change)="onFileSelected1($event)" multiple="multiple">
+                </div>
+            </div>
+            <div *ngIf="form.value.cipher == 'hill' || form.value.cipher == 'permutation'" class="col-10 col-lg-5 mt-4">
+                <div *ngIf="this.urlImage2 != null" class="d-flex justify-content-center border border-secondary"
+                    style="width: 450px; height: 300px; max-width: 450px; max-height: 300px;">
+                    <img src={{this.urlImage2}}
+                        style="width: 450px; height: 300px; max-width: 450px; max-height: 300px;">
+                </div>
+                <div *ngIf="this.urlImage2 == null" class="d-flex justify-content-center border border-secondary"
+                    style="width: 450px; height: 300px; max-width: 450px; max-height: 300px;">
+
+                </div>
+                <div class="d-flex justify-content-center mt-3">
+                    <button [disabled]="this.imageLoading" type="button" class="btn btn-outline-primary"
+                        style="width: 100px;" (click)="filePicker2.click()"> Subir </button>
+                    <input type="file" #filePicker2 style="display:none" accept="image/*"
+                        (change)="onFileSelected1($event)" multiple="multiple">
+                </div>
+            </div>
 
         </form>
 

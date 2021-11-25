@@ -39,10 +39,7 @@ def generate_random_key():
     data=request.get_json()
     if data == None:
         data = request.values
-    try:
-        cipher = utils.get_cipher(data)
-    except Exception as e: 
-        return jsonify("Invalid Key"), 401
+    cipher = utils.get_cipher(data)
     random_key = cipher.generateRandomKey()
     if isinstance(cipher, HillCipher):
         random_key = utils.format_darray(random_key)
@@ -87,21 +84,23 @@ def analyze():
         data = request.values
     ciphertext = data["ciphertext"]
     analyzer = utils.get_analyzer(data)
-    try:
-        if isinstance(analyzer, AutokeyCryptAnalizer):
-            cleartext = data["cleartext"]
-            results = analyzer.breakCipher(cleartext, ciphertext)
-        elif isinstance(analyzer, HillCryptAnalizer):
-            cleartext = data["cleartext"]
-            numPartitions = data["numPartitions"]
-            results = analyzer.breakCipher(ciphertext, cleartext, numPartitions)
-        else:
-            results = analyzer.breakCipher(ciphertext)
-    except Exception as e: 
-        return jsonify(str(e)), 404
+ 
+    if isinstance(analyzer, AutokeyCryptAnalizer):
+        cleartext = data["cleartext"]
+        results = analyzer.breakCipher(cleartext, ciphertext)
+    elif isinstance(analyzer, HillCryptAnalizer):
+        cleartext = data["cleartext"]
+        numPartitions = int(data["numPartitions"])
+        #print(cleartext)
+        #print(numPartitions)
+        #print(ciphertext)
+        results = analyzer.breakCipher(ciphertext, cleartext, numPartitions)
+    else:
+        results = analyzer.breakCipher(ciphertext)
+
     return jsonify({"cleartext":results}), 200
 
 
 
 if __name__ == '__main__':
-    app.run(debug = False)
+    app.run(debug = True)

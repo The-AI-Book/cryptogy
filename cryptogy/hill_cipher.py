@@ -11,16 +11,22 @@ from PIL import Image
 from io import BytesIO
 
 class HillCipher(Cipher):
-    def __init__(self, m: int, key = ""):
+    def __init__(self, m: int, key = "", permutation_cipher = False):
         super().__init__()
         self.m = m
+        self.permutation_cipher = permutation_cipher
         self.key = self.iniKey(key)
 
     def generateRandomKey(self):
-        matRand = (25 * np.random.random((self.m,self.m))).astype(int)
-        while not self.validKey(matRand):
+        if not self.permutation_cipher:
             matRand = (25 * np.random.random((self.m,self.m))).astype(int)
-        return matRand
+            while not self.validKey(matRand):
+                matRand = (25 * np.random.random((self.m,self.m))).astype(int)
+            return matRand
+        else: 
+            identity = np.identity(self.m)
+            elemental = (np.random.permutation(identity)).astype(int)
+            return elemental
 
     def setKey(self, key):
         return super().setKey(key)
@@ -129,6 +135,9 @@ class HillCryptAnalizer(CryptAnalizer):
     def breakCipher(self, ciphertext, cleartext, m):
         mat = []
 
+        res = len(ciphertext) - len(cleartext)
+        cleartext += ("x" * res)
+
         for i in range(0, len(cleartext), m):
             l_plaintext = []
             l_ciphertext = []
@@ -138,7 +147,6 @@ class HillCryptAnalizer(CryptAnalizer):
             mat.append((l_plaintext, l_ciphertext))
 
         possible_comb_of_matrices = list(combinations(mat, m))
-
         mX = []
         mY = []
         for i in possible_comb_of_matrices:
@@ -150,11 +158,10 @@ class HillCryptAnalizer(CryptAnalizer):
             if cipher.validKey(mX[i]):
                 inverseX = HillCipher.matrixModInv(mX[i])
                 K = np.dot(inverseX, mY[i])
-                break
-
-        key_guessed = K % 26
-        result = "The key is: \n{}".format(key_guessed) + "\n" + cleartext
-        return result
+                key_guessed = K % 26
+                result = "The key is: \n{}".format(key_guessed) + "\n" + cleartext
+                return result
+        raise Exception("Key not found.")
 
 if __name__ == "__main__":
     cipher = HillCipher(m = 2, key = np.array([[11, 8], [3, 7]]))

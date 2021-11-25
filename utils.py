@@ -50,7 +50,7 @@ def get_analyzer(data: dict):
     elif cipher == "hill":
         return cryptogy.HillCryptAnalizer()
     elif cipher == "permutation":
-        return None
+        return cryptogy.HillCryptAnalizer()
     elif cipher == "stream":
         return cryptogy.AutokeyCryptAnalizer()
 
@@ -68,6 +68,6 @@ def get_cipher(data: dict):
     elif cipher == "hill":
         return cryptogy.HillCipher(m = int(data["numPartitions"]))
     elif cipher == "permutation":
-        return None
+        return cryptogy.HillCipher(m = int(data["numPartitions"]), permutation_cipher=True)
     elif cipher == "stream":
         return cryptogy.AutokeyCipher()

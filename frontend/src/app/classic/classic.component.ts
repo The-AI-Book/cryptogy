@@ -24,6 +24,11 @@ export class ClassicComponent implements OnInit {
   errorAnalyze: boolean = false;
   errorAnalyzeMessage: string = "";
 
+  imageLoading: boolean = false;
+  errorImage: boolean = false;
+  urlImage1: string | ArrayBuffer = null;
+  urlImage2: string | ArrayBuffer = null;
+
   form: FormGroup;
   key: string = "";
   invalidKey: boolean = false;
@@ -31,7 +36,7 @@ export class ClassicComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = new FormGroup({
-      cipher: new FormControl("hill", { validators: Validators.required }),
+      cipher: new FormControl("permutation", { validators: Validators.required }),
       keyLength: new FormControl(5),
       key: new FormControl(null, { validators: Validators.required }),
       cleartext: new FormControl(''),
@@ -163,4 +168,24 @@ export class ClassicComponent implements OnInit {
     this.form.controls["keyStream"].disable();
   }
 
+  onFileSelected1(event: any){
+    const files = event.target.files;
+    if (files.length === 0)
+        return;
+
+    const mimeType = files[0].type;
+    if (mimeType.match(/image\/*/) == null) {
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(files[0]); 
+    reader.onload = (_event) => { 
+        this.urlImage1 = reader.result; 
+    }
+  }
+
+  onFileSelected2(event: any){
+
+  }
 }
