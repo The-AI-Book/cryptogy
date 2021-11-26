@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, make_response
+from flask import Flask, jsonify, request, make_response, send_file
 from flask.helpers import send_from_directory
 from flask_cors import CORS
 import logging
@@ -53,13 +53,38 @@ def encrypt():
     cleartext = data["cleartext"]
     key = utils.format_key(data["key"])
     cipher = utils.get_cipher(data)
- 
     cipher.setKey(key)
     encode_text = cipher.encode(cleartext)
     if isinstance(cipher, AutokeyCipher):
         return jsonify({"ciphertext":encode_text[0], "key_stream": encode_text[1]}), 200
     else:
         return jsonify({"ciphertext":encode_text}), 200
+
+@app.route("/api/encrypt_image", methods = ["POST"])
+def encrypt_image():
+    from PIL import Image
+    print("encrypt iamge")
+    image = request.files.getlist("files")[0]
+    img = Image.open(image)
+    img = img.resize((128, 128))
+    print(img.size)
+    import numpy as np
+    img = np.asarray(img.convert("L"))
+    print("image:--")
+    print(img)
+    print(type(img))
+    print(img.size)
+    #img.resize((256, 256))
+    #img.save("./images/output2.png")
+    #res = HillCipher.imagToMat(image)
+    print(img.shape)
+    print(img)
+
+    img = Image.fromarray(img)
+    img.save("./images/gray2.png")
+
+    return send_file(mimetype = "png", cache_timeout=0)
+
 
 @app.route("/api/decrypt", methods = ["POST"])
 def decrypt():

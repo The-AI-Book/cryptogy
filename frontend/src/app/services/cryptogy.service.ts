@@ -22,7 +22,7 @@ export class CryptogyService {
            cleartext: "",
            ciphertext: "",
            keyStream: "", 
-           numPartitions: numPartitions
+           numPartitions: numPartitions, 
         }
         return this.http.post(this.endpoint + "/api/generate_random_key", CryptoData);
     }
@@ -41,10 +41,21 @@ export class CryptogyService {
             keyLength: keyLength, 
             ciphertext: "", 
             keyStream: "", 
-            numPartitions: numPartitions
+            numPartitions: numPartitions, 
         }
+        console.log(CryptoData);
         return this.http.post(this.endpoint + "/api/encrypt", CryptoData);
     }
+
+    encrypt_image(
+        file: File
+    ){
+        const data = new FormData();
+        data.append("files", file, file.name);
+        return this.http.post(this.endpoint + "/api/encrypt_image", data)
+    }
+
+
     decrypt(
         key: string, 
         cipher: string, 
@@ -60,7 +71,7 @@ export class CryptogyService {
             keyLength: keyLength, 
             keyStream: keyStream, 
             cleartext: "", 
-            numPartitions: numPartitions
+            numPartitions: numPartitions, 
         }
         console.log(CryptoData);
         return this.http.post(this.endpoint + "/api/decrypt", CryptoData);
@@ -78,7 +89,7 @@ export class CryptogyService {
             keyStream: "", 
             key: "", 
             keyLength: "", 
-            numPartitions: numPartitions
+            numPartitions: numPartitions, 
         }
         return this.http.post(this.endpoint + "/api/analyze", CryptoData);
     }

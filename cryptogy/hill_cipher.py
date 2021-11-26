@@ -77,11 +77,10 @@ class HillCipher(Cipher):
         return "".join(decodedText)
 
     @staticmethod
-    def imagToMat():
-        url = " "
-        r = requests.get(url)
-
-        img = Image.open(BytesIO(r.content))
+    def imagToMat(img):
+        #img = Image.open(BytesIO(img.content))
+        import cv2
+        img = cv2.imdecode(np.frombuffer(img.read(), np.uint8), -1)
         img = img.resize([32,32])
         imgTemp = np.array(img)
         imgAux = np.zeros([32,32])
