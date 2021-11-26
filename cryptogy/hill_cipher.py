@@ -1,10 +1,12 @@
 from sympy.series.residues import residue
 from .cipher import Cipher, CryptAnalizer
 import numpy as np
+from collections import deque
 import math
 import random
 from egcd import egcd
 import sympy
+from sympy import Matrix
 from itertools import combinations
 import requests
 from PIL import Image
@@ -123,6 +125,11 @@ class HillCipher(Cipher):
                 k += 1
         return keyMat
 
+    def chrToInt(c):
+        c = c.upper()
+        n = ord(c) - 65
+        return n
+
 class HillCryptAnalizer(CryptAnalizer):
     def __init__(self):
         super().__init__()
@@ -132,48 +139,33 @@ class HillCryptAnalizer(CryptAnalizer):
         return (np.linalg.det(key) != 0)
 
     def breakCipher(self, ciphertext, cleartext, m):
+        i = 0
         mat = []
-
-        res = len(ciphertext) - len(cleartext)
-        cleartext += ("x" * res)
-
-        for i in range(0, len(cleartext), m):
-            l_plaintext = []
-            l_ciphertext = []
-            for j in range(i, i + m):
-                l_plaintext.append(ord(cleartext[j].upper()) - 65)
-                l_ciphertext.append(ord(ciphertext[j].upper()) - 65)
-            mat.append((l_plaintext, l_ciphertext))
+        for r in range( int(len(cleartext) / m) ):
+            mat.append( (list( map(HillCipher.chrToInt, cleartext[i : i+m]) ), list( map(HillCipher.chrToInt, ciphertext[i : i+m]) )) )
+            i += m
 
         possible_comb_of_matrices = list(combinations(mat, m))
-        mX = []
-        mY = []
-        for i in possible_comb_of_matrices:
-            mX.append( np.array([i[0][0], i[1][0]]) )
-            mY.append( np.array([i[0][1], i[1][1]]) )
 
-        cipher = HillCipher(m = m)
-        for i in range( len(mX)):
-            if cipher.validKey(mX[i]):
-                inverseX = HillCipher.matrixModInv(mX[i])
-                K = np.dot(inverseX, mY[i])
-                key_guessed = K % 26
-                result = "The key is: \n{}".format(key_guessed) + "\n" + cleartext
-                return result
-        raise Exception("Key not found.")
+        for mat in possible_comb_of_matrices:
+            possible_mat_X = deque()
+            possible_mat_Y = deque()
+            for j in range(m):
+                possible_mat_X.append(mat[j][0])
+                possible_mat_Y.append(mat[j][1])
+
+            possible_mat_X = np.array(possible_mat_X)
+            possible_mat_Y = np.array(possible_mat_Y)
+
+            print(possible_mat_X)
+            try:
+                invMat = np.array( Matrix(possible_mat_X).inv_mod(26) )
+                return "Key:\n" + np.array2string(np.dot(invMat, possible_mat_Y) % 26)
+            except Exception as e:
+                continue
+        
+        return "Error: Matrix is not invertible mod 26"
 
 if __name__ == "__main__":
-    cipher = HillCipher(m = 2, key = np.array([[11, 8], [3, 7]]))
-    cleartext = "friday"
-    encode = cipher.encode(cleartext)
-    print(encode)
-    decode = cipher.decode(encode)
-    print("decoded: ", decode)
     analyzer = HillCryptAnalizer()
-    print( analyzer.breakCipher("pqcfku", "friday", 2) )
-    
-
-    a = np.array([5, 17])
-    b = np.array([[18, 14], [5, 14]])
-    res = np.dot(a, b) % 26
-    print(res)
+    print( analyzer.breakCipher("IEVQCULSWKBUQARW", "abcdefghijklmnop", 4) )
