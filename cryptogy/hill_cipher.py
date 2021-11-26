@@ -58,6 +58,10 @@ class HillCipher(Cipher):
                 encodedText += "".join(Cipher.intToText(encoded_partition))
         return "".join(encodedText).upper()
 
+    def encode_image(self, image: np.array):
+        new_img = np.matmul(image, self.key)
+        return Image.fromarray(new_img) 
+
     def decode(self, ciphertext: str):
         ciphertext = ciphertext.lower()
         key_inv = HillCipher.matrixModInv(self.key)
@@ -78,36 +82,17 @@ class HillCipher(Cipher):
                 decodedText += "".join(Cipher.intToText(res))
         return "".join(decodedText)
 
+    def decode_image(self, image: np.array):
+        key_inv = HillCipher.matrixModInv(self.key)
+        new_img = np.matmul(image, key_inv) 
+        return Image.fromarray(new_img)
+
     @staticmethod
-    def imagToMat(img):
-        #img = Image.open(BytesIO(img.content))
-        import cv2
-        img = cv2.imdecode(np.frombuffer(img.read(), np.uint8), -1)
-        img = img.resize([32,32])
-        imgTemp = np.array(img)
-        imgAux = np.zeros([32,32])
-        for n in (range(imgTemp.shape[0])):
-            for m in (range(imgTemp.shape[1])):
-                R = 0
-                G = 0
-                B = 0
-                cont = 0
-                for i in (range(imgTemp.shape[2])):
-                    if i == 0: 
-                        R = imgTemp[n,m,i]*0.3
-                        cont = cont + R
-                    elif i == 1: 
-                        G = imgTemp[n,m,i]*0.59
-                        cont = cont + G
-                    else: 
-                        B = imgTemp[n,m,i]*0.11
-                        cont = cont + B
-                imgAux[n,i] = cont
-        """
-        imgRes = PIL.Image.fromarray(np.uint8(imgAux))
-        """
-        
-        return imgAux
+    def imagToMat(image, resize = 128):
+        img = Image.open(image)
+        img = img.resize((resize, resize))
+        img = np.asarray(img.convert("L"))
+        return img
 
     @staticmethod
     def matrixModInv(key):
@@ -164,7 +149,7 @@ class HillCryptAnalizer(CryptAnalizer):
             except Exception as e:
                 continue
         
-        return "Error: Matrix is not invertible mod 26"
+        raise Exception("Error: Matrix is not invertible mod 26")
 
 if __name__ == "__main__":
     analyzer = HillCryptAnalizer()

@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
 import { Subject } from "rxjs";
 import { environment } from "src/environments/environment";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Crypto } from "../models/crypto.model";
 
 @Injectable({ providedIn: 'root' })
@@ -52,7 +52,11 @@ export class CryptogyService {
     ){
         const data = new FormData();
         data.append("files", file, file.name);
-        return this.http.post(this.endpoint + "/api/encrypt_image", data)
+        let headers = new HttpHeaders({
+            "Access-Control-Allow-Methods": "POST, GET"
+        });
+        let options = {headers: headers};
+        return this.http.post(this.endpoint + "/api/encrypt_image", data, options)
     }
 
 
