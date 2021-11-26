@@ -133,47 +133,43 @@
                 </p>
             </div>
 
-            <div *ngIf="form.value.cipher == 'stream' || form.value.cipher == 'hill'"
+            <div *ngIf="form.value.cipher == 'stream' || form.value.cipher == 'hill' || form.value.cipher == 'permutation'"
                 class="col-10 mt-3 alert alert-warning">
                 Cryptoanalysis of this cipher requires a pair of cleartext and ciphertext.
             </div>
 
             <!-- Encriptado de imágenes -->
-            <div *ngIf="form.value.cipher == 'hill' || form.value.cipher == 'permutation'" class="col-10 col-lg-5 mt-4">
-                <div class="form-group mt-3 d-flex justify-content-center" *ngIf="this.urlImage1 != null">
-                    <img src={{this.urlImage1}}
-                        style="width: 400px; height: 300px; max-width: 400px; max-height: 300px;">
-                </div>
-    
-                <div *ngIf="this.urlImage1 == null" class="d-flex justify-content-center border border-secondary"
-                    style="width: 450px; height: 300px; max-width: 450px; max-height: 300px;">
-
-                </div>
-                <div class="d-flex justify-content-center mt-3">
-                    <button [disabled]="this.imageLoading" type="button" class="btn btn-outline-primary"
-                        style="width: 100px;" (click)="filePicker1.click()"> Subir </button>
-                    <input type="file" #filePicker1 style="display:none" accept="image/*"
-                        (change)="onFileSelected1($event)" multiple="multiple">
-                </div>
+            <div class="col-10 col-lg-5 mt-4" *ngIf="form.value.cipher == 'hill' || form.value.cipher == 'permutation'">
+               <div class = "form-group">
+                    <label for="key" class="mb-2">Clear image</label>
+                    <div class = "d-flex justify-content-center">
+                        <img src = {{clearImage}} width = "420px" height = "300px" class = "shadow-sm">
+                    </div>
+                    <div class = "d-flex justify-content-center mt-4">
+                        <button class = "btn btn-outline-danger me-2" (click)="filePicker.click()">Upload</button>
+                        <button *ngIf="!encryptLoading" type="submit" class="btn btn-outline-primary me-2"
+                        [disabled]="form.invalid || form.value.file == ''" (click)="encrypt_image()">Encrypt</button>
+                        <button class = "btn btn-outline-info">Clear</button>
+                    </div>
+                    
+                    <input style="display: none;" type = "file" accept="image/*" #filePicker (change)="onFileSelected($event)" name="file" id = "file">
+               </div>
             </div>
-            <div *ngIf="form.value.cipher == 'hill' || form.value.cipher == 'permutation'" class="col-10 col-lg-5 mt-4">
-                <div *ngIf="this.urlImage2 != null" class="d-flex justify-content-center border border-secondary"
-                    style="width: 450px; height: 300px; max-width: 450px; max-height: 300px;">
-                    <img src={{this.urlImage2}}
-                        style="width: 450px; height: 300px; max-width: 450px; max-height: 300px;">
+            
+            <div class="col-10 col-lg-5 mt-4" *ngIf="form.value.cipher == 'hill' || form.value.cipher == 'permutation'">
+                <div class = "form-group">
+                     <label for="key" class="mb-2">Cipher image</label>
+                     <div class = "d-flex justify-content-center">
+                        <img src = {{cipherImage}} width = "420px" height = "300px" class = "shadow-sm">
+                    </div>
+                     <div class = "d-flex justify-content-center mt-4">
+                        <button class = "btn btn-outline-primary me-2">Decrypt</button>
+                        <button class = "btn btn-outline-secondary">Analyze</button> 
+                     </div>
+                     
+            
                 </div>
-                <div *ngIf="this.urlImage2 == null" class="d-flex justify-content-center border border-secondary"
-                    style="width: 450px; height: 300px; max-width: 450px; max-height: 300px;">
-
-                </div>
-                <div class="d-flex justify-content-center mt-3">
-                    <button [disabled]="this.imageLoading" type="button" class="btn btn-outline-primary"
-                        style="width: 100px;" (click)="filePicker2.click()"> Subir </button>
-                    <input type="file" #filePicker2 style="display:none" accept="image/*"
-                        (change)="onFileSelected1($event)" multiple="multiple">
-                </div>
-            </div>
-
+             </div>
         </form>
 
     </div>

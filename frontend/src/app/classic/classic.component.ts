@@ -26,8 +26,8 @@ export class ClassicComponent implements OnInit {
 
   imageLoading: boolean = false;
   errorImage: boolean = false;
-  urlImage1: string | ArrayBuffer = null;
-  urlImage2: string | ArrayBuffer = null;
+  clearImage: string | ArrayBuffer = null;
+  cipherImage: string | ArrayBuffer = null;
 
   form: FormGroup;
   key: string = "";
@@ -42,7 +42,8 @@ export class ClassicComponent implements OnInit {
       cleartext: new FormControl(''),
       ciphertext: new FormControl(''),
       keyStream: new FormControl(''), 
-      numPartitions: new FormControl(2, {validators: Validators.required} )
+      numPartitions: new FormControl(2, {validators: Validators.required}), 
+      file: new FormControl(null)
     });
     this.generate_random_key();
   }
@@ -90,7 +91,7 @@ export class ClassicComponent implements OnInit {
       values.cipher,
       values.cleartext, 
       values.keyLength, 
-      values.numPartitions
+      values.numPartitions, 
     ).subscribe(
       data => {
         this.encryptLoading = false;
@@ -106,6 +107,19 @@ export class ClassicComponent implements OnInit {
         }
         this.encryptLoading = false;
         this.errorEncrypt = true;
+      }
+    )
+  }
+
+  encrypt_image(){
+    console.log("encrypt image!");
+    this.cryptoService.encrypt_image(this.form.value.file)
+    .subscribe(
+      data => {
+        console.log(data);
+      }, 
+      err => {
+        console.log(err);
       }
     )
   }
@@ -168,7 +182,7 @@ export class ClassicComponent implements OnInit {
     this.form.controls["keyStream"].disable();
   }
 
-  onFileSelected1(event: any){
+  onFileSelected(event: any){
     const files = event.target.files;
     if (files.length === 0)
         return;
@@ -178,14 +192,18 @@ export class ClassicComponent implements OnInit {
         return;
     }
 
+    this.form.patchValue({file: files[0]});
+    this.form.updateValueAndValidity();
+
+    console.log(files);
+    console.log(files[0]);
+    console.log(this.form.value.file);
+
     const reader = new FileReader();
     reader.readAsDataURL(files[0]); 
     reader.onload = (_event) => { 
-        this.urlImage1 = reader.result; 
+        this.clearImage = reader.result; 
     }
   }
 
-  onFileSelected2(event: any){
-
-  }
 }
