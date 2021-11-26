@@ -117,6 +117,9 @@ export class ClassicComponent implements OnInit {
     .subscribe(
       data => {
         console.log(data);
+        const reader = new FileReader();
+        reader.onload = (e) => this.cipherImage = e.target.result;
+        reader.readAsDataURL(new Blob([<any> data]));
       }, 
       err => {
         console.log(err);

@@ -6,13 +6,23 @@ import cryptogy
 from cryptogy.hill_cipher import HillCipher, HillCryptAnalizer
 from cryptogy.stream_ciphers import AutokeyCipher, AutokeyCryptAnalizer, StreamCipher
 import utils
-import json
+from base64 import encodebytes
+import io
+from PIL import Image
 
 logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+
+def get_response_image(image_path):
+    pil_img = Image.open(image_path, mode='r') # reads the PIL image
+    byte_arr = io.BytesIO()
+    pil_img.save(byte_arr, format='PNG') # convert the PIL image to byte array
+    encoded_img = encodebytes(byte_arr.getvalue()).decode('ascii') # encode as base64
+    return encoded_img
+
 
 @app.route('/<path:path>', methods=['GET'])
 def static_proxy(path):
@@ -62,28 +72,28 @@ def encrypt():
 
 @app.route("/api/encrypt_image", methods = ["POST"])
 def encrypt_image():
-    from PIL import Image
-    print("encrypt iamge")
-    image = request.files.getlist("files")[0]
-    img = Image.open(image)
-    img = img.resize((128, 128))
-    print(img.size)
-    import numpy as np
-    img = np.asarray(img.convert("L"))
-    print("image:--")
-    print(img)
-    print(type(img))
-    print(img.size)
-    #img.resize((256, 256))
-    #img.save("./images/output2.png")
-    #res = HillCipher.imagToMat(image)
-    print(img.shape)
-    print(img)
+    img = request.files.getlist("files")[0]
+    resize = 8
+    img = HillCipher.imagToMat(img, resize)
+    print("image to matrix!")
+    cipher = HillCipher(m = resize) 
+    print(cipher)
+    new_img = cipher.encode_image(img)
+    new_img.save("./images/temp.png")
+    encoded_img = get_response_image("./images/temp.png")
+    print("Type of image: ", type(encoded_img))
+    my_message = "here is my message"
+    response = {"message": my_message, "image": encoded_img}
+    file = send_file("./images/temp.png", mimetype="image/PNG", as_attachment=False, max_age = 0)
+    print(file)
 
-    img = Image.fromarray(img)
-    img.save("./images/gray2.png")
-
-    return send_file(mimetype = "png", cache_timeout=0)
+    response = make_response(encoded_img)
+    response.headers.set("Content-Type", "image/jpeg")
+    response.headers.set(
+        "Content-Disposition", "attachment", filename = "encrypted_image.jpg"
+    )
+    print(response)
+    return response
 
 
 @app.route("/api/decrypt", methods = ["POST"])
@@ -128,4 +138,4 @@ def analyze():
 
 
 if __name__ == '__main__':
-    app.run(debug = True)
+    app.run(port = 5000, debug = True)
