@@ -1,6 +1,10 @@
-from .cipher import Cipher, CryptAnalizer
+from cipher import Cipher, CryptAnalizer
 import numpy as np 
 import copy
+from pycipher import SimpleSubstitution as SimpleSub
+import random
+import re
+from ngram_score import ngram_score
 
 class SubstitutionCipher(Cipher):
     def __init__(self, key = ""):
@@ -39,23 +43,41 @@ class SubstitutionCryptAnalizer(CryptAnalizer):
         super().__init__()
 
     def breakCipher(self, ciphertext: str = "YIFQFMZRWQFYVECFMDZPCVMRZWNMDZVEJBTXCDDUMJNDIFEFMDZCDMQZKCEYFCJMYRNCWJCSZREXCHZUNMXZNZUCDRJXYYSMRTMEYIFZWDYVZVYFZUMRZCRWNZDZJJXZWGCHSMRNMDHNCMFQCHZJMXJZWIEJYUCFWDJNZDIR", max_tries: int = 5):
-        frecuency = CryptAnalizer.getLettersFrecuency(ciphertext)
-        index_frequency = CryptAnalizer.getArgMaxIndex(frecuency)
-        print(frecuency)
-        print(index_frequency)
+        fitness = ngram_score('quadgrams.txt') # load our quadgram statistics
+        ctext = re.sub('[^A-Z]','', ciphertext.upper())
+        maxkey = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+        maxscore = -99e9
+        parentscore,parentkey = maxscore,maxkey[:]
+        # keep going until we are killed by the user
+        i = 0
+        while i <= 10000:
+            i = i+1
+            random.shuffle(parentkey)
+            deciphered = SimpleSub(parentkey).decipher(ctext)
+            parentscore = fitness.score(deciphered)
+            count = 0
+            while count < 1000:
+                a = random.randint(0,25)
+                b = random.randint(0,25)
+                child = parentkey[:]
+                # swap two characters in the child
+                child[a],child[b] = child[b],child[a]
+                deciphered = SimpleSub(child).decipher(ctext)
+                score = fitness.score(deciphered)
+                # if the child was better, replace the parent with it
+                if score > parentscore:
+                    parentscore = score
+                    parentkey = child[:]
+                    count = 0
+                count = count+1
+            # keep track of best score seen so far
+            if parentscore > maxscore:
+                maxscore,maxkey = parentscore,parentkey[:]
+                ss = SimpleSub(maxkey)
+                print('Key:', Cipher.textToInt(''.join(maxkey)), "\ngenerates " + ss.decipher(ctext))
 
 
 if __name__ == "__main__":
-    cipher = SubstitutionCipher(
-                key = [9, 23, 24, 25, 14, 16, 2, 3, 15, 4, 10, 20, 18, 8, 22, 11, 1, 12, 19, 0, 17, 7, 6, 13, 5, 21])
-    print(cipher.key)
-    cleartext = "letsmeettomorrowmorning"
-    print(cleartext)
-    ciphertext = cipher.encode(cleartext)
-    print(ciphertext)
-    decodedtext = cipher.decode(ciphertext)
-    print(decodedtext)
-
     analyzer = SubstitutionCryptAnalizer()
-    analyzer.breakCipher(ciphertext = "YIFQFMZRWQFYVECFMDZPCVMRZWNMDZVEJBTXCDDUMJNDIFEFMDZCDMQZKCEYFCJMYRNCWJCSZREXCHZUNMXZNZUCDRJXYYSMRTMEYIFZWDYVZVYFZUMRZCRWNZDZJJXZWGCHSMRNMDHNCMFQCHZJMXJZWIEJYUCFWDJNZDIR")
+    analyzer.breakCipher(ciphertext = "CPDVCPIRDCGDVFCHJICYAHAJADCPDCAJCWEJSHDVARAWSPSPFCPIPDSDIESVR")
     
