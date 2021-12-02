@@ -35,7 +35,7 @@ def root():
     """
     Return the frontend of the application.
     """
-    return send_from_directory("./static2", 'index.html')
+    return send_from_directory("./static", 'index.html')
 
 # Main page.
 @app.route('/classic', methods = ["GET"])
