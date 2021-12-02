@@ -4,7 +4,7 @@ import math
 import random
 
 class PermutationCipher(Cipher):
-    def __init__(self):
+    def __init__(self, key = None):
         super().__init__()
         self.key = self.iniKey(key)
 

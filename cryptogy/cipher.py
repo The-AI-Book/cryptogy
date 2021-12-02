@@ -16,11 +16,15 @@ class Cipher:
         return [chr(number + 96 + 1) for number in integers]
 
     def iniKey(self, key):
-        if key == "":
+        #print("KEEY: ", key, type(key), key is None)
+        if key is None:
+            #print("generating key...")
             return self.generateRandomKey()
         elif not self.validKey(key):
+            print("not valid key!")
             raise Exception("An error occured when trying to set a key: invalid key.")
         else: 
+            print("return key...")
             return key
 
     def validKey(self, key):

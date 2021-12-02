@@ -190,7 +190,7 @@ class StreamCipher(Cipher):
         return "".join(decodeText)
 
 class AutokeyCipher(Cipher):
-    def __init__(self, key = ""):
+    def __init__(self, key = None):
         super().__init__()
         self.key = self.iniKey(key)
         self.key_stream = [self.key]

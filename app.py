@@ -9,6 +9,7 @@ import utils
 from base64 import encodebytes
 import io
 from PIL import Image
+from utils import images_key
 
 logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
@@ -26,7 +27,7 @@ def get_response_image(image_path):
 
 @app.route('/<path:path>', methods=['GET'])
 def static_proxy(path):
-  return send_from_directory('./static2', path)
+  return send_from_directory('./static', path)
 
 # Main page.
 @app.route('/', methods = ["GET"])
@@ -42,7 +43,7 @@ def classic():
     """
     Return the frontend of the application.
     """
-    return send_from_directory("./static2", 'index.html')
+    return send_from_directory("./static", 'index.html')
 
 @app.route("/api/generate_random_key", methods = ["POST"])
 def generate_random_key():
@@ -60,7 +61,7 @@ def encrypt():
     data=request.get_json()
     if data == None:
         data = request.values
-    cleartext = data["cleartext"]
+    cleartext = data["cleartext"].lower().replace(" ", "")
     key = utils.format_key(data["key"])
     cipher = utils.get_cipher(data)
     cipher.setKey(key)
@@ -70,31 +71,24 @@ def encrypt():
     else:
         return jsonify({"ciphertext":encode_text}), 200
 
-@app.route("/api/encrypt_image", methods = ["POST"])
+@app.route("/api/encrypt_image", methods = ["POST", "GET"])
 def encrypt_image():
+    print("encrypt image!")
     img = request.files.getlist("files")[0]
-    resize = 8
-    img = HillCipher.imagToMat(img, resize)
-    print("image to matrix!")
-    cipher = HillCipher(m = resize) 
-    print(cipher)
+    img = HillCipher.imagToMat(img, resize = 4)
+    #print(img)
+    cipher = HillCipher(m = 4)    
+    print("trying to encode...") 
     new_img = cipher.encode_image(img)
     new_img.save("./images/temp.png")
-    encoded_img = get_response_image("./images/temp.png")
-    print("Type of image: ", type(encoded_img))
-    my_message = "here is my message"
-    response = {"message": my_message, "image": encoded_img}
-    file = send_file("./images/temp.png", mimetype="image/PNG", as_attachment=False, max_age = 0)
-    print(file)
-
-    response = make_response(encoded_img)
-    response.headers.set("Content-Type", "image/jpeg")
-    response.headers.set(
-        "Content-Disposition", "attachment", filename = "encrypted_image.jpg"
-    )
-    print(response)
-    return response
-
+    print("image saved!")
+    #img = Image.open("./images/temp.png")
+    #file_object = io.BytesIO()
+    #img.save(file_object, "PNG")
+    #file_object.seek(0)
+    #print(file_object)
+    file =  send_from_directory("./images", mimetype = "image/PNG", path = "gray2.png", as_attachment=True, max_age = 0)
+    return file 
 
 @app.route("/api/decrypt", methods = ["POST"])
 def decrypt():
@@ -119,20 +113,28 @@ def analyze():
         data = request.values
     ciphertext = data["ciphertext"]
     analyzer = utils.get_analyzer(data)
- 
     if isinstance(analyzer, AutokeyCryptAnalizer):
         cleartext = data["cleartext"]
-        results = analyzer.breakCipher(cleartext, ciphertext)
+        try:
+            results = analyzer.breakCipher(cleartext, ciphertext)
+        except Exception as e: 
+            print(str(e))
+            return jsonify({"error":str(e)}), 400
     elif isinstance(analyzer, HillCryptAnalizer):
         cleartext = data["cleartext"]
         numPartitions = int(data["numPartitions"])
         #print(cleartext)
         #print(numPartitions)
         #print(ciphertext)
-        results = analyzer.breakCipher(ciphertext, cleartext, numPartitions)
+        try:
+            results = analyzer.breakCipher(ciphertext, cleartext, numPartitions)
+        except Exception as e: 
+            return jsonify({"error":str(e)}), 400
     else:
-        results = analyzer.breakCipher(ciphertext)
-
+        try:
+            results = analyzer.breakCipher(ciphertext)
+        except Exception as e: 
+            return jsonify({"error":str(e)}), 400
     return jsonify({"cleartext":results}), 200
 
 

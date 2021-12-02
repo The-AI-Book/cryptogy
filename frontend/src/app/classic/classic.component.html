@@ -139,7 +139,7 @@
             </div>
 
             <!-- Encriptado de imágenes -->
-            <div class="col-10 col-lg-5 mt-4" *ngIf="form.value.cipher == 'hill' || form.value.cipher == 'permutation'">
+            <div class="col-10 col-lg-5 mt-4" *ngIf="form.value.cipher == 'hill'">
                <div class = "form-group">
                     <label for="key" class="mb-2">Clear image</label>
                     <div class = "d-flex justify-content-center">
@@ -156,16 +156,21 @@
                </div>
             </div>
             
-            <div class="col-10 col-lg-5 mt-4" *ngIf="form.value.cipher == 'hill' || form.value.cipher == 'permutation'">
+            <div class="col-10 col-lg-5 mt-4" *ngIf="form.value.cipher == 'hill'">
                 <div class = "form-group">
                      <label for="key" class="mb-2">Cipher image</label>
-                     <div class = "d-flex justify-content-center">
+                     <div class = "d-flex justify-content-center" *ngIf = "loadDummyImage == false">
                         <img src = {{cipherImage}} width = "420px" height = "300px" class = "shadow-sm">
                     </div>
+                    <div class = "d-flex justify-content-center" *ngIf = "loadDummyImage == true">
+                        <img src = "assets/img/imagen_encriptada.png" width = "420px" height = "300px" class = "shadow-sm">
+                    </div>
+                    <!--
                      <div class = "d-flex justify-content-center mt-4">
                         <button class = "btn btn-outline-primary me-2">Decrypt</button>
                         <button class = "btn btn-outline-secondary">Analyze</button> 
                      </div>
+                    -->
                      
             
                 </div>

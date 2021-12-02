@@ -3,7 +3,7 @@ import random
 import numpy as np
 
 class ShiftCipher(Cipher):
-    def __init__(self, key = ""):
+    def __init__(self, key = None):
         super().__init__()
         self.key = self.iniKey(key)
 

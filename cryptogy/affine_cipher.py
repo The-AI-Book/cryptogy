@@ -6,7 +6,7 @@ import sympy
 from typing import List
 
 class AffineCipher(Cipher):
-    def __init__(self, key = ""):
+    def __init__(self, key = None):
         super().__init__()
         self.key = self.iniKey(key)
 

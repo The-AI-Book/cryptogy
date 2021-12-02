@@ -13,8 +13,9 @@ from PIL import Image
 from io import BytesIO
 
 class HillCipher(Cipher):
-    def __init__(self, m: int, key = "", permutation_cipher = False):
+    def __init__(self, m: int, key = None, permutation_cipher = False):
         super().__init__()
+        #print("init cipher...")
         self.m = m
         self.permutation_cipher = permutation_cipher
         self.key = self.iniKey(key)
@@ -34,7 +35,9 @@ class HillCipher(Cipher):
         return super().setKey(key)
 
     def validKey(self, key):
+        #print("valid key-----")
         try:
+            #print("valid key???")
             matrix_inv = sympy.Matrix(key)
             matrix_inv = matrix_inv.inv_mod(26)
             return True
@@ -142,7 +145,7 @@ class HillCryptAnalizer(CryptAnalizer):
             possible_mat_X = np.array(possible_mat_X)
             possible_mat_Y = np.array(possible_mat_Y)
 
-            print(possible_mat_X)
+            #print(possible_mat_X)
             try:
                 invMat = np.array( Matrix(possible_mat_X).inv_mod(26) )
                 return "Key:\n" + np.array2string(np.dot(invMat, possible_mat_Y) % 26)
@@ -152,5 +155,11 @@ class HillCryptAnalizer(CryptAnalizer):
         raise Exception("Error: Matrix is not invertible mod 26")
 
 if __name__ == "__main__":
-    analyzer = HillCryptAnalizer()
-    print( analyzer.breakCipher("IEVQCULSWKBUQARW", "abcdefghijklmnop", 4) )
+    cipher = HillCipher(m = 32)
+    lists = cipher.key.tolist()
+    import json
+    json_str = json.dumps(lists)
+    print(json_str)
+
+    #analyzer = HillCryptAnalizer()
+    #print( analyzer.breakCipher("IEVQCULSWKBUQARW", "abcdefghijklmnop", 4) )

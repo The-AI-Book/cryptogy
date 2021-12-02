@@ -1,4 +1,4 @@
-from cipher import Cipher, CryptAnalizer
+from .cipher import Cipher, CryptAnalizer
 import numpy as np 
 import copy
 from pycipher import SimpleSubstitution as SimpleSub
@@ -7,7 +7,7 @@ import re
 from ngram_score import ngram_score
 
 class SubstitutionCipher(Cipher):
-    def __init__(self, key = ""):
+    def __init__(self, key = None):
         super().__init__()
         self.key = self.iniKey(key)
 
@@ -50,7 +50,9 @@ class SubstitutionCryptAnalizer(CryptAnalizer):
         parentscore,parentkey = maxscore,maxkey[:]
         # keep going until we are killed by the user
         i = 0
-        while i <= 10000:
+        messages = list()
+        while i <= 80:
+            #print(i)
             i = i+1
             random.shuffle(parentkey)
             deciphered = SimpleSub(parentkey).decipher(ctext)
@@ -74,8 +76,11 @@ class SubstitutionCryptAnalizer(CryptAnalizer):
             if parentscore > maxscore:
                 maxscore,maxkey = parentscore,parentkey[:]
                 ss = SimpleSub(maxkey)
-                print('Key:', Cipher.textToInt(''.join(maxkey)), "\ngenerates " + ss.decipher(ctext))
-
+                message = 'Key:' +  ','.join([str(x) for x in Cipher.textToInt(''.join(maxkey))]) + " generates \n" + str(ss.decipher(ctext)) + "\n"
+                messages.append(message)
+                #print(message, type(message))
+        #print("Proceso terminado.")
+        return " ".join(messages)
 
 if __name__ == "__main__":
     analyzer = SubstitutionCryptAnalizer()

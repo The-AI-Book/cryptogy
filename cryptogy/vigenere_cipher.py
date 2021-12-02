@@ -1,14 +1,11 @@
-from cipher import Cipher, CryptAnalizer
+from .cipher import Cipher, CryptAnalizer
 import random 
 from typing import List
 import re 
-import math
-from ngram_score import ngram_score
-from pycipher import Vigenere
-from itertools import permutations
+import math 
 
 class VigenereCipher(Cipher):
-    def __init__(self, m: int, zm: int = 26, key = ""):
+    def __init__(self, m: int, zm: int = 26, key = None):
         super().__init__()
         self.m = m
         self.key = self.iniKey(key)
@@ -32,6 +29,7 @@ class VigenereCipher(Cipher):
         return key 
 
     def encode(self, cleartext: str = "thiscryptosystemisnotsecure"):
+        cleartext = cleartext.lower()
         intList = Cipher.textToInt(cleartext)
         for i in range(len(intList)):
             intList[i] += self.key[i % self.m]
@@ -40,6 +38,7 @@ class VigenereCipher(Cipher):
         return "".join(encodeText).upper()
 
     def decode(self, ciphertext: str = "vpxzgiaxivwpubttmjpwizitwzt"):
+        #print("ciphertext to decode: ", ciphertext)
         intList = Cipher.textToInt(ciphertext.lower())
         #print("intList: ", intList)
         for i in range(len(intList)):
@@ -51,66 +50,88 @@ class VigenereCipher(Cipher):
 class VigenereCryptAnalizer(CryptAnalizer):
     def __init__(self):
         super().__init__()
+    
+    @staticmethod
+    def mgQuantity(yi, g, zm = 26):
+        letters_probability = CryptAnalizer.getListLettersProbability()
+        letters_frequency = CryptAnalizer.getLettersFrecuency(yi)
+        sum_ = 0
+        n_prime = len(yi)
+        for i in range(0, zm):
+            sum_ += (letters_probability[i] * letters_frequency[(i + g) % zm]) 
+        mg = (sum_ / n_prime)
+        return mg
+
+    @staticmethod
+    def getMgValues(yis):
+        mg_values = list()
+        for yi in yis:
+            mg_yi_values = list()
+            for g in range(0, 26):
+                mgQuantity = VigenereCryptAnalizer.mgQuantity(yi, g)
+                mg_yi_values.append(mgQuantity)
+            mg_values.append(mg_yi_values)
+        return mg_values 
 
     def breakCipher(self, ciphertext):
-        qgram = ngram_score("quadgrams.txt")
-        trigram = ngram_score('trigrams.txt')
-        ctext = re.sub(r'[^A-Z]','', ciphertext.upper())
+        m = self.kasiskiTest(ciphertext)
+        yis = self.breakText(ciphertext, m)
+        mg_values = VigenereCryptAnalizer.getMgValues(yis)
+        key = self.getPossibleKey(mg_values)
+        cipher = VigenereCipher(len(key))
+        cipher.setKey(key)
+        decodeText = cipher.decode(ciphertext)
+        dummytext = "CHREEVOAHMAERATBIAXXWTNXBEEOPHBSBQMQEQERBWRVXUOAKXAOSXXWEAHBWGJMMQMNKGRFVGXWTRZXWIAKLXFPSKAUTEMNDCMGTSXMXBTUIADNGMGPSRELXNJELXVRVPRTULHDNQWTWDTYGBPHXTFALJHASVBFXNGLLCHRZBWELEKMSJIKNBHWRJGNMGJSGLXFEYPHAGNRBIEQUTAMRVLCRREMNDGLXRRIMGNSNRWCHRQHAEYEVTAQEBBIPEEWEVKAKOEWADREMXMTBHHCHRTKDNVRZCHRCLQOHPWQAIIWXNRMGWOIIFKEE"
+        decodeText = decodeText[len(dummytext):]
+        res = "Key: " + str(key) + " \n" + decodeText
+        return res
 
-        class nbest(object):
-            def __init__(self,N=1000):
-                self.store = []
-                self.N = N
-                
-            def add(self,item):
-                self.store.append(item)
-                self.store.sort(reverse=True)
-                self.store = self.store[:self.N]
-            
-            def __getitem__(self,k):
-                return self.store[k]
+    def getPossibleKey(self, mg_values):
+        key = list()
+        for list_ in mg_values:
+            key.append(list_.index(max(list_)))
+        return key
 
-            def __len__(self):
-                return len(self.store)
-        
-        N = 100
-        for KLEN in range(6, 7):
-            rec = nbest(N)
+    def kasiskiTest(self, ciphertext):
 
-            for i in permutations('ABCDEFGHIJKLMNOPQRSTUVWXYZ',3):
-                key = ''.join(i) + 'A'*(KLEN-len(i))
-                pt = Vigenere(key).decipher(ctext)
-                score = 0
-                for j in range(0,len(ctext),KLEN):
-                    score += trigram.score(pt[j:j+3])
-                rec.add((score,''.join(i),pt[:30]))
+        triplet = ciphertext[0:3]
+        positions = [m.start() for m in re.finditer(triplet, ciphertext)][1:]
+        #print(positions)
 
-            next_rec = nbest(N)
-            for i in range(0,KLEN-3):
-                for k in range(N):
-                    for c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-                        key = rec[k][1] + c
-                        fullkey = key + 'A'*(KLEN-len(key))
-                        pt = Vigenere(fullkey).decipher(ctext)
-                        score = 0
-                        for j in range(0,len(ctext),KLEN):
-                            score += qgram.score(pt[j:j+len(key)])
-                        next_rec.add((score,key,pt[:30]))
-                rec = next_rec
-                next_rec = nbest(N)
-            bestkey = rec[0][1]
-            pt = Vigenere(bestkey).decipher(ctext)
-            bestscore = qgram.score(pt)
-            for i in range(N):
-                pt = Vigenere(rec[i][1]).decipher(ctext)
-                score = qgram.score(pt)
-                if score > bestscore:
-                    bestkey = rec[i][1]
-                    bestscore = score       
-            print('Intento para longitud de clave:', str(KLEN) + '. Clave:', bestkey + ', Texto en claro:', Vigenere(bestkey).decipher(ctext))
+        if len(positions) <= 1:
+            raise Exception("Not enough ciphertext information to perform Kasiski Test. Try with a larger ciphertext.")
+        result = positions[0]
+        for i in positions[1:]:
+            result = math.gcd(result, i)
+        return result
+
+    def breakText(self, ciphertext, m):
+        y_substrings = list()
+        n = len(ciphertext)
+        for i in range(0, m):
+            yi = ""
+            counter = 0
+            #print(i + 1, end = ", ")
+            for j in range(0, n - m, m):
+                yi += ciphertext[(counter * m) + i]
+                counter += 1
+                #print(counter, "* m +",  i + 1, end = ", ")
+            y_substrings.append(yi)
+        return y_substrings
     
 
 if __name__ == "__main__":
+    cipher = VigenereCipher(m = 6)
+    cipher.setKey(key = [2, 8, 15, 7, 4, 17])
+    ciphertext = cipher.encode(cleartext = "thiscryptosystemisnotsecure")
+    decodedText = cipher.decode(ciphertext)
+    print(ciphertext)
+    print(decodedText)
+    
     analyzer = VigenereCryptAnalizer()
-    ciphertext2 = "VPXZGIAXIVWPUBTTMJPWIZITWZT"
-    analyzer.breakCipher(ciphertext2)
+    ciphertext2 = "CHREEVOAHMAERATBIAXXWTNXBEEOPHBSBQMQEQERBWRVXUOAKXAOSXXWEAHBWGJMMQMNKGRFVGXWTRZXWIAKLXFPSKAUTEMNDCMGTSXMXBTUIADNGMGPSRELXNJELXVRVPRTULHDNQWTWDTYGBPHXTFALJHASVBFXNGLLCHRZBWELEKMSJIKNBHWRJGNMGJSGLXFEYPHAGNRBIEQUTAMRVLCRREMNDGLXRRIMGNSNRWCHRQHAEYEVTAQEBBIPEEWEVKAKOEWADREMXMTBHHCHRTKDNVRZCHRCLQOHPWQAIIWXNRMGWOIIFKEE"
+    print(len(ciphertext2))
+    result = analyzer.kasiskiTest(ciphertext2)
+    yis = analyzer.breakText(ciphertext2, 5)
+
+    print(analyzer.breakCipher(ciphertext2))
