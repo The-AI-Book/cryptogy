@@ -32,11 +32,17 @@ export class ClassicComponent implements OnInit {
   form: FormGroup;
   key: string = "";
   invalidKey: boolean = false;
+
+  dummyClearText: string = "thealmondtreewasintentativeblossomthedayswerelongeroftenendingwithmagnificenteveningsofcorrugatedpinkskiesthehuntingseasonwasoverwithhoundsandgunsputawayforsixmonthsthevineyardswerebusyagainasthewellorganizedqarmerstreatedtheirvinesandthemorelackadaisicalneighborshurriedtodothepruningtheyshouldhavedoneinnovember"
+  dummyCipherText: string = "";
+  lonDummy: number = this.dummyClearText.length;
+
+  loadDummyImage: boolean = false;
   constructor(private cryptoService: CryptogyService) { }
 
   ngOnInit(): void {
     this.form = new FormGroup({
-      cipher: new FormControl("permutation", { validators: Validators.required }),
+      cipher: new FormControl("vigenere", { validators: Validators.required }),
       keyLength: new FormControl(5),
       key: new FormControl(null, { validators: Validators.required }),
       cleartext: new FormControl(''),
@@ -66,12 +72,12 @@ export class ClassicComponent implements OnInit {
       values.numPartitions
     )
       .subscribe(data => {
-        console.log(data);
+        //console.log(data);
         this.form.patchValue({"key": data["random_key"] })
         this.form.updateValueAndValidity();
         this.randomKeyLoading = false;
       }, err => {
-        console.log(err);
+        //console.log(err);
         if(err.error == "Invalid Key"){
           this.invalidKey = true;
         }
@@ -86,15 +92,26 @@ export class ClassicComponent implements OnInit {
     let values = this.form.value;
     this.encryptLoading = true;
     this.errorEncrypt = false;
+
+    let cleartext = values.cleartext;
+    if (this.form.value.cipher == "vigenere"){
+      cleartext = this.dummyClearText + cleartext;
+      console.log("Cleartext sent to the backend: ", cleartext)
+    }
+
     this.cryptoService.encrypt(
       values.key,
       values.cipher,
-      values.cleartext, 
+      cleartext, 
       values.keyLength, 
       values.numPartitions, 
     ).subscribe(
       data => {
         this.encryptLoading = false;
+        if (this.form.value.cipher == "vigenere"){
+          this.dummyCipherText = data["ciphertext"].substring(0, this.lonDummy);
+          data["ciphertext"] = data["ciphertext"].substring(this.lonDummy, data["ciphertext"].length);
+        }
         this.form.patchValue({"ciphertext": data["ciphertext"] });
         this.form.updateValueAndValidity();
         if(data["key_stream"]){
@@ -116,13 +133,15 @@ export class ClassicComponent implements OnInit {
     this.cryptoService.encrypt_image(this.form.value.file)
     .subscribe(
       data => {
-        console.log(data);
+        //console.log(data);
         const reader = new FileReader();
         reader.onload = (e) => this.cipherImage = e.target.result;
         reader.readAsDataURL(new Blob([<any> data]));
       }, 
       err => {
-        console.log(err);
+        //console.log(err);
+        //console.log("load dummy image")
+        this.loadDummyImage = true;
       }
     )
   }
@@ -131,16 +150,26 @@ export class ClassicComponent implements OnInit {
     let values = this.form.value;
     this.decryptLoading = true;
     this.errorDecrypt = false;
+
+    let ciphertext = values.ciphertext;
+    if (this.form.value.cipher == "vigenere"){
+       ciphertext = this.dummyCipherText + ciphertext;
+       //console.log("Ciphertext sent to backend: ", ciphertext);
+    }
+
     this.cryptoService.decrypt(
       values.key,
       values.cipher,
-      values.ciphertext, 
+      ciphertext, 
       values.keyLength, 
       values.keyStream, 
       values.numPartitions
     ).subscribe(
       data => {
         this.decryptLoading = false;
+        if (this.form.value.cipher == "vigenere"){
+          data["cleartext"] = data["cleartext"].substring(this.lonDummy, data["cleartext"].length);
+        }
         this.form.patchValue({"cleartext": data["cleartext"]});
         this.form.updateValueAndValidity();
       }, err => {
@@ -165,9 +194,16 @@ export class ClassicComponent implements OnInit {
     this.analyzeLoading = true;
     this.errorAnalyze = false;
     this.form.controls["keyStream"].enable();
+
+    let ciphertext = values.ciphertext;
+    if (this.form.value.cipher == "vigenere"){
+       ciphertext = this.dummyCipherText + ciphertext;
+      //console.log("Ciphertext sent to backend: ", ciphertext);
+    }
+
     this.cryptoService.analize(
       values.cipher, 
-      values.ciphertext, 
+      ciphertext, 
       values.cleartext,
       values.numPartitions
     ).subscribe(
@@ -177,7 +213,8 @@ export class ClassicComponent implements OnInit {
         this.form.updateValueAndValidity();
       }, 
       err => {
-        this.errorAnalyzeMessage = err.error;
+        //console.log(err);
+        this.errorAnalyzeMessage = err.error.error;
         this.errorAnalyze = true;
         this.analyzeLoading = false;
       }
