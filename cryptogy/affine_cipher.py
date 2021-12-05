@@ -67,7 +67,7 @@ class AffineCryptAnalizer(CryptAnalizer):
 
     def getDecodedTexts(self, ciphertext: str, possible_keys):
         decoded_texts = list()
-        cipher = AffineCipher(key = "")
+        cipher = AffineCipher(key = None)
         for key in possible_keys:
             cipher.setKey(key)
             text = cipher.decode(ciphertext)
@@ -109,11 +109,11 @@ class AffineCryptAnalizer(CryptAnalizer):
         return possible_keys
 
 if __name__ == "__main__":
-    cipher = AffineCipher(key = (7, 3))
-    encode = cipher.encode("hot")
-    print(encode)
-    decode = cipher.decode(encode)
-    print(decode)
+    #cipher = AffineCipher(key = (7, 3))
+    #encode = cipher.encode("hot")
+    #print(encode)
+    #decode = cipher.decode(encode)
+    #print(decode)
     encode = "FMXVEDKAPHFERBNDKRXRSREFMORUDSDKDVSHVUFEDKAPRKDLYEVLRHHRH"
     analyzer = AffineCryptAnalizer()
     analyzer.breakCipher(encode, max_tries = 10)
