@@ -21,10 +21,8 @@ class Cipher:
             #print("generating key...")
             return self.generateRandomKey()
         elif not self.validKey(key):
-            print("not valid key!")
             raise Exception("An error occured when trying to set a key: invalid key.")
         else: 
-            print("return key...")
             return key
 
     def validKey(self, key):
