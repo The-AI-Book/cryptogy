@@ -6,20 +6,14 @@ import random
 from typing import List
 
 """
-Parameters        |  S-DES                      |  DES                        |
-Plaintext Length  |  8 bits                     |  64 bits                    |
-Ciphertext Length |  8 bits                     |  64 bits                    |
-Key Length        |  10                         |  56                         |
-Rounds operation  |  2                          |  16                         |
-Number of subkeys |  2 keys (8 bits)            |  16 keys (54 bits)          |
-S-Boxes           | input 4 bits, output 2 bits | input 6 bits, output 4 bits |
+Parameters        |  S-DES                       |  DES                         |
+Plaintext Length  |  8 bits                      |  64 bits                     |
+Ciphertext Length |  8 bits                      |  64 bits                     |
+Key Length        |  10                          |  56                          |
+Rounds operation  |  2                           |  16                          |
+Number of subkeys |  2 keys (8 bits)             |  16 keys (54 bits)           |
+S-Boxes           |  input 4 bits, output 2 bits |  input 6 bits, output 4 bits |
 """
-
-class SDESCipher(Cipher):
-    def __init__(self):
-        pass
-
-
 
 class DESCipher(Cipher):
 
@@ -38,8 +32,8 @@ class DESCipher(Cipher):
     ROUNDS = 16
 
     @staticmethod
-    def get64Blocks(bits):
-        num = int((len(bits) / DESCipher.BLOCK_LENGTH) + 1)
+    def getBlocks(bits):
+        num = round((len(bits) / DESCipher.BLOCK_LENGTH))
         blocks = list()
         for i in range(num):
             blocks.append(bits[DESCipher.BLOCK_LENGTH*i:DESCipher.BLOCK_LENGTH*(i+1)])
@@ -48,7 +42,6 @@ class DESCipher(Cipher):
                 diff = DESCipher.BLOCK_LENGTH - len(blocks[j])
                 blocks[j] = blocks[j] + [0] * diff
         return blocks
-
 
     @staticmethod
     def tobits(s):
@@ -72,19 +65,9 @@ class DESCipher(Cipher):
     def inv(perm):
         inverse = [0] * len(perm)
         for i, p in enumerate(perm):
+            #print(i, p)
             inverse[p] = i
         return inverse
-
-    def __init__(self, key = None):
-        """
-        DES is a 16-round Feistel cipher having block length 64:
-        it encrypts a plaintext bistring x using a 56-bit key, K, obtaining a 
-        ciphertext bistring (of length 64).
-        """
-        super().__init__()
-        self.key = self.iniKey(key)
-        self.permutation = DESCipher.generatePermutation(DESCipher.BLOCK_LENGTH)
-        self.schedule = self.generateKeySchedule()
 
     @staticmethod
     def generatePermutation(length):
@@ -96,12 +79,11 @@ class DESCipher(Cipher):
 
     @staticmethod
     def applyPermutation(permutation, block, shift = False):
+        #print("Apply permutation: ")
+        #print(permutation)
         if shift: move = 1
         else: move = 0
-        new_block = [0] * len(permutation)
-        for i in range(len(permutation)):
-            new_block[permutation[i] - move] = block[i]
-        return new_block
+        return [block[i-move] for i in permutation]
 
     @staticmethod
     def computeXOR(a: List[int], b: List[int]):
@@ -117,7 +99,8 @@ class DESCipher(Cipher):
     @staticmethod
     def expandBlock(block):
         """
-        32 bits block.
+        E(A) consists of the 32 bits from A, permuted in a certain way, with 16 of the bits appearing twice.
+        It returns a block of 48 bits.
         """
         bit_selection_table = [32, 1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 9, 8, 
         9, 10, 11, 12, 13, 12, 13, 14, 15, 16, 17, 16, 17, 18, 19, 
@@ -132,6 +115,8 @@ class DESCipher(Cipher):
     @staticmethod
     def funcPermutation(block):
         """
+        The Permutation P is as fllows:
+        It is apply over C1.C2. ... C7.C8
         32 bits block.
         """
         permutation = [16, 7, 20, 21, 29, 12, 28, 17, 1, 15, 23, 26, 5, 18, 31,
@@ -139,11 +124,24 @@ class DESCipher(Cipher):
         #print(len(permutation))
         return DESCipher.applyPermutation(permutation, block, shift = True)
 
+    def __init__(self, key = None):
+        """
+        DES is a 16-round Feistel cipher having block length 64:
+        it encrypts a plaintext bistring x using a 56-bit key, K, obtaining a 
+        ciphertext bistring (of length 64).
+        """
+        super().__init__()
+        self.key = self.iniKey(key)
+        self.permutation = DESCipher.generatePermutation(DESCipher.BLOCK_LENGTH)
+        self.schedule = self.generateKeySchedule()
+
     def roundFunction(self, A, J):
         ea = DESCipher.expandBlock(A)
         B = DESCipher.computeXOR(ea, J)
         #print("print bis")
         concatenation = ""
+
+        # Iterate over 8 sub-blocks of length 6. (8 x 6 = 48)
         for i in range(8):
             bj = B[i*6 : 6 * (i+1)]
             b1b6 = str(bj[0]) + str(bj[5])
@@ -166,7 +164,7 @@ class DESCipher(Cipher):
         return 1.0
     
     def generateRandomKey(self):
-        key = np.random.binomial(n = 1, p = 0.5, size=[KEY_LENGTH])
+        key = np.random.binomial(n = 1, p = 0.5, size=[DESCipher.KEY_LENGTH])
         return list(key)
 
     def generateKeySchedule(self):
@@ -175,10 +173,10 @@ class DESCipher(Cipher):
         Each K^i is a certain permuted selection of bits from K.
         """
         schedule = list()
-        for i in range(ROUNDS):
+        for i in range(DESCipher.ROUNDS):
             key_copy = copy.deepcopy(self.key)
             for i in range(8):
-                rand_num = random.randint(0, KEY_LENGTH - i - 1)
+                rand_num = random.randint(0, DESCipher.KEY_LENGTH - i - 1)
                 del key_copy[rand_num]
             perm = DESCipher.generatePermutation(48)
             key_permuted = DESCipher.applyPermutation(perm, key_copy)
@@ -187,41 +185,113 @@ class DESCipher(Cipher):
         
     def applyRounds(self, L, R):
         for i in range(DESCipher.ROUNDS):
-            #print("Apply round!")
             f_RK = self.roundFunction(R, self.schedule[i])
-            L = R
-            R = DESCipher.computeXOR(L, f_RK)
-        return L, R
+            new_R = DESCipher.computeXOR(L, f_RK)
+            new_L = R
+        return new_L, new_R
 
     def encode(self, cleartext: str):
         # Get bits and blocks.
         bits = DESCipher.tobits(cleartext)
-        blocks = DESCipher.get64Blocks(bits)
+        blocks = DESCipher.getBlocks(bits)
 
         # Encode text.
         ciphertext = ""
         for i in range(len(blocks)):
+            #print("Init block: ")
+            #print(blocks[i])
             blocks[i] = DESCipher.applyPermutation(self.permutation, blocks[i])
+            #print("First permutation: ")
+            #print(blocks[i])
             L = blocks[i][0:32]
             R = blocks[i][32:64]
-            L, R = self.applyRounds(L, R)
-            blocks[i] = L + R
+            L, R = self.applyRounds(L, R) # 16 rounds.
+            blocks[i] = R + L
             blocks[i] = DESCipher.applyPermutation(DESCipher.inv(self.permutation), blocks[i])
+
             ciphertext += DESCipher.frombits(blocks[i])
         return ciphertext
 
     def decode(self, ciphertext: str):
         return self.encode(ciphertext)
         
+class SDESCipher(DESCipher):
+
+    # Reference: https://www.geeksforgeeks.org/simplified-data-encryption-standard-set-2/
+    # https://www.geeksforgeeks.org/simplified-data-encryption-standard-key-generation/#:~:text=Simplified%20Data%20Encryption%20Standard%20(S,understanding%20DES%20would%20become%20simpler.
+    # https://www.geeksforgeeks.org/simplified-data-encryption-standard-set-2/
+    S1 = [[1,0,3,2], [3,2,1,0], [0,2,1,3], [3,1,3,2]]
+    S2 = [[0,1,2,3], [2,0,1,3], [3,0,1,0], [2,1,0,3]]
+    SM = [S1, S2]
+
+    KEY_LENGTH = 10
+    BLOCK_LENGTH = 8
+    ROUNDS = 2
+
+    def __init__(self, key = None):
+        """
+        SDES: Simplified DES.
+        """
+        self.key = self.iniKey(key)
+        self.permutation = DESCipher.generatePermutation(SDESCipher.BLOCK_LENGTH)
+        self.schedule = self.generateKeySchedule()
+        #print(self.permutation)
+        #print(self.key)
+        print(self.schedule)
+
+    def generateRandomKey(self):
+        key = np.random.binomial(n = 1, p = 0.5, size=[SDESCipher.KEY_LENGTH])
+        return list(key)
+
+    def generateKeySchedule(self):
+        """
+        The key schedule consists of 48-bit round keys that are derived from the 56-bit key, K.
+        Each K^i is a certain permuted selection of bits from K.
+        """
+        schedule = list()
+        print(self.key)
+        p10 = DESCipher.generatePermutation(10)
+        after_p10 = DESCipher.applyPermutation(p10, self.key)
+        l = after_p10[0:5]
+        r = after_p10[5:]
+
+        def shiftList(list_: List[int], shift: int = 0):
+            from collections import deque
+            items = deque(list_)
+            items.rotate(shift)
+            return list(items)
+
+        def getSubKey(list_: List[int]):
+            key_copy = copy.deepcopy(list_)
+            for i in range(2):
+                rand_num = random.randint(0, len(list_))
+                del key_copy[rand_num]
+            perm = DESCipher.generatePermutation(8)
+            key_permuted = DESCipher.applyPermutation(perm, key_copy)
+            return key_permuted
+
+        ls1 = getSubKey(shiftList(l, 1) + shiftList(r, 1))
+        ls2 = getSubKey(shiftList(l, 1) + shiftList(r, 1))
+        schedule = [ls1, ls2]
+        return schedule
+
 if __name__ == '__main__':
-    cleartext = "holamundo holamundo"
+    """
+    cleartext = "holamundoholamundoholaxxawde"
     cipher = DESCipher()
+    print("cleartext: ")
+    print(cleartext)
     res = cipher.encode(cleartext)
-    print("res:")
+    print("encode:")
     print(res)
     res2 = cipher.encode(res)
-    print("res2:")
+    print("decode:")
     print(res2)
+    """
+
+    cipher = SDESCipher()
+
+  
     #print(len(res[1]))
     #print("from bits")
     #print(DESCipher.frombits(res))
@@ -230,3 +300,14 @@ if __name__ == '__main__':
     #print(DESCipher.frombits(res[1]))
     #print(permutation)
     #print(cipher.schedule)
+
+    #test = [1, 2, 3, 4, 5]
+    #perm = [2,0,4,3,1]#DESCipher.generatePermutation(len(test))
+    #inv_perm = DESCipher.inv(perm)
+    #print(perm)
+    #print(inv_perm)
+    #print("init: ", test)
+    #test = DESCipher.applyPermutation(perm, test)
+    #print("after application: ", test)
+    #test = DESCipher.applyPermutation(inv_perm, test)
+    #print("revert application: ", test)

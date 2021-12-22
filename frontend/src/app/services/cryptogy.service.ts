@@ -52,11 +52,11 @@ export class CryptogyService {
     ){
         const data = new FormData();
         data.append("files", file, file.name);
-        let headers = new HttpHeaders({
-            "Access-Control-Allow-Methods": "POST, GET"
-        });
-        let options = {headers: headers};
-        return this.http.post(this.endpoint + "/api/encrypt_image", data, options)
+        return this.http.post(this.endpoint + "/api/encrypt_image", data, {responseType: "blob"})
+    }
+
+    decrypt_image(){
+        return this.http.get(this.endpoint + "/api/decrypt_image", {responseType: "blob"})
     }
 
 

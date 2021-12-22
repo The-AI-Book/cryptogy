@@ -73,21 +73,32 @@ def encrypt():
 
 @app.route("/api/encrypt_image", methods = ["POST", "GET"])
 def encrypt_image():
-    print("encrypt image!")
+    from utils import images_key
     img = request.files.getlist("files")[0]
-    img = HillCipher.imagToMat(img, resize = 4)
-    #print(img)
-    cipher = HillCipher(m = 4)    
-    print("trying to encode...") 
+    img = HillCipher.imagToMat(img, resize = 32)
+    cipher = HillCipher(32, key = images_key, force_key=True)    
     new_img = cipher.encode_image(img)
-    new_img.save("./images/temp.png")
-    print("image saved!")
-    #img = Image.open("./images/temp.png")
-    #file_object = io.BytesIO()
-    #img.save(file_object, "PNG")
-    #file_object.seek(0)
-    #print(file_object)
-    file =  send_from_directory("./images", mimetype = "image/PNG", path = "gray2.png", as_attachment=True, max_age = 0)
+    new_img.save("./images/encrypt_temp.png")
+    file =  send_from_directory("./images", mimetype = "image/jpg", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
+    return file 
+
+@app.route("/api/decrypt_image", methods = ["POST", "GET"])
+def decrypt_image():
+    from utils import images_inv_key
+    #img = request.files.getlist("files")[0]
+    image = "./images/encrypt_temp.png"
+    img = open(image, 'rb')
+    img = HillCipher.imagToMat(img, resize = 32)
+    
+    prev = Image.fromarray(img) 
+    prev.save("./images/previous_encrypt.png")
+
+
+    cipher = HillCipher(32, key = images_key, force_key=True)    
+    new_img = cipher.decode_image(img, key_inv = images_inv_key)
+    new_img = new_img.convert("L")
+    new_img.save("./images/decrypt_temp.png")
+    file =  send_from_directory("./images", mimetype = "image/jpg", path = "decrypt_temp.png", as_attachment=False, max_age = 0)
     return file 
 
 @app.route("/api/decrypt", methods = ["POST"])

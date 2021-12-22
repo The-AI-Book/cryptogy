@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { CryptogyService } from '../services/cryptogy.service';
-
+import { DomSanitizer } from '@angular/platform-browser';
 @Component({
   selector: 'app-classic',
   templateUrl: './classic.component.html',
@@ -26,8 +26,8 @@ export class ClassicComponent implements OnInit {
 
   imageLoading: boolean = false;
   errorImage: boolean = false;
-  clearImage: string | ArrayBuffer = null;
-  cipherImage: string | ArrayBuffer = null;
+  clearImage = null;
+  cipherImage = null;
 
   form: FormGroup;
   key: string = "";
@@ -37,12 +37,12 @@ export class ClassicComponent implements OnInit {
   dummyCipherText: string = "";
   lonDummy: number = this.dummyClearText.length;
 
-  loadDummyImage: boolean = false;
-  constructor(private cryptoService: CryptogyService) { }
+  constructor(private cryptoService: CryptogyService, private domSanitizer: DomSanitizer) { }
 
   ngOnInit(): void {
+
     this.form = new FormGroup({
-      cipher: new FormControl("vigenere", { validators: Validators.required }),
+      cipher: new FormControl("shift", { validators: Validators.required }),
       keyLength: new FormControl(5),
       key: new FormControl(null, { validators: Validators.required }),
       cleartext: new FormControl(''),
@@ -70,20 +70,21 @@ export class ClassicComponent implements OnInit {
       values.cipher,
       values.keyLength, 
       values.numPartitions
-    )
-      .subscribe(data => {
+    ).subscribe(
+      data => {
         //console.log(data);
         this.form.patchValue({"key": data["random_key"] })
         this.form.updateValueAndValidity();
         this.randomKeyLoading = false;
-      }, err => {
+      },
+      err => {
         //console.log(err);
         if(err.error == "Invalid Key"){
           this.invalidKey = true;
         }
         this.errorRandomKey = true;
         this.randomKeyLoading = false;
-      })
+    })
   }
 
   encrypt() {
@@ -96,7 +97,7 @@ export class ClassicComponent implements OnInit {
     let cleartext = values.cleartext;
     if (this.form.value.cipher == "vigenere"){
       cleartext = this.dummyClearText + cleartext;
-      console.log("Cleartext sent to the backend: ", cleartext)
+      //console.log("Cleartext sent to the backend: ", cleartext)
     }
 
     this.cryptoService.encrypt(
@@ -129,19 +130,26 @@ export class ClassicComponent implements OnInit {
   }
 
   encrypt_image(){
-    console.log("encrypt image!");
+    //console.log("encrypt image!");
     this.cryptoService.encrypt_image(this.form.value.file)
     .subscribe(
       data => {
         //console.log(data);
+        //console.log("Loading image!");
         const reader = new FileReader();
-        reader.onload = (e) => this.cipherImage = e.target.result;
         reader.readAsDataURL(new Blob([<any> data]));
+        reader.onload = (e) => {
+
+          let url = e.target.result as string;
+          let secureUrl = this.domSanitizer.bypassSecurityTrustResourceUrl(
+            url
+          );
+          this.cipherImage = secureUrl;
+          //console.log(this.cipherImage);
+        }
       }, 
       err => {
-        //console.log(err);
-        //console.log("load dummy image")
-        this.loadDummyImage = true;
+        console.log(err);
       }
     )
   }
@@ -175,6 +183,30 @@ export class ClassicComponent implements OnInit {
       }, err => {
         this.decryptLoading = false;
         this.errorDecrypt = true;
+      }
+    )
+  }
+
+  decrypt_image(){
+    //console.log("decrypt image!");
+    this.cryptoService.decrypt_image()
+    .subscribe(
+      data => {
+        //console.log(data);
+        //console.log("Loading image!");
+        const reader = new FileReader();
+        reader.readAsDataURL(new Blob([<any> data]));
+        reader.onload = (e) => {
+          let url = e.target.result as string;
+          let secureUrl = this.domSanitizer.bypassSecurityTrustResourceUrl(
+            url
+          );
+          this.clearImage = secureUrl;
+          //console.log(this.clearImage);
+        }
+      }, 
+      err => {
+        console.log(err);
       }
     )
   }
@@ -235,9 +267,9 @@ export class ClassicComponent implements OnInit {
     this.form.patchValue({file: files[0]});
     this.form.updateValueAndValidity();
 
-    console.log(files);
-    console.log(files[0]);
-    console.log(this.form.value.file);
+    //console.log(files);
+    //console.log(files[0]);
+    //console.log(this.form.value.file);
 
     const reader = new FileReader();
     reader.readAsDataURL(files[0]); 
