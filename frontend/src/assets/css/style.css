@@ -553,6 +553,14 @@ section {
 .services .icon-box-blue:hover {
   border-color: #2282ff;
 }
+.services .icon-box-yellow .icon i {
+  color: #ff2222;
+}
+.services .icon-box-yellow:hover {
+  border-color: #ff2222;
+}
+
+
 
 /*--------------------------------------------------------------
 # Portfolio

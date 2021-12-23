@@ -6,4 +6,6 @@ export interface Crypto{
     keyLength: string;
     keyStream: string;
     numPartitions: string;
+    initialPermutation: string;
+    schedule: string;
 }

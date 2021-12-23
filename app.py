@@ -5,6 +5,7 @@ import logging
 import cryptogy
 from cryptogy.hill_cipher import HillCipher, HillCryptAnalizer
 from cryptogy.stream_ciphers import AutokeyCipher, AutokeyCryptAnalizer, StreamCipher
+from cryptogy.des import SDESCipher, DESCipher
 import utils
 from base64 import encodebytes
 import io
@@ -54,6 +55,8 @@ def generate_random_key():
     random_key = cipher.generateRandomKey()
     if isinstance(cipher, HillCipher):
         random_key = utils.format_darray(random_key)
+    elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher):
+        random_key = utils.format_list(random_key)
     return jsonify({"random_key":random_key}), 200
 
 @app.route("/api/encrypt", methods = ["POST"])
@@ -67,28 +70,16 @@ def encrypt():
     cipher.setKey(key)
     encode_text = cipher.encode(cleartext)
     if isinstance(cipher, AutokeyCipher):
-        return jsonify({"ciphertext":encode_text[0], "key_stream": encode_text[1]}), 200
+        return jsonify({"ciphertext": encode_text[0], "key_stream": encode_text[1]}), 200
+    elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher):
+        #print("Encrypt schedule: ")
+        #print(encode_text[1])
+        string = ""
+        for list_ in encode_text[2]: # schedule
+            string += utils.format_list(list_) + ";"
+        return jsonify({"ciphertext": encode_text[0], "permutation": utils.format_list(encode_text[1]), "schedule": string})
     else:
         return jsonify({"ciphertext":encode_text}), 200
-
-@app.route("/api/encrypt_image", methods = ["POST", "GET"])
-def encrypt_image():
-    print("encrypt image!")
-    img = request.files.getlist("files")[0]
-    img = HillCipher.imagToMat(img, resize = 4)
-    #print(img)
-    cipher = HillCipher(m = 4)    
-    print("trying to encode...") 
-    new_img = cipher.encode_image(img)
-    new_img.save("./images/temp.png")
-    print("image saved!")
-    #img = Image.open("./images/temp.png")
-    #file_object = io.BytesIO()
-    #img.save(file_object, "PNG")
-    #file_object.seek(0)
-    #print(file_object)
-    file =  send_from_directory("./images", mimetype = "image/PNG", path = "gray2.png", as_attachment=True, max_age = 0)
-    return file 
 
 @app.route("/api/decrypt", methods = ["POST"])
 def decrypt():
@@ -101,6 +92,12 @@ def decrypt():
     if isinstance(cipher, AutokeyCipher):
         key_stream = utils.format_key(data["keyStream"])
         cleartext = cipher.decode(key_stream, ciphertext)
+    elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher):
+        permutation = utils.format_key(data["initialPermutation"], return_np=False)
+        schedule = utils.format_key(data["schedule"], return_np=False)
+        #print("Decrypt schedule: ")
+        #print(schedule)
+        cleartext = cipher.decode(permutation, schedule, ciphertext)[0]
     else:
         cipher.setKey(key)
         cleartext = cipher.decode(ciphertext)
@@ -137,6 +134,35 @@ def analyze():
             return jsonify({"error":str(e)}), 400
     return jsonify({"cleartext":results}), 200
 
+@app.route("/api/encrypt_image", methods = ["POST", "GET"])
+def encrypt_image():
+    from utils import images_key
+    img = request.files.getlist("files")[0]
+    img = HillCipher.imagToMat(img, resize = 32)
+    cipher = HillCipher(32, key = images_key, force_key=True)    
+    new_img = cipher.encode_image(img)
+    new_img.save("./images/encrypt_temp.png")
+    file =  send_from_directory("./images", mimetype = "image/jpg", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
+    return file 
+
+@app.route("/api/decrypt_image", methods = ["POST", "GET"])
+def decrypt_image():
+    from utils import images_inv_key
+    #img = request.files.getlist("files")[0]
+    image = "./images/encrypt_temp.png"
+    img = open(image, 'rb')
+    img = HillCipher.imagToMat(img, resize = 32)
+    
+    prev = Image.fromarray(img) 
+    prev.save("./images/previous_encrypt.png")
+
+
+    cipher = HillCipher(32, key = images_key, force_key=True)    
+    new_img = cipher.decode_image(img, key_inv = images_inv_key)
+    new_img = new_img.convert("L")
+    new_img.save("./images/decrypt_temp.png")
+    file =  send_from_directory("./images", mimetype = "image/jpg", path = "decrypt_temp.png", as_attachment=False, max_age = 0)
+    return file 
 
 
 if __name__ == '__main__':

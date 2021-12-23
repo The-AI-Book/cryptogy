@@ -11,6 +11,8 @@ import { MainComponent } from './main/main.component';
 import { ClassicComponent } from './classic/classic.component';
 import { PresentationComponent } from './presentation/presentation.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { BlockComponent } from './block/block.component';
+import { GammaPentagonalComponent } from './gamma-pentagonal/gamma-pentagonal.component';
 
 @NgModule({
   declarations: [
@@ -21,6 +23,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     MainComponent,
     ClassicComponent,
     PresentationComponent,
+    BlockComponent,
+    GammaPentagonalComponent,
   ],
   imports: [
     BrowserModule,
