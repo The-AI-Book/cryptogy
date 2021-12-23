@@ -106,6 +106,8 @@ export class ClassicComponent implements OnInit {
       cleartext, 
       values.keyLength, 
       values.numPartitions, 
+      "", 
+      ""
     ).subscribe(
       data => {
         this.encryptLoading = false;
@@ -171,7 +173,9 @@ export class ClassicComponent implements OnInit {
       ciphertext, 
       values.keyLength, 
       values.keyStream, 
-      values.numPartitions
+      values.numPartitions, 
+      "", 
+      ""
     ).subscribe(
       data => {
         this.decryptLoading = false;

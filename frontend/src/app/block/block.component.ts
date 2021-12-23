@@ -30,8 +30,16 @@ export class BlockComponent implements OnInit {
       key: new FormControl(null, { validators: Validators.required }),
       cleartext: new FormControl(''),
       ciphertext: new FormControl(''),
+      initialPermutation: new FormControl(""),
+      schedule: new FormControl('')
     });
     this.generate_random_key();
+
+    this.form.get("key").valueChanges.subscribe(val => {
+       this.form.patchValue({"schedule": ""});
+       this.form.patchValue({"initialPermutation": ""});
+       this.form.updateValueAndValidity();
+    });
   }
 
   cryptosystem_change() {
@@ -68,6 +76,10 @@ export class BlockComponent implements OnInit {
 
   encrypt() {
 
+    this.form.patchValue({"schedule": ""});
+    this.form.patchValue({"initialPermutation": ""});
+    this.form.updateValueAndValidity();
+
     this.invalidKey = false;
     let values = this.form.value;
     this.encryptLoading = true;
@@ -79,14 +91,20 @@ export class BlockComponent implements OnInit {
       values.cipher,
       cleartext, 
       "0", 
-      "0"
+      "0",
+      values.initialPermutation,
+      values.schedule, 
     ).subscribe(
       data => {
         this.encryptLoading = false;
         this.form.patchValue({"ciphertext": data["ciphertext"] });
         this.form.updateValueAndValidity();
-        if(data["key_stream"]){
-          this.form.patchValue({"keyStream": data["key_stream"]});
+        if(data["permutation"]){
+          this.form.patchValue({"initialPermutation": data["permutation"]});
+          this.form.updateValueAndValidity();
+        }
+        if(data["schedule"]){
+          this.form.patchValue({"schedule": data["schedule"]});
           this.form.updateValueAndValidity();
         }
       }, err => {
@@ -100,6 +118,7 @@ export class BlockComponent implements OnInit {
   }
 
   decrypt() {
+
     let values = this.form.value;
     this.decryptLoading = true;
     this.errorDecrypt = false;
@@ -111,7 +130,9 @@ export class BlockComponent implements OnInit {
       ciphertext, 
       "0", 
       "0", 
-      "0"
+      "0", 
+      values.initialPermutation,
+      values.schedule
     ).subscribe(
       data => {
         this.decryptLoading = false;

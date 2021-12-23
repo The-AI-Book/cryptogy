@@ -23,6 +23,8 @@ export class CryptogyService {
            ciphertext: "",
            keyStream: "", 
            numPartitions: numPartitions, 
+           initialPermutation: "",
+           schedule: ""
         }
         return this.http.post(this.endpoint + "/api/generate_random_key", CryptoData);
     }
@@ -32,7 +34,9 @@ export class CryptogyService {
         cipher: string, 
         cleartext: string,
         keyLength: string, 
-        numPartitions: string
+        numPartitions: string, 
+        initialPermutation: string,
+        schedule: string
     ){
         const CryptoData: Crypto = {
             key: key,
@@ -42,6 +46,8 @@ export class CryptogyService {
             ciphertext: "", 
             keyStream: "", 
             numPartitions: numPartitions, 
+            initialPermutation: initialPermutation,
+            schedule: schedule
         }
         console.log(CryptoData);
         return this.http.post(this.endpoint + "/api/encrypt", CryptoData);
@@ -66,7 +72,9 @@ export class CryptogyService {
         ciphertext: string, 
         keyLength: string, 
         keyStream: string, 
-        numPartitions: string
+        numPartitions: string, 
+        initialPermutation: string,
+        schedule: string
     ){
         const CryptoData: Crypto = {
             key: key, 
@@ -76,6 +84,8 @@ export class CryptogyService {
             keyStream: keyStream, 
             cleartext: "", 
             numPartitions: numPartitions, 
+            initialPermutation: initialPermutation,
+            schedule: schedule
         }
         console.log(CryptoData);
         return this.http.post(this.endpoint + "/api/decrypt", CryptoData);
@@ -84,7 +94,7 @@ export class CryptogyService {
         cipher: string,
         ciphertext: string,
         cleartext: string, 
-        numPartitions: string
+        numPartitions: string,
     ){
         const CryptoData: Crypto = {
             cipher: cipher, 
@@ -94,6 +104,8 @@ export class CryptogyService {
             key: "", 
             keyLength: "", 
             numPartitions: numPartitions, 
+            initialPermutation: "",
+            schedule: ""
         }
         return this.http.post(this.endpoint + "/api/analyze", CryptoData);
     }

@@ -1,6 +1,7 @@
 import cryptogy
-import numpy as np 
-def format_key(key):
+import numpy as np
+from typing import List
+def format_key(key, return_np = True):
 
     try:
         if key.find(";") != -1:
@@ -11,7 +12,10 @@ def format_key(key):
                 for number in row.split(","):
                     values.append(int(number))
                 matrix.append(values)
-            return np.array(matrix)
+            if return_np:
+                return np.array(matrix)
+            else: 
+                return matrix
     except: 
         pass
 
@@ -36,6 +40,12 @@ def format_darray(matrix: np.array):
                 string += ","
         string += ";" 
     return string
+
+def format_list(list: List[int]):
+    string = ""
+    for bit in list: 
+        string += str(bit) + ","
+    return string[:-1]
 
 def get_analyzer(data: dict): 
     cipher = data["cipher"]
@@ -72,12 +82,14 @@ def get_cipher(data: dict):
     elif cipher == "stream":
         return cryptogy.AutokeyCipher()
     elif cipher == "sdes":
-        return None
+        return cryptogy.SDESCipher()
     elif cipher == "des":
-        return None
+        return cryptogy.DESCipher()
     elif cipher == "3aes":
         return None
     elif cipher == "aes":
+        return None
+    elif cipher == "gamma-pentagonal":
         return None
 
 import numpy as np
@@ -150,4 +162,4 @@ images_inv_key = np.array([
     [1.200000000000000000e+01,6.000000000000000000e+00,7.000000000000000000e+00,1.100000000000000000e+01,2.100000000000000000e+01,2.100000000000000000e+01,7.000000000000000000e+00,2.000000000000000000e+00,7.000000000000000000e+00,1.100000000000000000e+01,1.900000000000000000e+01,5.000000000000000000e+00,1.300000000000000000e+01,1.100000000000000000e+01,8.000000000000000000e+00,6.000000000000000000e+00,2.100000000000000000e+01,1.700000000000000000e+01,5.000000000000000000e+00,2.500000000000000000e+01,1.700000000000000000e+01,2.100000000000000000e+01,2.300000000000000000e+01,1.100000000000000000e+01,2.500000000000000000e+01,2.500000000000000000e+01,1.400000000000000000e+01,0.000000000000000000e+00,1.200000000000000000e+01,5.000000000000000000e+00,2.500000000000000000e+01,1.100000000000000000e+01]
 ])
 
-print(np.matmul(images_key, images_inv_key) % 26)
+#print(np.matmul(images_key, images_inv_key) % 26)

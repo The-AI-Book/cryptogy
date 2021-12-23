@@ -53,6 +53,16 @@
                     Invalid key.
                 </p>
             </div>
+            
+            <div class="col-10 form-group mt-4">
+                <label for="schedule" class="mb-2">IP (Permutation)</label>
+                <input class="form-control" id="initialPermutation" formControlName="initialPermutation">
+            </div>
+
+            <div class="col-10 form-group mt-4">
+                <label for="schedule" class="mb-2">Key Schedule</label>
+                <textarea style = "min-height: 100px;" class="form-control" id="schedule" formControlName="schedule"></textarea>
+            </div>
 
             <div *ngIf="form.value.cipher == 'stream'" class="col-10 form-group mt-4">
                 <label for="key" class="mb-2">Key Stream</label>
