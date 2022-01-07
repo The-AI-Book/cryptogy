@@ -181,6 +181,16 @@ class AESCipher:
         self.n_rounds = AESCipher.rounds_by_key_size[len(master_key)]
         self._key_matrices = self._expand_key(master_key)
 
+    def generateRandomKey(self, keyLength):
+        if (keyLength == 128):
+            key = b'\x00' * 16
+        elif (keyLength == 192):
+            key = b'\x00' * 24
+        elif (keyLength == 256):
+            key = b'\x00' * 32
+
+        return key
+
     def _expand_key(self, master_key):
         """
         Expands and returns a list of key matrices for the given master_key.
