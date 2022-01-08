@@ -181,13 +181,17 @@ class AESCipher:
         self.n_rounds = AESCipher.rounds_by_key_size[len(master_key)]
         self._key_matrices = self._expand_key(master_key)
 
+    # En el FrontEnd se muestra como key.hex() para que se muestre de la forma: '0c0b02010a040e080d0907030006050f'
     def generateRandomKey(self, keyLength):
-        if (keyLength == 128):
-            key = b'\x00' * 16
+        if (keyLength == 128)
+            sample = random.sample(range(16), 16)
+            key = bytes(sample)
         elif (keyLength == 192):
-            key = b'\x00' * 24
+            sample = random.sample(range(24), 24)
+            key = bytes(sample)
         elif (keyLength == 256):
-            key = b'\x00' * 32
+            sample = random.sample(range(32), 32)
+            key = bytes(sample)
 
         return key
 
