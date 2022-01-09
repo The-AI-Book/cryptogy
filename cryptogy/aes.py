@@ -46,24 +46,20 @@ inv_s_box = (
     0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D,
 )
 
-
 def sub_bytes(s):
     for i in range(4):
         for j in range(4):
             s[i][j] = s_box[s[i][j]]
-
 
 def inv_sub_bytes(s):
     for i in range(4):
         for j in range(4):
             s[i][j] = inv_s_box[s[i][j]]
 
-
 def shift_rows(s):
     s[0][1], s[1][1], s[2][1], s[3][1] = s[1][1], s[2][1], s[3][1], s[0][1]
     s[0][2], s[1][2], s[2][2], s[3][2] = s[2][2], s[3][2], s[0][2], s[1][2]
     s[0][3], s[1][3], s[2][3], s[3][3] = s[3][3], s[0][3], s[1][3], s[2][3]
-
 
 def inv_shift_rows(s):
     s[0][1], s[1][1], s[2][1], s[3][1] = s[3][1], s[0][1], s[1][1], s[2][1]
@@ -165,6 +161,14 @@ def split_blocks(message, block_size=16, require_padding=True):
         return [message[i:i+16] for i in range(0, len(message), block_size)]
 
 
+
+AES_KEY_SIZE = 16
+HMAC_KEY_SIZE = 16
+IV_SIZE = 16
+
+SALT_SIZE = 16
+HMAC_SIZE = 32
+
 class AESCipher:
     """
     Class for AES-128 encryption with CBC mode and PKCS#7.
@@ -183,7 +187,7 @@ class AESCipher:
 
     # En el FrontEnd se muestra como key.hex() para que se muestre de la forma: '0c0b02010a040e080d0907030006050f'
     def generateRandomKey(self, keyLength):
-        if (keyLength == 128)
+        if (keyLength == 128):
             sample = random.sample(range(16), 16)
             key = bytes(sample)
         elif (keyLength == 192):
@@ -192,7 +196,6 @@ class AESCipher:
         elif (keyLength == 256):
             sample = random.sample(range(32), 32)
             key = bytes(sample)
-
         return key
 
     def _expand_key(self, master_key):
@@ -446,90 +449,85 @@ class AESCipher:
 
         return b''.join(blocks)
 
-AES_KEY_SIZE = 16
-HMAC_KEY_SIZE = 16
-IV_SIZE = 16
+    @staticmethod
+    def get_key_iv(password, salt, workload=100000):
+        """
+        Stretches the password and extracts an AES key, an HMAC key and an AES
+        initialization vector.
+        """
+        stretched = pbkdf2_hmac('sha256', password, salt, workload, AES_KEY_SIZE + IV_SIZE + HMAC_KEY_SIZE)
+        aes_key, stretched = stretched[:AES_KEY_SIZE], stretched[AES_KEY_SIZE:]
+        hmac_key, stretched = stretched[:HMAC_KEY_SIZE], stretched[HMAC_KEY_SIZE:]
+        iv = stretched[:IV_SIZE]
+        return aes_key, hmac_key, iv
 
-SALT_SIZE = 16
-HMAC_SIZE = 32
+    @staticmethod
+    def encrypt(key, plaintext, workload=100000):
+        """
+        Encrypts `plaintext` with `key` using AES-128, an HMAC to verify integrity,
+        and PBKDF2 to stretch the given key.
 
-def get_key_iv(password, salt, workload=100000):
-    """
-    Stretches the password and extracts an AES key, an HMAC key and an AES
-    initialization vector.
-    """
-    stretched = pbkdf2_hmac('sha256', password, salt, workload, AES_KEY_SIZE + IV_SIZE + HMAC_KEY_SIZE)
-    aes_key, stretched = stretched[:AES_KEY_SIZE], stretched[AES_KEY_SIZE:]
-    hmac_key, stretched = stretched[:HMAC_KEY_SIZE], stretched[HMAC_KEY_SIZE:]
-    iv = stretched[:IV_SIZE]
-    return aes_key, hmac_key, iv
+        The exact algorithm is specified in the module docstring.
+        """
+        if isinstance(key, str):
+            key = key.encode('utf-8')
+        if isinstance(plaintext, str):
+            plaintext = plaintext.encode('utf-8')
 
+        salt = os.urandom(SALT_SIZE)
+        key, hmac_key, iv = AESCipher.get_key_iv(key, salt, workload)
+        ciphertext = AESCipher(key).encrypt_cbc(plaintext, iv)
+        hmac = new_hmac(hmac_key, salt + ciphertext, 'sha256').digest()
+        assert len(hmac) == HMAC_SIZE
 
-def encrypt(key, plaintext, workload=100000):
-    """
-    Encrypts `plaintext` with `key` using AES-128, an HMAC to verify integrity,
-    and PBKDF2 to stretch the given key.
+        return hmac + salt + ciphertext
 
-    The exact algorithm is specified in the module docstring.
-    """
-    if isinstance(key, str):
-        key = key.encode('utf-8')
-    if isinstance(plaintext, str):
-        plaintext = plaintext.encode('utf-8')
+    @staticmethod
+    def decrypt(key, ciphertext, workload=100000):
+        """
+        Decrypts `ciphertext` with `key` using AES-128, an HMAC to verify integrity,
+        and PBKDF2 to stretch the given key.
 
-    salt = os.urandom(SALT_SIZE)
-    key, hmac_key, iv = get_key_iv(key, salt, workload)
-    ciphertext = AESCipher(key).encrypt_cbc(plaintext, iv)
-    hmac = new_hmac(hmac_key, salt + ciphertext, 'sha256').digest()
-    assert len(hmac) == HMAC_SIZE
+        The exact algorithm is specified in the module docstring.
+        """
 
-    return hmac + salt + ciphertext
+        assert len(ciphertext) % 16 == 0, "Ciphertext must be made of full 16-byte blocks."
 
+        assert len(ciphertext) >= 32, """
+        Ciphertext must be at least 32 bytes long (16 byte salt + 16 byte block). To
+        encrypt or decrypt single blocks use `AES(key).decrypt_block(ciphertext)`.
+        """
 
-def decrypt(key, ciphertext, workload=100000):
-    """
-    Decrypts `ciphertext` with `key` using AES-128, an HMAC to verify integrity,
-    and PBKDF2 to stretch the given key.
+        if isinstance(key, str):
+            key = key.encode('utf-8')
 
-    The exact algorithm is specified in the module docstring.
-    """
+        hmac, ciphertext = ciphertext[:HMAC_SIZE], ciphertext[HMAC_SIZE:]
+        salt, ciphertext = ciphertext[:SALT_SIZE], ciphertext[SALT_SIZE:]
+        key, hmac_key, iv = AESCipher.get_key_iv(key, salt, workload)
 
-    assert len(ciphertext) % 16 == 0, "Ciphertext must be made of full 16-byte blocks."
+        expected_hmac = new_hmac(hmac_key, salt + ciphertext, 'sha256').digest()
+        assert compare_digest(hmac, expected_hmac), 'Ciphertext corrupted or tampered.'
 
-    assert len(ciphertext) >= 32, """
-    Ciphertext must be at least 32 bytes long (16 byte salt + 16 byte block). To
-    encrypt or decrypt single blocks use `AES(key).decrypt_block(ciphertext)`.
-    """
-
-    if isinstance(key, str):
-        key = key.encode('utf-8')
-
-    hmac, ciphertext = ciphertext[:HMAC_SIZE], ciphertext[HMAC_SIZE:]
-    salt, ciphertext = ciphertext[:SALT_SIZE], ciphertext[SALT_SIZE:]
-    key, hmac_key, iv = get_key_iv(key, salt, workload)
-
-    expected_hmac = new_hmac(hmac_key, salt + ciphertext, 'sha256').digest()
-    assert compare_digest(hmac, expected_hmac), 'Ciphertext corrupted or tampered.'
-
-    return AESCipher(key).decrypt_cbc(ciphertext, iv)
+        return AESCipher(key).decrypt_cbc(ciphertext, iv)
 
 if __name__ == '__main__':
     cleartext = b'thisismycleartexttobeencryptedthreetimes'
+    cipher = AESCipher
     
     # AES-128
     key128 = b'\x00' * 16
-    ciphertext = encrypt(key128, cleartext)
+    ciphertext = AESCipher.encrypt(key128, cleartext)
     print(ciphertext)
-    print(decrypt(key128, ciphertext))
+    print(AESCipher.decrypt(key128, ciphertext))
 
     # AES-192
     key192 = b'\x00' * 24
-    ciphertext = encrypt(key192, cleartext)
+    ciphertext = AESCipher.encrypt(key192, cleartext)
     print(ciphertext)
-    print(decrypt(key192, ciphertext))
+    print(AESCipher.decrypt(key192, ciphertext))
 
     # AES-256
     key256 = b'\x00' * 32
-    ciphertext = encrypt(key256, cleartext)
+    ciphertext = AESCipher.encrypt(key256, cleartext)
     print(ciphertext)
-    print(decrypt(key256, ciphertext))
+    print(AESCipher.decrypt(key256, ciphertext))

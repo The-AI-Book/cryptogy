@@ -21,17 +21,17 @@ export class BlockComponent implements OnInit {
   form: FormGroup;
   key: string = "";
   invalidKey: boolean = false;
-
   constructor(private cryptoService: CryptogyService) { }
 
   ngOnInit(): void {
     this.form = new FormGroup({
-      cipher: new FormControl("sdes", { validators: Validators.required }),
+      cipher: new FormControl("aes", { validators: Validators.required }),
       key: new FormControl(null, { validators: Validators.required }),
       cleartext: new FormControl(''),
       ciphertext: new FormControl(''),
       initialPermutation: new FormControl(""),
-      schedule: new FormControl('')
+      schedule: new FormControl(''), 
+      keyLength: new FormControl("128")
     });
     this.generate_random_key();
 
@@ -75,22 +75,31 @@ export class BlockComponent implements OnInit {
   }
 
   encrypt() {
+    let values = this.form.value;
+    if(values.cipher == "aes"){
+      if(values.key.length != parseInt(this.form.value.keyLength)){
+          this.invalidKey = true;
+          return;
+      }
+    }
+
 
     this.form.patchValue({"schedule": ""});
     this.form.patchValue({"initialPermutation": ""});
     this.form.updateValueAndValidity();
 
     this.invalidKey = false;
-    let values = this.form.value;
     this.encryptLoading = true;
     this.errorEncrypt = false;
     let cleartext = values.cleartext;
+    this.invalidKey = false;
 
+  
     this.cryptoService.encrypt(
       values.key,
       values.cipher,
       cleartext, 
-      "0", 
+      values.keyLength, 
       "0",
       values.initialPermutation,
       values.schedule, 
@@ -128,7 +137,7 @@ export class BlockComponent implements OnInit {
       values.key,
       values.cipher,
       ciphertext, 
-      "0", 
+      values.keyLength, 
       "0", 
       "0", 
       values.initialPermutation,

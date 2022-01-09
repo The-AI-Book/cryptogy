@@ -6,6 +6,7 @@ import cryptogy
 from cryptogy.hill_cipher import HillCipher, HillCryptAnalizer
 from cryptogy.stream_ciphers import AutokeyCipher, AutokeyCryptAnalizer, StreamCipher
 from cryptogy.des import SDESCipher, DESCipher
+from cryptogy.aes import AESCipher
 import utils
 from base64 import encodebytes
 import io
@@ -57,6 +58,9 @@ def generate_random_key():
         random_key = utils.format_darray(random_key)
     elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher):
         random_key = utils.format_list(random_key)
+    elif isinstance(cipher, AESCipher):
+        print("AES CIPHER")
+        random_key = "hello world"
     return jsonify({"random_key":random_key}), 200
 
 @app.route("/api/encrypt", methods = ["POST"])
