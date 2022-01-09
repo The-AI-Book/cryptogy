@@ -7,7 +7,7 @@
         </div>
         <div class="row section-title" data-aos="fade-down">
             <h2>Block Cryptosystems</h2>
-            <p>Interact with block ciphers such as: S-DES, DES, 3-AES and AES.</p>
+            <p>Interact with block ciphers such as: S-DES, DES and AES.</p>
 
         </div>
 
@@ -15,11 +15,12 @@
 
             <div class="form-group col-10">
 
+                
+
                 <label class="mb-2" for="cipher">Select cryptosystem</label>
                 <select class="form-control" id="cipher" formControlName="cipher" (change)="cryptosystem_change()">
                     <option value="sdes">S-DES</option>
                     <option value="des">DES</option>
-                    <option value="3des">3-AES</option>
                     <option value="aes">AES</option>
                 </select>
 
@@ -40,10 +41,25 @@
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     Loading...
                 </button>
-
                 <p *ngIf="errorRandomKey" class="alert alert-danger mt-2">
                     Unexpected error while generating random key.
                 </p>
+
+                <div *ngIf="form.value.cipher == 'aes'" class="col-12 form-group mt-4">
+                    <label class="mb-2" for="cipher">Key Length</label>
+                    <select class="form-control" id="keyLength" formControlName="keyLength" (change)="generate_random_key()">
+                        <option value="128" selected>128</option>
+                        <option value="192">192</option>
+                        <option value="256">256</option>
+                    </select>
+                </div>
+
+                <div *ngIf="form.value.cipher == 'hill' || form.value.cipher == 'permutation'" class="form-group mt-3">
+                    <label for="key" class="mb-2">Key Length</label>
+                    <input type="text" class="form-control" id="key" formControlName="numPartitions">
+                </div>
+
+            
             </div>
 
             <div class="col-10 form-group mt-4">
@@ -53,15 +69,18 @@
                     Invalid key.
                 </p>
             </div>
-            
-            <div class="col-10 form-group mt-4">
+
+            <div class="col-10 form-group mt-4"
+                *ngIf="this.form.value.cipher == 'sdes' || this.form.value.cipher == 'des'">
                 <label for="schedule" class="mb-2">IP (Permutation)</label>
                 <input class="form-control" id="initialPermutation" formControlName="initialPermutation">
             </div>
 
-            <div class="col-10 form-group mt-4">
+            <div class="col-10 form-group mt-4"
+                *ngIf="this.form.value.cipher == 'sdes' || this.form.value.cipher == 'des'">
                 <label for="schedule" class="mb-2">Key Schedule</label>
-                <textarea style = "min-height: 100px;" class="form-control" id="schedule" formControlName="schedule"></textarea>
+                <textarea style="min-height: 100px;" class="form-control" id="schedule"
+                    formControlName="schedule"></textarea>
             </div>
 
             <div *ngIf="form.value.cipher == 'stream'" class="col-10 form-group mt-4">
@@ -71,6 +90,8 @@
                     Invalid key.
                 </p>
             </div>
+
+            
 
             <div class="col-10 col-lg-5 mt-3">
 
@@ -105,8 +126,7 @@
                 <div class="d-flex mt-4 justify-content-center">
 
                     <button *ngIf="!decryptLoading" type="submit" class="btn btn-outline-primary me-1"
-                        [disabled]="form.invalid || form.value.ciphertext == ''"
-                        (click)="decrypt()">Decrpyt</button>
+                        [disabled]="form.invalid || form.value.ciphertext == ''" (click)="decrypt()">Decrpyt</button>
                     <button *ngIf="decryptLoading" class="btn btn-primary me-1" type="submit" style="width: 120px;">
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         Loading...
@@ -120,7 +140,7 @@
                 <p *ngIf="errorDecrypt" class="alert alert-danger mt-2">
                     Unexpected error while decrypting cipher text.
                 </p>
-     
+
             </div>
 
             <div *ngIf="form.value.cipher == 'stream' || form.value.cipher == 'hill' || form.value.cipher == 'permutation'"
@@ -128,7 +148,7 @@
                 Cryptoanalysis of this cipher requires a pair of cleartext and ciphertext.
             </div>
 
-     
+
         </form>
 
     </div>

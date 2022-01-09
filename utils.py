@@ -88,7 +88,7 @@ def get_cipher(data: dict):
     elif cipher == "3aes":
         return None
     elif cipher == "aes":
-        return None
+        return cryptogy.AESCipher
     elif cipher == "gamma-pentagonal":
         return None
 
