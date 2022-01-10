@@ -88,7 +88,19 @@ def get_cipher(data: dict):
     elif cipher == "3aes":
         return None
     elif cipher == "aes":
-        return cryptogy.AESCipher
+        keyLength = int(data["keyLength"])
+        
+        key = b'P' * 16
+        if keyLength == 16:
+            key = b'P' * 16
+        elif keyLength == 24:
+            key = b'P' * 24
+        elif keyLength == 32:
+            key = b'P' * 32
+        cipher = cryptogy.AESCipher()
+        cipher.setKey(key)
+        return cipher
+
     elif cipher == "gamma-pentagonal":
         return None
 
