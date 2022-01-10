@@ -26,6 +26,7 @@ export class CryptogyService {
            initialPermutation: "",
            schedule: ""
         }
+        //console.log(this.endpoint + "/api/generate_random_key");
         return this.http.post(this.endpoint + "/api/generate_random_key", CryptoData);
     }
 
@@ -38,6 +39,7 @@ export class CryptogyService {
         initialPermutation: string,
         schedule: string
     ){
+
         const CryptoData: Crypto = {
             key: key,
             cipher: cipher, 

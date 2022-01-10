@@ -1,5 +1,5 @@
 from math import exp
-from cipher import Cipher, CryptAnalizer
+from .cipher import Cipher, CryptAnalizer
 import numpy as np
 import os
 import copy
@@ -698,7 +698,10 @@ class AESCipher:
 
     rounds_by_key_size = {16: 10, 24: 12, 32: 14}
 
-    def __init__(self, master_key):
+    def __init__(self):
+        pass
+
+    def setKey(self, master_key):
         """
         Initializes the object with a given key.
         """
@@ -718,7 +721,7 @@ class AESCipher:
         elif len(self.master_key) == 32:
             sample = random.sample(range(32), 32)
             key = bytes(sample)
-        return key
+        return key #.hex()
 
     def _expand_key(self, master_key):
         """
@@ -1007,7 +1010,9 @@ class AESCipher:
 
         salt = os.urandom(SALT_SIZE)
         key, hmac_key, iv = AESCipher.get_key_iv(key, salt, workload)
-        ciphertext = AESCipher(key).encrypt_cbc(plaintext, iv)
+        cipher = AESCipher()
+        cipher.setKey(key)
+        ciphertext = cipher.encrypt_cbc(plaintext, iv)
         hmac = new_hmac(hmac_key, salt + ciphertext, "sha256").digest()
         assert len(hmac) == HMAC_SIZE
 
@@ -1035,7 +1040,10 @@ class AESCipher:
         expected_hmac = new_hmac(hmac_key, salt + ciphertext, 'sha256').digest()
         assert compare_digest(hmac, expected_hmac), 'Ciphertext corrupted or tampered.'
 
-        return AESCipher(key).decrypt_cbc(ciphertext, iv)
+        cipher = AESCipher()
+        cipher.setKey(key)
+
+        return cipher.decrypt_cbc(ciphertext, iv)
 
 
 if __name__ == "__main__":
@@ -1061,4 +1069,23 @@ if __name__ == "__main__":
     ciphertext = cipher256.encrypt(key=key256, plaintext=cleartext)
     print(ciphertext)
     print(cipher256.decrypt(key=key256, ciphertext=ciphertext))
+
+
+    key128 = b'P' * 16
+    cipher128 = AESCipher(key128)
+
+    sample = random.sample(range(16), 16)
+    key = bytes(sample)
+    cipher = AESCipher(key)
+    ciphertext = cipher.encrypt(key=key, plaintext=cleartext)
+    print(ciphertext)
+    print(cipher.decrypt(key=key, ciphertext=ciphertext))
+
+    cipher = AESCipher(b'A' * 16)
+    randomKey = cipher.generateRandomKey()
+    ciphertext = cipher.encrypt(key=randomKey, plaintext=cleartext)
+    print(ciphertext)
+    print(cipher.decrypt(key=randomKey, ciphertext=ciphertext))
+
+
 

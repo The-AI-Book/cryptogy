@@ -30,8 +30,8 @@ export class BlockComponent implements OnInit {
       cleartext: new FormControl(''),
       ciphertext: new FormControl(''),
       initialPermutation: new FormControl(""),
-      schedule: new FormControl(''), 
-      keyLength: new FormControl("128")
+      schedule: new FormControl(""), 
+      keyLength: new FormControl("16")
     });
     this.generate_random_key();
 
@@ -55,8 +55,8 @@ export class BlockComponent implements OnInit {
     this.errorRandomKey = false;
     let values = this.form.value;
     this.cryptoService.get_random_key(
-      values.cipher,
-      "0", 
+      values.cipher, 
+      values.keyLength, 
       "0"
     )
       .subscribe(data => {
@@ -76,12 +76,13 @@ export class BlockComponent implements OnInit {
 
   encrypt() {
     let values = this.form.value;
-    if(values.cipher == "aes"){
-      if(values.key.length != parseInt(this.form.value.keyLength)){
-          this.invalidKey = true;
-          return;
-      }
-    }
+    
+    //if(values.cipher == "aes"){
+    //  if(values.key.length != parseInt(this.form.value.keyLength)){
+    //      this.invalidKey = true;
+    //      return;
+    //  }
+    //}
 
 
     this.form.patchValue({"schedule": ""});

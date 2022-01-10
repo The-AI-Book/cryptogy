@@ -54,13 +54,13 @@ def generate_random_key():
         data = request.values
     cipher = utils.get_cipher(data)
     random_key = cipher.generateRandomKey()
+    #print(random_key)
     if isinstance(cipher, HillCipher):
         random_key = utils.format_darray(random_key)
     elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher):
         random_key = utils.format_list(random_key)
     elif isinstance(cipher, AESCipher):
-        print("AES CIPHER")
-        random_key = "hello world"
+        random_key = random_key.hex()
     return jsonify({"random_key":random_key}), 200
 
 @app.route("/api/encrypt", methods = ["POST"])
@@ -69,10 +69,18 @@ def encrypt():
     if data == None:
         data = request.values
     cleartext = data["cleartext"].lower().replace(" ", "")
-    key = utils.format_key(data["key"])
+
+    if data["cipher"] == "aes":
+        key = bytes.fromhex(data["key"])
+    else:
+        key = utils.format_key(data["key"])
     cipher = utils.get_cipher(data)
     cipher.setKey(key)
-    encode_text = cipher.encode(cleartext)
+    if data["cipher"] != "aes":
+        encode_text = cipher.encode(cleartext)
+    else:
+        encode_text = cipher.encrypt(key, cleartext)
+    
     if isinstance(cipher, AutokeyCipher):
         return jsonify({"ciphertext": encode_text[0], "key_stream": encode_text[1]}), 200
     elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher):
@@ -82,6 +90,8 @@ def encrypt():
         for list_ in encode_text[2]: # schedule
             string += utils.format_list(list_) + ";"
         return jsonify({"ciphertext": encode_text[0], "permutation": utils.format_list(encode_text[1]), "schedule": string})
+    elif isinstance(cipher, AESCipher):
+        return jsonify({"ciphertext": encode_text.hex()}), 200
     else:
         return jsonify({"ciphertext":encode_text}), 200
 
@@ -92,7 +102,13 @@ def decrypt():
         data = request.values
     ciphertext = data["ciphertext"]
     cipher = utils.get_cipher(data)
-    key = utils.format_key(data["key"])
+   
+    if data["cipher"] == "aes":
+        ciphertext = bytes.fromhex(data["ciphertext"])
+        key = bytes.fromhex(data["key"]) 
+    else:
+        key = utils.format_key(data["key"])
+
     if isinstance(cipher, AutokeyCipher):
         key_stream = utils.format_key(data["keyStream"])
         cleartext = cipher.decode(key_stream, ciphertext)
@@ -102,6 +118,12 @@ def decrypt():
         #print("Decrypt schedule: ")
         #print(schedule)
         cleartext = cipher.decode(permutation, schedule, ciphertext)[0]
+    elif isinstance(cipher, AESCipher):
+        cipher.setKey(key)
+        cleartext = cipher.decrypt(key, ciphertext)
+        #print(cleartext)
+
+        cleartext = cleartext.decode("utf-8")
     else:
         cipher.setKey(key)
         cleartext = cipher.decode(ciphertext)
@@ -112,7 +134,11 @@ def analyze():
     data=request.get_json()
     if data == None:
         data = request.values
+
+
+
     ciphertext = data["ciphertext"]
+
     analyzer = utils.get_analyzer(data)
     if isinstance(analyzer, AutokeyCryptAnalizer):
         cleartext = data["cleartext"]
