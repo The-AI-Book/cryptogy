@@ -81,7 +81,10 @@ def encrypt():
         encode_text = cipher.encode(cleartext)
     else:
         encryptionMode = data["encryptionMode"]
-        encode_text = cryptogy.aes.encrypt_text(key, encryptionMode, cleartext)
+        iv = bytes.fromhex("0d0c0f0b0704050a09000e0108030602")
+        # iv = bytes.fromhex(data["initialPermutation"])
+        print(key, iv, encryptionMode, cleartext)
+        encode_text = cryptogy.aes.encrypt_text(key, iv, encryptionMode, cleartext)
         
     if isinstance(cipher, AutokeyCipher):
         return jsonify({"ciphertext": encode_text[0], "key_stream": encode_text[1]}), 200
@@ -93,7 +96,9 @@ def encrypt():
             string += utils.format_list(list_) + ";"
         return jsonify({"ciphertext": encode_text[0], "permutation": utils.format_list(encode_text[1]), "schedule": string})
     elif isinstance(cipher, AESCipher):
-        return jsonify({"ciphertext": encode_text.hex()}), 200
+        ciphertext = encode_text[0].hex()
+        iv = encode_text[1].hex()
+        return jsonify({"ciphertext": ciphertext, "initialPermutation": iv}), 200
     else:
         return jsonify({"ciphertext":encode_text}), 200
 
@@ -124,7 +129,9 @@ def decrypt():
         cipher.setKey(key)
         #cleartext = cipher.decrypt(key, ciphertext)
         encryptionMode = data["encryptionMode"]
-        cleartext = cryptogy.aes.encrypt_text(key, encryptionMode, ciphertext)
+        # iv = bytes.fromhex(data["initialPermutation"])
+        iv = bytes.fromhex("0d0c0f0b0704050a09000e0108030602")
+        cleartext = cryptogy.aes.decrypt_text(key, iv, encryptionMode, ciphertext)
         #print(cleartext)
 
         cleartext = cleartext.decode("utf-8")

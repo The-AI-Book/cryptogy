@@ -710,6 +710,10 @@ class AESCipher:
         self.n_rounds = AESCipher.rounds_by_key_size[len(master_key)]
         self._key_matrices = self._expand_key(master_key)
 
+    def setIV(self, iv):
+        assert len(iv) == 16
+        self.iv = iv
+
     # En el FrontEnd se muestra como key.hex() para que se muestre de la forma: '0c0b02010a040e080d0907030006050f'
     def generateRandomKey(self):
         if len(self.master_key) == 16:
@@ -722,6 +726,11 @@ class AESCipher:
             sample = random.sample(range(32), 32)
             key = bytes(sample)
         return key #.hex()
+
+    def generateRandomIV(self):
+        sample = random.sample(range(16), 16)
+        iv = bytes(sample)
+        return iv
 
     def _expand_key(self, master_key):
         """
@@ -1045,15 +1054,14 @@ class AESCipher:
 
         return cipher.decrypt_cbc(ciphertext, iv)
 
-def encrypt_text(key, encryptionMode, cleartext):
-    
-    # AES-128
+def encrypt_text(key, iv, encryptionMode : str, cleartext : str):
     cipher = AESCipher()
     cipher.setKey(key)
-    iv = b'\x01' * 16
+    if iv is None:
+        iv = cipher.generateRandomIV() # b'\x01' * 16
 
     if encryptionMode == "cbc":
-        ciphertext = cipher.encrypt_cbc(cleartext, iv)
+        ciphertext = cipher.encrypt_cbc(str.encode(cleartext), iv)
     elif encryptionMode == "pcbc":
         ciphertext = cipher.encrypt_pcbc(cleartext, iv)
     elif encryptionMode == "cfb":
@@ -1064,13 +1072,12 @@ def encrypt_text(key, encryptionMode, cleartext):
         ciphertext = cipher.encrypt_ctr(cleartext, iv)
     elif encryptionMode == "pcbc":
         ciphertext = cipher.encrypt_cbc(cleartext, iv)
-    return ciphertext
+    return ciphertext, iv
 
-def decrypt_text(key, encryptionMode, ciphertext):
-    # AES-128
+def decrypt_text(key, iv, encryptionMode, ciphertext):
     cipher = AESCipher()
     cipher.setKey(key)
-    iv = b'\x01' * 16
+    cipher.setIV(iv)
 
     if encryptionMode == "cbc":
         cleartext = cipher.decrypt_cbc(ciphertext, iv)

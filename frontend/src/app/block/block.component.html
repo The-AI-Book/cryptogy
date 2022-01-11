@@ -82,6 +82,11 @@
                 </p>
             </div>
 
+            <div class="col-10 form-group mt-4">
+                <label for="key" class="mb-2">Enter Initialization Vector (IV)</label>
+                <input type="text" class="form-control" id="initialPermutation" formControlName="initialPermutation">
+            </div>
+
             <div class="col-10 form-group mt-4"
                 *ngIf="this.form.value.cipher == 'sdes' || this.form.value.cipher == 'des'">
                 <label for="schedule" class="mb-2">IP (Permutation)</label>
