@@ -143,7 +143,7 @@
                 <div class="d-flex mt-4 justify-content-center">
 
                     <button *ngIf="!decryptLoading" type="submit" class="btn btn-outline-primary me-1"
-                        [disabled]="form.invalid || form.value.ciphertext == ''" (click)="decrypt()">Decrpyt</button>
+                        [disabled]="form.invalid || form.value.ciphertext == ''" (click)="decrypt()">Decrypt</button>
                     <button *ngIf="decryptLoading" class="btn btn-primary me-1" type="submit" style="width: 120px;">
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         Loading...
