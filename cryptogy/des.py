@@ -104,7 +104,7 @@ class DESCipher(Cipher):
 
     def funcPermutation(self, block):
         """
-        The Permutation P is as fllows:
+        The Permutation P is as follows:
         It is apply over C1.C2. ... C7.C8
         32 bits block.
         """
