@@ -57,11 +57,11 @@
                 <div *ngIf="form.value.cipher == 'aes'" class="col-12 form-group mt-4">
                     <label class="mb-2" for="cipher">Encryption Mode</label>
                     <select class="form-control" id="encryptionMode" formControlName="encryptionMode" (change)="generate_random_key()">
-                        <option value="cbc" selected>CBC Mode</option>
-                        <option value="pcbc">PCBC Mode</option>
-                        <option value="cfb">CFB Mode</option>
-                        <option value="ofb">OFB Mode</option>
-                        <option value="ctr">CTR Mode</option>
+                        <option value="cbc" selected>CBC</option>
+                        <option value="pcbc">PCBC</option>
+                        <option value="cfb">CFB</option>
+                        <option value="ofb">OFB</option>
+                        <option value="ctr">CTR</option>
                     </select>
                 </div>
 
