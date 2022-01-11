@@ -54,6 +54,17 @@
                     </select>
                 </div>
 
+                <div *ngIf="form.value.cipher == 'aes'" class="col-12 form-group mt-4">
+                    <label class="mb-2" for="cipher">Encryption Mode</label>
+                    <select class="form-control" id="keyLength" formControlName="keyLength" (change)="generate_random_key()">
+                        <option value="cbc" selected>CBC</option>
+                        <option value="pcbc">PCBC</option>
+                        <option value="cfb">CFB</option>
+                        <option value="ofb">OFB</option>
+                        <option value="ctr">CTR</option>
+                    </select>
+                </div>
+
                 <div *ngIf="form.value.cipher == 'hill' || form.value.cipher == 'permutation'" class="form-group mt-3">
                     <label for="key" class="mb-2">Key Length</label>
                     <input type="text" class="form-control" id="key" formControlName="numPartitions">
