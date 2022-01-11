@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { CryptogyService } from '../services/cryptogy.service';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-block',
@@ -18,10 +19,15 @@ export class BlockComponent implements OnInit {
   decryptLoading: boolean = false;
   errorDecrypt: boolean = false;
 
+  imageLoading: boolean = false;
+  errorImage: boolean = false;
+  clearImage = null;
+  cipherImage = null;
+
   form: FormGroup;
   key: string = "";
   invalidKey: boolean = false;
-  constructor(private cryptoService: CryptogyService) { }
+  constructor(private cryptoService: CryptogyService, private domSanitizer: DomSanitizer) { }
 
   ngOnInit(): void {
     this.form = new FormGroup({
@@ -129,6 +135,31 @@ export class BlockComponent implements OnInit {
     )
   }
 
+  encrypt_image(){
+    //console.log("encrypt image!");
+    this.cryptoService.encrypt_image(this.form.value.file)
+    .subscribe(
+      data => {
+        //console.log(data);
+        //console.log("Loading image!");
+        const reader = new FileReader();
+        reader.readAsDataURL(new Blob([<any> data]));
+        reader.onload = (e) => {
+
+          let url = e.target.result as string;
+          let secureUrl = this.domSanitizer.bypassSecurityTrustResourceUrl(
+            url
+          );
+          this.cipherImage = secureUrl;
+          //console.log(this.cipherImage);
+        }
+      }, 
+      err => {
+        console.log(err);
+      }
+    )
+  }
+
   decrypt() {
 
     let values = this.form.value;
@@ -158,6 +189,30 @@ export class BlockComponent implements OnInit {
     )
   }
 
+  decrypt_image(){
+    //console.log("decrypt image!");
+    this.cryptoService.decrypt_image()
+    .subscribe(
+      data => {
+        //console.log(data);
+        //console.log("Loading image!");
+        const reader = new FileReader();
+        reader.readAsDataURL(new Blob([<any> data]));
+        reader.onload = (e) => {
+          let url = e.target.result as string;
+          let secureUrl = this.domSanitizer.bypassSecurityTrustResourceUrl(
+            url
+          );
+          this.clearImage = secureUrl;
+          //console.log(this.clearImage);
+        }
+      }, 
+      err => {
+        console.log(err);
+      }
+    )
+  }
+
   clearText(){
     this.form.patchValue({"cleartext":""})
     this.form.updateValueAndValidity();
@@ -168,6 +223,29 @@ export class BlockComponent implements OnInit {
     this.form.updateValueAndValidity();
   }
 
+  onFileSelected(event: any){
+    const files = event.target.files;
+    if (files.length === 0)
+        return;
+
+    const mimeType = files[0].type;
+    if (mimeType.match(/image\/*/) == null) {
+        return;
+    }
+
+    this.form.patchValue({file: files[0]});
+    this.form.updateValueAndValidity();
+
+    //console.log(files);
+    //console.log(files[0]);
+    //console.log(this.form.value.file);
+
+    const reader = new FileReader();
+    reader.readAsDataURL(files[0]); 
+    reader.onload = (_event) => { 
+        this.clearImage = reader.result; 
+    }
+  }
 
 }
 

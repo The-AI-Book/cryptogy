@@ -21,6 +21,7 @@
                 <select class="form-control" id="cipher" formControlName="cipher" (change)="cryptosystem_change()">
                     <option value="sdes">S-DES</option>
                     <option value="des">DES</option>
+                    <option value="3des">3-DES</option>
                     <option value="aes">AES</option>
                 </select>
 
@@ -154,12 +155,45 @@
 
             </div>
 
-            <div *ngIf="form.value.cipher == 'stream' || form.value.cipher == 'hill' || form.value.cipher == 'permutation'"
-                class="col-10 mt-3 alert alert-warning">
-                Cryptoanalysis of this cipher requires a pair of cleartext and ciphertext.
-            </div>
-
-
+            <!-- Encriptado de imágenes -->
+            <div class="col-10 col-lg-5 mt-4" *ngIf="form.value.cipher == 'aes' || form.value.cipher == 'sdes' || this.form.value.cipher == 'des' || this.form.value.cipher == '3des'">
+                <div class = "form-group">
+                     <label for="key" class="mb-2">Clear image</label>
+                     <div class = "d-flex justify-content-center">
+                         <img [src] = "clearImage" width = "420px" height = "300px" class = "shadow-sm">
+                     </div>
+       
+                     <div class = "d-flex justify-content-center mt-4">
+                         <button class = "btn btn-outline-danger me-2" (click)="filePicker.click()">Upload</button>
+                         <button *ngIf="!encryptLoading" type="submit" class="btn btn-outline-primary me-2"
+                         [disabled]="form.invalid || form.value.file == ''" (click)="encrypt_image()">Encrypt</button>
+                     </div>
+                     
+                     <input style="display: none;" type = "file" accept="image/*" #filePicker (change)="onFileSelected($event)" name="file" id = "file">
+                </div>
+             </div>
+             
+             <div class="col-10 col-lg-5 mt-4" *ngIf="form.value.cipher == 'aes' || form.value.cipher == 'sdes' || this.form.value.cipher == 'des' || this.form.value.cipher == '3des'">
+                 <div class = "form-group">
+                      <label for="key" class="mb-2">Cipher image</label>
+                      <div class = "d-flex justify-content-center">
+                         <img #imgcrypt [src] = "cipherImage" width = "420px" height = "300px" class = "shadow-sm">
+                     </div>
+                     <!--
+                     <div class = "d-flex justify-content-center" *ngIf = "loadDummyImage == true">
+                         <img src = "assets/img/imagen_encriptada.png" width = "420px" height = "300px" class = "shadow-sm">
+                     </div>
+                     -->
+                   
+                      <div class = "d-flex justify-content-center mt-4">
+                          <!--
+                         <button class = "btn btn-outline-primary me-2" (click)="decrypt_image()">Decrypt</button>
+                         
+                         <button class = "btn btn-outline-secondary">Analyze</button> 
+                         -->
+                      </div>
+                 </div>
+              </div>
         </form>
 
     </div>
