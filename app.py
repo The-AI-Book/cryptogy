@@ -81,9 +81,7 @@ def encrypt():
         encode_text = cipher.encode(cleartext)
     else:
         encryptionMode = data["encryptionMode"]
-        iv = bytes.fromhex("0d0c0f0b0704050a09000e0108030602")
-        # iv = bytes.fromhex(data["initialPermutation"])
-        print(key, iv, encryptionMode, cleartext)
+        iv = bytes.fromhex(data["initialPermutation"])
         encode_text = cryptogy.aes.encrypt_text(key, iv, encryptionMode, cleartext)
         
     if isinstance(cipher, AutokeyCipher):
@@ -112,7 +110,7 @@ def decrypt():
    
     if data["cipher"] == "aes":
         ciphertext = bytes.fromhex(data["ciphertext"])
-        key = bytes.fromhex(data["key"]) 
+        key = bytes.fromhex(data["key"])
     else:
         key = utils.format_key(data["key"])
 
@@ -127,12 +125,9 @@ def decrypt():
         cleartext = cipher.decode(permutation, schedule, ciphertext)[0]
     elif isinstance(cipher, AESCipher):
         cipher.setKey(key)
-        #cleartext = cipher.decrypt(key, ciphertext)
         encryptionMode = data["encryptionMode"]
-        # iv = bytes.fromhex(data["initialPermutation"])
-        iv = bytes.fromhex("0d0c0f0b0704050a09000e0108030602")
+        iv = bytes.fromhex(data["initialPermutation"])
         cleartext = cryptogy.aes.decrypt_text(key, iv, encryptionMode, ciphertext)
-        #print(cleartext)
 
         cleartext = cleartext.decode("utf-8")
     else:

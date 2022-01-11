@@ -1057,21 +1057,21 @@ class AESCipher:
 def encrypt_text(key, iv, encryptionMode : str, cleartext : str):
     cipher = AESCipher()
     cipher.setKey(key)
-    if iv is None:
+    if len(iv) != 16:
         iv = cipher.generateRandomIV() # b'\x01' * 16
 
     if encryptionMode == "cbc":
         ciphertext = cipher.encrypt_cbc(str.encode(cleartext), iv)
     elif encryptionMode == "pcbc":
-        ciphertext = cipher.encrypt_pcbc(cleartext, iv)
+        ciphertext = cipher.encrypt_pcbc(str.encode(cleartext), iv)
     elif encryptionMode == "cfb":
-        ciphertext = cipher.encrypt_cfb(cleartext, iv)
+        ciphertext = cipher.encrypt_cfb(str.encode(cleartext), iv)
     elif encryptionMode == "ofb":
-        ciphertext = cipher.encrypt_ofb(cleartext, iv)
+        ciphertext = cipher.encrypt_ofb(str.encode(cleartext), iv)
     elif encryptionMode == "ctr":
-        ciphertext = cipher.encrypt_ctr(cleartext, iv)
+        ciphertext = cipher.encrypt_ctr(str.encode(cleartext), iv)
     elif encryptionMode == "pcbc":
-        ciphertext = cipher.encrypt_cbc(cleartext, iv)
+        ciphertext = cipher.encrypt_cbc(str.encode(cleartext), iv)
     return ciphertext, iv
 
 def decrypt_text(key, iv, encryptionMode, ciphertext):

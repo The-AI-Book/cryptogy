@@ -126,7 +126,7 @@ export class BlockComponent implements OnInit {
           this.form.updateValueAndValidity();
         }
         if(data["initialPermutation"]){
-          this.form.patchValue({"schedule": data["schedule"]});
+          this.form.patchValue({"initialPermutation": data["initialPermutation"]});
           this.form.updateValueAndValidity();
         }
       }, err => {
