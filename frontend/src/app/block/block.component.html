@@ -48,9 +48,9 @@
                 <div *ngIf="form.value.cipher == 'aes'" class="col-12 form-group mt-4">
                     <label class="mb-2" for="cipher">Key Length</label>
                     <select class="form-control" id="keyLength" formControlName="keyLength" (change)="generate_random_key()">
-                        <option value="16" selected>16</option>
-                        <option value="24">24</option>
-                        <option value="32">32</option>
+                        <option value="16" selected>128 bits</option>
+                        <option value="24">192 bits</option>
+                        <option value="32">256 bits</option>
                     </select>
                 </div>
 
