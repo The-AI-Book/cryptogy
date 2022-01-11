@@ -1051,41 +1051,97 @@ if __name__ == "__main__":
 
     # AES-128
     key128 = b'P' * 16
-    cipher128 = AESCipher(key128)
-    ciphertext = cipher128.encrypt(key=key128, plaintext=cleartext)
+    cipher128 = AESCipher()
+    cipher128.setKey(key128)
+    iv = b'\x01' * 16
+
+    # Modo CBC
+    ciphertext = cipher128.encrypt_cbc(cleartext, iv)
     print(ciphertext)
-    print(cipher128.decrypt(key=key128, ciphertext=ciphertext))
+    print(cipher128.decrypt_cbc(ciphertext, iv))
+
+    # Modo PCBC
+    ciphertext = cipher128.encrypt_pcbc(cleartext, iv)
+    print(ciphertext)
+    print(cipher128.decrypt_pcbc(ciphertext, iv))
+
+    # Modo CFB
+    ciphertext = cipher128.encrypt_cfb(cleartext, iv)
+    print(ciphertext)
+    print(cipher128.decrypt_cfb(ciphertext, iv))
+
+    # Modo OFB
+    ciphertext = cipher128.encrypt_ofb(cleartext, iv)
+    print(ciphertext)
+    print(cipher128.decrypt_ofb(ciphertext, iv))
+
+    # Modo CTR
+    ciphertext = cipher128.encrypt_ctr(cleartext, iv)
+    print(ciphertext)
+    print(cipher128.decrypt_ctr(ciphertext, iv))
 
     # AES-192
     key192 = b'P' * 24
-    cipher192 = AESCipher(key192)
-    ciphertext = cipher192.encrypt(key=key192, plaintext=cleartext)
+    cipher192 = AESCipher()
+    cipher192.setKey(key192)
+    iv = b'\x01' * 16
+
+    # Modo CBC
+    ciphertext = cipher192.encrypt_cbc(cleartext, iv)
     print(ciphertext)
-    print(cipher192.decrypt(key=key192, ciphertext=ciphertext))
+    print(cipher192.decrypt_cbc(ciphertext, iv))
+
+    # Modo PCBC
+    ciphertext = cipher192.encrypt_pcbc(cleartext, iv)
+    print(ciphertext)
+    print(cipher192.decrypt_pcbc(ciphertext, iv))
+
+    # Modo CFB
+    ciphertext = cipher192.encrypt_cfb(cleartext, iv)
+    print(ciphertext)
+    print(cipher192.decrypt_cfb(ciphertext, iv))
+
+    # Modo OFB
+    ciphertext = cipher192.encrypt_ofb(cleartext, iv)
+    print(ciphertext)
+    print(cipher192.decrypt_ofb(ciphertext, iv))
+
+    # Modo CTR
+    ciphertext = cipher192.encrypt_ctr(cleartext, iv)
+    print(ciphertext)
+    print(cipher192.decrypt_ctr(ciphertext, iv))
 
     # AES-256
     key256 = b'P' * 32
-    cipher256 = AESCipher(key256)
-    ciphertext = cipher256.encrypt(key=key256, plaintext=cleartext)
+    cipher256 = AESCipher()
+    cipher256.setKey(key256)
+    iv = b'\x01' * 16
+
+    # Modo CBC
+    ciphertext = cipher256.encrypt_cbc(cleartext, iv)
     print(ciphertext)
-    print(cipher256.decrypt(key=key256, ciphertext=ciphertext))
+    print(cipher256.decrypt_cbc(ciphertext, iv))
 
-
-    key128 = b'P' * 16
-    cipher128 = AESCipher(key128)
-
-    sample = random.sample(range(16), 16)
-    key = bytes(sample)
-    cipher = AESCipher(key)
-    ciphertext = cipher.encrypt(key=key, plaintext=cleartext)
+    # Modo PCBC
+    ciphertext = cipher256.encrypt_pcbc(cleartext, iv)
     print(ciphertext)
-    print(cipher.decrypt(key=key, ciphertext=ciphertext))
+    print(cipher256.decrypt_pcbc(ciphertext, iv))
 
-    cipher = AESCipher(b'A' * 16)
-    randomKey = cipher.generateRandomKey()
-    ciphertext = cipher.encrypt(key=randomKey, plaintext=cleartext)
+    # Modo CFB
+    ciphertext = cipher256.encrypt_cfb(cleartext, iv)
     print(ciphertext)
-    print(cipher.decrypt(key=randomKey, ciphertext=ciphertext))
+    print(cipher256.decrypt_cfb(ciphertext, iv))
+
+    # Modo OFB
+    ciphertext = cipher256.encrypt_ofb(cleartext, iv)
+    print(ciphertext)
+    print(cipher256.decrypt_ofb(ciphertext, iv))
+
+    # Modo CTR
+    ciphertext = cipher256.encrypt_ctr(cleartext, iv)
+    print(ciphertext)
+    print(cipher256.decrypt_ctr(ciphertext, iv))
+
 
 
 
