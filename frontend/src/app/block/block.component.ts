@@ -31,7 +31,8 @@ export class BlockComponent implements OnInit {
       ciphertext: new FormControl(''),
       initialPermutation: new FormControl(""),
       schedule: new FormControl(""), 
-      keyLength: new FormControl("16")
+      keyLength: new FormControl("16"), 
+      encryptionMode: new FormControl("cbc")
     });
     this.generate_random_key();
 
@@ -100,10 +101,11 @@ export class BlockComponent implements OnInit {
       values.key,
       values.cipher,
       cleartext, 
-      values.keyLength, 
+      values.keyLength,
       "0",
       values.initialPermutation,
       values.schedule, 
+      values.encryptionMode
     ).subscribe(
       data => {
         this.encryptLoading = false;
@@ -142,7 +144,8 @@ export class BlockComponent implements OnInit {
       "0", 
       "0", 
       values.initialPermutation,
-      values.schedule
+      values.schedule, 
+      values.encryptionMode
     ).subscribe(
       data => {
         this.decryptLoading = false;

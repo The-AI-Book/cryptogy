@@ -1045,6 +1045,48 @@ class AESCipher:
 
         return cipher.decrypt_cbc(ciphertext, iv)
 
+def encrypt_text(key, encryptionMode, cleartext):
+    
+    # AES-128
+    cipher = AESCipher()
+    cipher.setKey(key)
+    iv = b'\x01' * 16
+
+    if encryptionMode == "cbc":
+        ciphertext = cipher.encrypt_cbc(cleartext, iv)
+    elif encryptionMode == "pcbc":
+        ciphertext = cipher.encrypt_pcbc(cleartext, iv)
+    elif encryptionMode == "cfb":
+        ciphertext = cipher.encrypt_cfb(cleartext, iv)
+    elif encryptionMode == "ofb":
+        ciphertext = cipher.encrypt_ofb(cleartext, iv)
+    elif encryptionMode == "ctr":
+        ciphertext = cipher.encrypt_ctr(cleartext, iv)
+    elif encryptionMode == "pcbc":
+        ciphertext = cipher.encrypt_cbc(cleartext, iv)
+    return ciphertext
+
+def decrypt_text(key, encryptionMode, ciphertext):
+    # AES-128
+    cipher = AESCipher()
+    cipher.setKey(key)
+    iv = b'\x01' * 16
+
+    if encryptionMode == "cbc":
+        cleartext = cipher.decrypt_cbc(ciphertext, iv)
+    elif encryptionMode == "pcbc":
+        cleartext = cipher.decrypt_pcbc(ciphertext, iv)
+    elif encryptionMode == "cfb":
+        cleartext = cipher.decrypt_cfb(ciphertext, iv)
+    elif encryptionMode == "ofb":
+        cleartext = cipher.decrypt_ofb(ciphertext, iv)
+    elif encryptionMode == "ctr":
+        cleartext = cipher.decrypt_ctr(ciphertext, iv)
+    elif encryptionMode == "pcbc":
+        cleartext = cipher.decrypt_cbc(ciphertext, iv)
+    return cleartext
+
+
 
 if __name__ == "__main__":
     cleartext = b"thisismycleartexttobeencryptedthreetimes"

@@ -8,4 +8,5 @@ export interface Crypto{
     numPartitions: string;
     initialPermutation: string;
     schedule: string;
+    encryptionMode: string;
 }

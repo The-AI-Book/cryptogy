@@ -6,6 +6,7 @@ import cryptogy
 from cryptogy.hill_cipher import HillCipher, HillCryptAnalizer
 from cryptogy.stream_ciphers import AutokeyCipher, AutokeyCryptAnalizer, StreamCipher
 from cryptogy.des import SDESCipher, DESCipher
+import cryptogy.aes
 from cryptogy.aes import AESCipher
 import utils
 from base64 import encodebytes
@@ -79,8 +80,9 @@ def encrypt():
     if data["cipher"] != "aes":
         encode_text = cipher.encode(cleartext)
     else:
-        encode_text = cipher.encrypt(key, cleartext)
-    
+        encryptionMode = data["encryptionMode"]
+        encode_text = cryptogy.aes.encrypt_text(key, encryptionMode, cleartext)
+        
     if isinstance(cipher, AutokeyCipher):
         return jsonify({"ciphertext": encode_text[0], "key_stream": encode_text[1]}), 200
     elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher):
@@ -120,7 +122,9 @@ def decrypt():
         cleartext = cipher.decode(permutation, schedule, ciphertext)[0]
     elif isinstance(cipher, AESCipher):
         cipher.setKey(key)
-        cleartext = cipher.decrypt(key, ciphertext)
+        #cleartext = cipher.decrypt(key, ciphertext)
+        encryptionMode = data["encryptionMode"]
+        cleartext = cryptogy.aes.encrypt_text(key, encryptionMode, ciphertext)
         #print(cleartext)
 
         cleartext = cleartext.decode("utf-8")
@@ -134,11 +138,7 @@ def analyze():
     data=request.get_json()
     if data == None:
         data = request.values
-
-
-
     ciphertext = data["ciphertext"]
-
     analyzer = utils.get_analyzer(data)
     if isinstance(analyzer, AutokeyCryptAnalizer):
         cleartext = data["cleartext"]
@@ -150,9 +150,6 @@ def analyze():
     elif isinstance(analyzer, HillCryptAnalizer):
         cleartext = data["cleartext"]
         numPartitions = int(data["numPartitions"])
-        #print(cleartext)
-        #print(numPartitions)
-        #print(ciphertext)
         try:
             results = analyzer.breakCipher(ciphertext, cleartext, numPartitions)
         except Exception as e: 

@@ -107,6 +107,7 @@ export class ClassicComponent implements OnInit {
       values.keyLength, 
       values.numPartitions, 
       "", 
+      "", 
       ""
     ).subscribe(
       data => {
@@ -174,6 +175,7 @@ export class ClassicComponent implements OnInit {
       values.keyLength, 
       values.keyStream, 
       values.numPartitions, 
+      "", 
       "", 
       ""
     ).subscribe(

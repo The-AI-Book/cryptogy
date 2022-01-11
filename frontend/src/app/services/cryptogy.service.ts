@@ -24,7 +24,8 @@ export class CryptogyService {
            keyStream: "", 
            numPartitions: numPartitions, 
            initialPermutation: "",
-           schedule: ""
+           schedule: "",
+           encryptionMode: ""
         }
         //console.log(this.endpoint + "/api/generate_random_key");
         return this.http.post(this.endpoint + "/api/generate_random_key", CryptoData);
@@ -37,7 +38,8 @@ export class CryptogyService {
         keyLength: string, 
         numPartitions: string, 
         initialPermutation: string,
-        schedule: string
+        schedule: string, 
+        encryptionMode: string
     ){
 
         const CryptoData: Crypto = {
@@ -49,7 +51,8 @@ export class CryptogyService {
             keyStream: "", 
             numPartitions: numPartitions, 
             initialPermutation: initialPermutation,
-            schedule: schedule
+            schedule: schedule, 
+            encryptionMode: encryptionMode
         }
         console.log(CryptoData);
         return this.http.post(this.endpoint + "/api/encrypt", CryptoData);
@@ -76,7 +79,8 @@ export class CryptogyService {
         keyStream: string, 
         numPartitions: string, 
         initialPermutation: string,
-        schedule: string
+        schedule: string,
+        encryptionMode: string
     ){
         const CryptoData: Crypto = {
             key: key, 
@@ -87,7 +91,8 @@ export class CryptogyService {
             cleartext: "", 
             numPartitions: numPartitions, 
             initialPermutation: initialPermutation,
-            schedule: schedule
+            schedule: schedule,
+            encryptionMode: encryptionMode
         }
         console.log(CryptoData);
         return this.http.post(this.endpoint + "/api/decrypt", CryptoData);
@@ -107,7 +112,8 @@ export class CryptogyService {
             keyLength: "", 
             numPartitions: numPartitions, 
             initialPermutation: "",
-            schedule: ""
+            schedule: "", 
+            encryptionMode: ""
         }
         return this.http.post(this.endpoint + "/api/analyze", CryptoData);
     }
