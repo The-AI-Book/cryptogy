@@ -82,9 +82,11 @@
                 </p>
             </div>
 
-            <div class="col-10 form-group mt-4">
+            <div class="col-10 form-group mt-4"
+                *ngIf="this.form.value.cipher == 'aes'">
                 <label for="key" class="mb-2">Enter Initialization Vector (IV)</label>
                 <input type="text" class="form-control" id="initialPermutation" formControlName="initialPermutation">
+                <p style="font-size:11px;">This will be automatically generated when clicking <strong>Encrypt</strong> and will be used for decryption.</p>
             </div>
 
             <div class="col-10 form-group mt-4"
