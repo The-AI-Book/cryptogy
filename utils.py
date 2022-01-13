@@ -29,6 +29,12 @@ def format_key(key, return_np = True):
             list_.append(int(val))
         return list_
 
+def format_str_to_list(array: str):
+    list_ = array.split(",")
+    for i in range(len(list_)):
+        list_[i] = int(list_[i])
+    return list_
+
 def format_darray(matrix: np.array):
     n = matrix.shape[0]
     m = matrix.shape[1]

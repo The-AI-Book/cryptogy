@@ -77,7 +77,14 @@ def encrypt():
         key = utils.format_key(data["key"])
     cipher = utils.get_cipher(data)
     cipher.setKey(key)
-    if data["cipher"] != "aes":
+
+    if data["cipher"] not in ["aes", "sdes", "des"]:
+        encode_text = cipher.encode(cleartext)
+    elif data["cipher"] in ["sdes", "des"]:
+        if data["initialPermutation"] != "":
+            iv = utils.format_str_to_list(data["initialPermutation"])
+            print(iv)
+            cipher.setInitialPermutation(iv)
         encode_text = cipher.encode(cleartext)
     else:
         encryptionMode = data["encryptionMode"]
@@ -93,6 +100,7 @@ def encrypt():
         for list_ in encode_text[2]: # schedule
             string += utils.format_list(list_) + ";"
         return jsonify({"ciphertext": encode_text[0], "permutation": utils.format_list(encode_text[1]), "schedule": string})
+    
     elif isinstance(cipher, AESCipher):
         ciphertext = encode_text[0].hex()
         iv = encode_text[1].hex()

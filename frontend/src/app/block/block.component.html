@@ -93,6 +93,7 @@
                 *ngIf="this.form.value.cipher == 'sdes' || this.form.value.cipher == 'des'">
                 <label for="schedule" class="mb-2">IP (Permutation)</label>
                 <input class="form-control" id="initialPermutation" formControlName="initialPermutation">
+                <p style="font-size:11px;">This will be automatically generated when clicking <strong>Encrypt</strong> and will be used for decryption.</p>
             </div>
 
             <div class="col-10 form-group mt-4"

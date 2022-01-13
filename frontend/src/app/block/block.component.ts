@@ -93,7 +93,7 @@ export class BlockComponent implements OnInit {
 
 
     this.form.patchValue({"schedule": ""});
-    this.form.patchValue({"initialPermutation": ""});
+    //this.form.patchValue({"initialPermutation": ""});
     this.form.updateValueAndValidity();
 
     this.invalidKey = false;
@@ -126,8 +126,14 @@ export class BlockComponent implements OnInit {
           this.form.updateValueAndValidity();
         }
         if(data["initialPermutation"]){
-          this.form.patchValue({"initialPermutation": data["initialPermutation"]});
-          this.form.updateValueAndValidity();
+          console.log("initial");
+          if(data["initialPermutation"] != this.form.value.initialPermutation){
+              console.log("change")
+              console.log(this.form.value.initialPermutation);
+              console.log(data["initialPermutation"]);
+              this.form.patchValue({"initialPermutation": data["initialPermutation"]});
+              this.form.updateValueAndValidity();
+          }
         }
       }, err => {
         if(err.error == "Invalid Key"){
