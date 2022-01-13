@@ -102,6 +102,9 @@ class DESCipher(Cipher):
         self.permutation = DESCipher.generatePermutation(self.BLOCK_LENGTH)
         self.schedule = self.generateKeySchedule()
 
+    def setInitialPermutation(self, permutation):
+        self.permutation = permutation
+
     def funcPermutation(self, block):
         """
         The Permutation P is as follows:
@@ -272,6 +275,15 @@ class SDESCipher(DESCipher):
             C.append(int(s))
         #print(len(C))
         return self.funcPermutation(C)
+
+
+class DESCipherImage(Cipher):
+    from Crypto.Cipher import AES
+    from Crypto import Random
+
+    def __init__(self):
+        pass
+
 
 if __name__ == '__main__':
 
