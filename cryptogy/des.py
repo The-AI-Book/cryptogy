@@ -4,6 +4,7 @@ import numpy as np
 import copy
 import random 
 from typing import List
+from PIL import Image
 
 """
 Parameters        |  S-DES                       |  DES                         |
@@ -223,6 +224,20 @@ class DESCipher(Cipher):
         if schedule is not None:
             self.schedule = schedule
         return self.encode(ciphertext)
+
+    def imagToMat(self, image):
+        img = Image.open(image)
+        #img = img.resize((resize, resize))
+        img = np.asarray(img.convert("L"))
+        return img
+
+    def encode_image(self, image):
+        
+        img = self.imagToMat(image)
+        for i in range(img.shape[0]):
+            for j in range(img.shape[1]):
+                res = self.encode(img[i][j])
+
         
 class SDESCipher(DESCipher):
 
@@ -278,8 +293,6 @@ class SDESCipher(DESCipher):
 
 
 class DESCipherImage(Cipher):
-    from Crypto.Cipher import AES
-    from Crypto import Random
 
     def __init__(self):
         pass
