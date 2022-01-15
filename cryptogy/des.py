@@ -1,5 +1,5 @@
 from math import exp
-from .cipher import Cipher, CryptAnalizer
+from cipher import Cipher, CryptAnalizer
 import numpy as np
 import copy
 import random 
@@ -226,17 +226,44 @@ class DESCipher(Cipher):
         return self.encode(ciphertext)
 
     def imagToMat(self, image):
-        img = Image.open(image)
-        #img = img.resize((resize, resize))
-        img = np.asarray(img.convert("L"))
-        return img
+        image = Image.open(image)
+        image = np.asarray(image)
+        return image
 
     def encode_image(self, image):
-        
+
+        def format_pixel(pixel):
+            dicc = {
+                "1": "uno", 
+                "2": "dos", 
+                "3": "tres",
+                "4": "cuatro", 
+                "5": "cinco", 
+                "6": "seis", 
+                "7": "siete", 
+                "8": "ocho", 
+                "9": "nueve"
+            }
+            pixel = str(pixel)
+            p_text = ""
+            for p in pixel: 
+                p_text += (dicc[p] + "-")
+            return p_text 
+
+        f = open("../images/guru99.txt","w+")
         img = self.imagToMat(image)
-        for i in range(img.shape[0]):
-            for j in range(img.shape[1]):
-                res = self.encode(img[i][j])
+        print(img.shape)
+        for k in range(img.shape[2]):
+            for i in range(img.shape[0]):
+                print(img[:, :][k])
+                pixel = format_pixel(img[i][:][k])
+                cpt, perm, sche = self.encode(pixel)
+                print(pixel, "=>", cpt)
+                f.write("{cpt}".format(cpt = cpt))
+                f.write("\n")
+            f.write("new_channel")
+        f.close()
+        return perm, sche
 
         
 class SDESCipher(DESCipher):
@@ -299,6 +326,10 @@ class DESCipherImage(Cipher):
 
 
 if __name__ == '__main__':
+
+    url = "32x32.jpg"
+    cipher = DESCipher()
+    cipher.encode_image(url)
 
     """
     cleartext = "holamundoholamundoholaxxawde"
