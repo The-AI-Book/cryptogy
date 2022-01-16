@@ -1,5 +1,5 @@
 from math import exp
-from cipher import Cipher, CryptAnalizer
+from .cipher import Cipher, CryptAnalizer
 import numpy as np
 import copy
 import random 
@@ -81,7 +81,7 @@ class DESCipher(Cipher):
             xor_list.append(result)
         return xor_list
 
-    def __init__(self, key = None):
+    def __init__(self, key = None, mode = "ebc"):
         """
         DES is a 16-round Feistel cipher having block length 64:
         it encrypts a plaintext bistring x using a 56-bit key, K, obtaining a 
@@ -102,7 +102,11 @@ class DESCipher(Cipher):
         self.key = self.iniKey(key)
         self.permutation = DESCipher.generatePermutation(self.BLOCK_LENGTH)
         self.schedule = self.generateKeySchedule()
+        self.mode = mode
 
+    def setEncryptionMode(self, mode):
+        self.mode = mode
+    
     def setInitialPermutation(self, permutation):
         self.permutation = permutation
 
@@ -199,23 +203,43 @@ class DESCipher(Cipher):
         return new_L, new_R
 
     def encode(self, cleartext: str):
+        ### Encryption Modes.
+        ### https://es.wikipedia.org/wiki/Modos_de_operaci%C3%B3n_de_una_unidad_de_cifrado_por_bloques#Modo_ECB_(Electronic_codebook)
+
 
         #print(self.schedule)
         # Get bits and blocks.
         bits = DESCipher.tobits(cleartext)
         blocks = self.getBlocks(bits)
+        current_cleartext = None
+        current_block = None
 
         # Encode text.
         ciphertext = ""
         for i in range(len(blocks)):
-            blocks[i] = DESCipher.applyPermutation(self.permutation, blocks[i])
+
+            current_cleartext = blocks[i]
+            if self.mode != "ecb":
+                blocks[i] = DESCipher.applyPermutation(self.permutation, blocks[i])
+
+            if current_block is not None:
+                if self.mode == "cbc":
+                    blocks[i] = DESCipher.computeXOR(blocks[i], current_block)
+                elif self.mode == "pcbc":
+                    xor_block = DESCipher.computeXOR(current_cleartext, blocks[i])
+                    blocks[i] = DESCipher.computeXOR(blocks[i], xor_block)
 
             L = blocks[i][0: int(self.BLOCK_LENGTH / 2)]
             R = blocks[i][int(self.BLOCK_LENGTH / 2): self.BLOCK_LENGTH]
             L, R = self.applyRounds(L, R) # 16 rounds.
             blocks[i] = R + L
-            blocks[i] = DESCipher.applyPermutation(DESCipher.inv(self.permutation), blocks[i])
+
+            if self.mode != "ecb":
+                blocks[i] = DESCipher.applyPermutation(DESCipher.inv(self.permutation), blocks[i])
+
+            current_block = blocks[i]
             ciphertext += DESCipher.frombits(blocks[i])
+
         return ciphertext, self.permutation, self.schedule
 
     def decode(self, permutation: List[int], schedule: List[List[int]], ciphertext: str):
@@ -230,10 +254,18 @@ class DESCipher(Cipher):
         image = np.asarray(image)
         return image
 
-    def encode_image(self, image):
+    def encode_image(self, image, filename = "guru991.txt"):
+        
+        def list_int_to_str(list_: List[int]):
+            new_list = list()
+            for element in list_:
+                new_list.append(str(element))
+            return new_list
 
-        def format_pixel(pixel):
+        def format_pixel(pixeles: List[int]):
+            pixeles = list_int_to_str(pixeles)
             dicc = {
+                "0": "cero",
                 "1": "uno", 
                 "2": "dos", 
                 "3": "tres",
@@ -244,27 +276,61 @@ class DESCipher(Cipher):
                 "8": "ocho", 
                 "9": "nueve"
             }
-            pixel = str(pixel)
-            p_text = ""
-            for p in pixel: 
-                p_text += (dicc[p] + "-")
-            return p_text 
+            row_text = ""
+            for pixel in pixeles:
+                pixel_text = ""
+                for number in pixel: 
+                    pixel_text += (dicc[number] + "pi")
+                row_text += pixel_text + "tao"
+            return row_text
+                
 
-        f = open("../images/guru99.txt","w+")
+        f = open(filename,"w+")
         img = self.imagToMat(image)
+        img = np.reshape(img, (3, img.shape[0], img.shape[1]))
+        img = np.resize(img, (3, 2, 2))
+        #img = img.convert("L")
         print(img.shape)
-        for k in range(img.shape[2]):
-            for i in range(img.shape[0]):
-                print(img[:, :][k])
-                pixel = format_pixel(img[i][:][k])
+        #print(img.shape[1])
+        #print()
+        #import sys
+        #sys.exit()
+        
+        for k in range(img.shape[0]):
+            print("chnnale number: ", k)
+            for i in range(img.shape[1]):
+                print("row number: ", i)
+                pixel = format_pixel(list(img[k][i, :]))
+                #print(pixel)
                 cpt, perm, sche = self.encode(pixel)
-                print(pixel, "=>", cpt)
-                f.write("{cpt}".format(cpt = cpt))
-                f.write("\n")
+                print(cpt)
+                print("---")
+                print(type(cpt), type(cpt.encode("utf-8").hex() ))
+                f.write("{cpt}".format(cpt = cpt.encode("utf-8").hex()))
+                f.write("\n\n")
             f.write("new_channel")
+            f.write("\n\n")
         f.close()
         return perm, sche
 
+    def decode_image(self, filename):
+        with open(filename) as file:
+            lines = file.readlines()
+            
+            #lines = [line.rstrip() for line in lines]
+        print(lines[0])
+        
+        print("*****8")
+        row0 = bytes.fromhex(lines[0]).decode("utf-8")
+        row1 = bytes.fromhex(lines[1]).decode("utf-8")
+        print("row: ")
+        print(row0)
+        print("row: ")
+        print(row1)
+        #print(r)
+        result = cipher.decode(self.permutation, self.schedule, row0)
+        print("result!")
+        print(result)
         
 class SDESCipher(DESCipher):
 
@@ -328,9 +394,15 @@ class DESCipherImage(Cipher):
 if __name__ == '__main__':
 
     url = "32x32.jpg"
-    cipher = DESCipher()
-    cipher.encode_image(url)
-
+    cipher = DESCipher(mode = "pcbc")
+    txt, perm, sche = cipher.encode("encriptar")
+    print(txt)
+    txt, perm, sche = cipher.decode(perm, sche, txt)
+    print(txt)
+    cipher.encode_image(url, "../images/guru991.txt")
+    file = "../images/guru991.txt"
+    print("DESCRYOT IAGE")
+    cipher.decode_image(file)
     """
     cleartext = "holamundoholamundoholaxxawde"
     cipher = DESCipher()
@@ -342,6 +414,7 @@ if __name__ == '__main__':
     res2 = cipher.encode(res)
     print("decode:")
     print(res2)
+    """
     """
     cleartext = "holamundoholamundoholaxxawde"
     cipher = DESCipher()
@@ -357,7 +430,7 @@ if __name__ == '__main__':
     res2 = cipher.decode(None, res)[0]
     print("decode:")
     print(res2)
-
+    """
 
   
     #print(len(res[1]))
