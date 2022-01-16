@@ -128,6 +128,8 @@ def decrypt():
     elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher):
         permutation = utils.format_key(data["initialPermutation"], return_np=False)
         schedule = utils.format_key(data["schedule"], return_np=False)
+        encryptionMode = data["encryptionMode"]
+        cipher.setEncryptionMode(encryptionMode)
         #print("Decrypt schedule: ")
         #print(schedule)
         cleartext = cipher.decode(permutation, schedule, ciphertext)[0]
