@@ -5,7 +5,7 @@ import logging
 import cryptogy
 from cryptogy.hill_cipher import HillCipher, HillCryptAnalizer
 from cryptogy.stream_ciphers import AutokeyCipher, AutokeyCryptAnalizer, StreamCipher
-from cryptogy.des import SDESCipher, DESCipher
+from cryptogy.des import SDESCipher, DESCipher, TripleDESCipher
 import cryptogy.aes
 from cryptogy.aes import AESCipher
 import utils
@@ -55,10 +55,10 @@ def generate_random_key():
         data = request.values
     cipher = utils.get_cipher(data)
     random_key = cipher.generateRandomKey()
-    #print(random_key)
+    print(random_key)
     if isinstance(cipher, HillCipher):
         random_key = utils.format_darray(random_key)
-    elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher):
+    elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher) or isinstance(cipher, TripleDESCipher):
         random_key = utils.format_list(random_key)
     elif isinstance(cipher, AESCipher):
         random_key = random_key.hex()
@@ -93,7 +93,7 @@ def encrypt():
         
     if isinstance(cipher, AutokeyCipher):
         return jsonify({"ciphertext": encode_text[0], "key_stream": encode_text[1]}), 200
-    elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher):
+    elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher) or isinstance(cipher, TripleDESCipher):
         #print("Encrypt schedule: ")
         #print(encode_text[1])
         string = ""
@@ -125,20 +125,19 @@ def decrypt():
     if isinstance(cipher, AutokeyCipher):
         key_stream = utils.format_key(data["keyStream"])
         cleartext = cipher.decode(key_stream, ciphertext)
-    elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher):
+
+    elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher) or isinstance(cipher, TripleDESCipher):
         permutation = utils.format_key(data["initialPermutation"], return_np=False)
         schedule = utils.format_key(data["schedule"], return_np=False)
         encryptionMode = data["encryptionMode"]
         cipher.setEncryptionMode(encryptionMode)
-        #print("Decrypt schedule: ")
-        #print(schedule)
         cleartext = cipher.decode(permutation, schedule, ciphertext)[0]
+
     elif isinstance(cipher, AESCipher):
         cipher.setKey(key)
         encryptionMode = data["encryptionMode"]
         iv = bytes.fromhex(data["initialPermutation"])
         cleartext = cryptogy.aes.decrypt_text(key, iv, encryptionMode, ciphertext)
-
         cleartext = cleartext.decode("utf-8")
     else:
         cipher.setKey(key)

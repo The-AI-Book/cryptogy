@@ -91,8 +91,8 @@ def get_cipher(data: dict):
         return cryptogy.SDESCipher()
     elif cipher == "des":
         return cryptogy.DESCipher()
-    elif cipher == "3aes":
-        return None
+    elif cipher == "3des":
+        return cryptogy.TripleDESCipher()
     elif cipher == "aes":
         keyLength = int(data["keyLength"])
         
