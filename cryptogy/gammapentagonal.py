@@ -4,7 +4,11 @@ import random
 
 class GammaPentagonalCipher(Cipher):
 
-    with open("cryptogy/gammapentagonalgraph.txt", "r") as f:
+    with open("cryptogy/gammapentagonalgrapha.txt", "r") as f:
+        data = f.read()
+    pointsb = eval(data)
+
+    with open("cryptogy/gammapentagonalgraphb.txt", "r") as f:
         data = f.read()
     points = eval(data)
 
@@ -78,7 +82,7 @@ class GammaPentagonalCipher(Cipher):
     def __init__(self, key=None):
         super().__init__()
         self.key = self.iniKey(key)
-        self.dicts = GammaPentagonalCipher.generateDicts(self.key)
+        self.dicts = None
 
     def validKey(self, key):
         if len(key) <= 3:
@@ -97,6 +101,7 @@ class GammaPentagonalCipher(Cipher):
         return key
 
     def encode(self, cleartext: str):
+        self.dicts = GammaPentagonalCipher.generateDicts(self.key)
         perm = self.key[2:]
         ciphertext = ""
         x = 0
@@ -110,6 +115,7 @@ class GammaPentagonalCipher(Cipher):
         return ciphertext[:-1]
 
     def decode(self, ciphertext):
+        self.dicts = GammaPentagonalCipher.generateDicts(self.key)
         cleartext = ""
         for x in ciphertext.split(";"):
             a, b = x[1:-1].split(", ")
