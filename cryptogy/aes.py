@@ -7,12 +7,15 @@ import random
 from typing import List
 from hashlib import pbkdf2_hmac
 from hmac import new as new_hmac, compare_digest
+from Crypto.Cipher import AES
+import cv2
+import numpy as np
 
 s_box = (
-    0x63,
+    0x63, 
     0x7C,
-    0x77,
-    0x7B,
+    0x77, 
+    0x7B, 
     0xF2,
     0x6B,
     0x6F,
@@ -482,10 +485,10 @@ inv_s_box = (
     0xA9,
     0x19,
     0xB5,
-    0x4A,
+    0x4A, 
     0x0D,
-    0x2D,
-    0xE5,
+    0x2D, 
+    0xE5, 
     0x7A,
     0x9F,
     0x93,
@@ -1070,8 +1073,9 @@ def encrypt_text(key, iv, encryptionMode : str, cleartext : str):
         ciphertext = cipher.encrypt_ofb(str.encode(cleartext), iv)
     elif encryptionMode == "ctr":
         ciphertext = cipher.encrypt_ctr(str.encode(cleartext), iv)
-    elif encryptionMode == "pcbc":
-        ciphertext = cipher.encrypt_cbc(str.encode(cleartext), iv)
+    elif encryptionMode == "ecb":
+        ciphertext = AES.new(key, AES.MODE_ECB).encrypt(str.encode(cleartext))
+    
     return ciphertext, iv
 
 def decrypt_text(key, iv, encryptionMode, ciphertext):
@@ -1089,11 +1093,38 @@ def decrypt_text(key, iv, encryptionMode, ciphertext):
         cleartext = cipher.decrypt_ofb(ciphertext, iv)
     elif encryptionMode == "ctr":
         cleartext = cipher.decrypt_ctr(ciphertext, iv)
-    elif encryptionMode == "pcbc":
-        cleartext = cipher.decrypt_cbc(ciphertext, iv)
+    elif encryptionMode == "ecb":
+        cleartext = AES.new(key, AES.MODE_ECB).decrypt(ciphertext)
     return cleartext
 
+def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
 
+    def format_image(img):
+        # Pad zero rows in case number of bytes is not a multiple of 16 (just an example - there are many options for padding)
+        if img.size % 16 > 0:
+            row = img.shape[0]
+            pad = 16 - (row % 16)  # Number of rows to pad (4 rows)
+            img = np.pad(img, ((0, pad), (0, 0), (0, 0)))  # Pad rows at the bottom  - new shape is (304, 451, 3) - 411312 bytes.
+            img[-1, -1, 0] = pad  # Store the pad value in the last element
+        return img
+
+    img = cv2.imread(image)
+    img = format_image(img)
+    img_bytes = img.tobytes()  # Convert NumPy array to sequence of bytes (411312 bytes)
+    if encryptionMode == "cbc" or encryptionMode == "pcbc":
+        enc_img_bytes = AES.new(key, AES.MODE_CBC, iv).encrypt(img_bytes)  # Encrypt the array of bytes.
+    elif encryptionMode == "ofb":
+        enc_img_bytes = AES.new(key, AES.MODE_OFB, iv).encrypt(img_bytes)  # Encrypt the array of bytes.
+    elif encryptionMode == "cfb":
+        enc_img_bytes = AES.new(key, AES.MODE_CFB, iv).encrypt(img_bytes)  # Encrypt the array of bytes.
+    elif encryptionMode == "ctr":
+        enc_img_bytes = AES.new(key, AES.MODE_CTR).encrypt(img_bytes)  # Encrypt the array of bytes.
+    else:
+        enc_img_bytes = AES.new(key, AES.MODE_ECB).encrypt(img_bytes)
+    # Convert the encrypted buffer to NumPy array and reshape to the shape of the padded image (304, 451, 3)
+    enc_img = np.frombuffer(enc_img_bytes, np.uint8).reshape(img.shape)
+    cv2.imwrite(filename, enc_img)
+    return True
 
 if __name__ == "__main__":
     cleartext = b"thisismycleartexttobeencryptedthreetimes"

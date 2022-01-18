@@ -58,7 +58,7 @@
                     <label class="mb-2" for="cipher">Encryption Mode</label>
                     <select class="form-control" id="encryptionMode" formControlName="encryptionMode" (change)="generate_random_key()">
                         <option value="cbc" selected>CBC</option>
-                        <option value="ecb" *ngIf = "form.value.cipher == 'des' || form.value.cipher == '3des'">ECB</option>
+                        <option value="ecb" *ngIf = "form.value.cipher == 'des' || form.value.cipher == '3des' || form.value.cipher == 'aes'">ECB</option>
                         <option value="pcbc">PCBC</option>
                         <option value="cfb" *ngIf = "form.value.cipher == 'aes'">CFB</option>
                         <option value="ofb" *ngIf = "form.value.cipher == 'aes'">OFB</option>

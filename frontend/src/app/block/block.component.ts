@@ -147,7 +147,13 @@ export class BlockComponent implements OnInit {
 
   encrypt_image(){
     //console.log("encrypt image!");
-    this.cryptoService.encrypt_image(this.form.value.file)
+    this.cryptoService.encrypt_image(
+      this.form.value.file, 
+      this.form.value.cipher,
+      this.form.value.key, 
+      this.form.value.initialPermutation, 
+      this.form.value.encryptionMode
+    )
     .subscribe(
       data => {
         //console.log(data);

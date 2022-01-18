@@ -134,7 +134,13 @@ export class ClassicComponent implements OnInit {
 
   encrypt_image(){
     //console.log("encrypt image!");
-    this.cryptoService.encrypt_image(this.form.value.file)
+    this.cryptoService.encrypt_image(
+      this.form.value.file, 
+      this.form.value.cipher, 
+      "", 
+      "", 
+      ""
+    )
     .subscribe(
       data => {
         //console.log(data);

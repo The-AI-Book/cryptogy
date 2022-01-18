@@ -13,6 +13,9 @@ from base64 import encodebytes
 import io
 from PIL import Image
 from utils import images_key
+from Crypto.Cipher import AES, DES, DES3
+import cv2
+import numpy as np
 
 logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
@@ -174,13 +177,26 @@ def analyze():
 
 @app.route("/api/encrypt_image", methods = ["POST", "GET"])
 def encrypt_image():
+
     from utils import images_key
+    data = request.get_json()
+    cipher = data["cipher"]
     img = request.files.getlist("files")[0]
-    img = HillCipher.imagToMat(img, resize = 32)
-    cipher = HillCipher(32, key = images_key, force_key=True)    
-    new_img = cipher.encode_image(img)
-    new_img.save("./images/encrypt_temp.png")
-    file =  send_from_directory("./images", mimetype = "image/jpg", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
+
+    if cipher == "hill" or cipher == "permutation":
+        img = HillCipher.imagToMat(img, resize = 32)
+        cipher = HillCipher(32, key = images_key, force_key=True)    
+        new_img = cipher.encode_image(img)
+        new_img.save("./images/encrypt_temp.png")
+        file =  send_from_directory("./images", mimetype = "image/jpg", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
+    elif cipher == "aes":
+        key = bytes.fromhex(data["key"])
+        iv = bytes.fromhex(data["initialPermutation"])
+        encryptionMode = data["encryptionMode"]
+        res = cryptogy.aes.encrypt_image(key, iv, encryptionMode, img, filename = "encrypt_temp.png")
+        file = send_from_directory("./images", mimetype = "image/jpg", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
+    elif cipher == "des" or "sdes" or "3des":
+        
     return file 
 
 @app.route("/api/decrypt_image", methods = ["POST", "GET"])
