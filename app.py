@@ -196,7 +196,7 @@ def encrypt_image():
         res = cryptogy.aes.encrypt_image(key, iv, encryptionMode, img, filename = "encrypt_temp.png")
         file = send_from_directory("./images", mimetype = "image/jpg", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
     elif cipher == "des" or "sdes" or "3des":
-        
+        pass
     return file 
 
 @app.route("/api/decrypt_image", methods = ["POST", "GET"])
