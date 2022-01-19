@@ -49,8 +49,24 @@ def root():
 def classic():
     """
     Return the frontend of the application.
-    """
+    """ 
     return send_from_directory("./static", 'index.html')
+
+# Main page.
+@app.route('/block', methods = ["GET"])
+def block():
+    """
+    Return the frontend of the application.
+    """ 
+    return send_from_directory("./static", 'index.html')
+
+# Main page.
+@app.route('/gamma-pentagonal', methods = ["GET"])
+def gamma_pentagonal():
+    """
+    Return the frontend of the application.
+    """ 
+    return send_from_directory("./static", 'index.html')  
 
 @app.route("/api/generate_random_key", methods = ["POST"])
 def generate_random_key():
