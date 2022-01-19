@@ -178,7 +178,7 @@ def analyze():
 
 @app.route("/api/encrypt_image", methods = ["POST", "GET"])
 def encrypt_image():
-
+    print("ENCRYPT IMAGE")
     from utils import images_key
     data = request.values
     cipher = data["cipher"]
@@ -190,7 +190,7 @@ def encrypt_image():
         cipher = HillCipher(32, key = images_key, force_key=True)    
         new_img = cipher.encode_image(img)
         new_img.save("./images/encrypt_temp.png")
-        file =  send_from_directory("./images", mimetype = "image/jpg", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
+        file =  send_from_directory("./images", mimetype = "image/png", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
     elif cipher == "aes":
         #key = bytes.fromhex(data["key"])
         #iv = bytes.fromhex(data["initialPermutation"])
