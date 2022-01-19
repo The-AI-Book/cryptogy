@@ -38,7 +38,8 @@ export class BlockComponent implements OnInit {
       initialPermutation: new FormControl(""),
       schedule: new FormControl(""), 
       keyLength: new FormControl("16"), 
-      encryptionMode: new FormControl("cbc")
+      encryptionMode: new FormControl("cbc"), 
+      file: new FormControl(null)
     });
     this.generate_random_key();
 
@@ -47,6 +48,11 @@ export class BlockComponent implements OnInit {
        this.form.patchValue({"initialPermutation": ""});
        this.form.updateValueAndValidity();
     });
+
+    this.form.get("cipher").valueChanges.subscribe(val => {
+      this.form.patchValue({"file": null});
+      this.cipherImage = null;
+    })
   }
 
   cryptosystem_change() {
@@ -252,9 +258,9 @@ export class BlockComponent implements OnInit {
     this.form.patchValue({file: files[0]});
     this.form.updateValueAndValidity();
 
-    //console.log(files);
-    //console.log(files[0]);
-    //console.log(this.form.value.file);
+    console.log(files);
+    console.log(files[0]);
+    console.log(this.form.value.file);
 
     const reader = new FileReader();
     reader.readAsDataURL(files[0]); 
