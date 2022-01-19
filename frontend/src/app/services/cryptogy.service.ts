@@ -65,12 +65,14 @@ export class CryptogyService {
         initialPermutation: string, 
         encryptionMode: string
     ){
+        console.log(file);
         const data = new FormData();
         data.append("cipher", cipher);
         data.append("key", key);
         data.append("initialPermutation", initialPermutation);
         data.append("encryptionMode", encryptionMode);
         data.append("files", file, file.name);
+        console.log(data);
         return this.http.post(this.endpoint + "/api/encrypt_image", data, {responseType: "blob"})
     }
 
