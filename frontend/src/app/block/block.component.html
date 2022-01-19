@@ -185,20 +185,21 @@
                       <label for="key" class="mb-2">Cipher image</label>
                       <div class = "d-flex justify-content-center">
                          <img #imgcrypt [src] = "cipherImage" width = "420px" height = "300px" class = "shadow-sm">
-                     </div>
-                     <!--
+                      </div>
+
+                      <!--
                      <div class = "d-flex justify-content-center" *ngIf = "loadDummyImage == true">
                          <img src = "assets/img/imagen_encriptada.png" width = "420px" height = "300px" class = "shadow-sm">
                      </div>
                      -->
                    
                       <div class = "d-flex justify-content-center mt-4">
-                          <!--
-                         <button class = "btn btn-outline-primary me-2" (click)="decrypt_image()">Decrypt</button>
-                         
-                         <button class = "btn btn-outline-secondary">Analyze</button> 
-                         -->
+                        <button class = "btn btn-outline-danger me-2" (click)="filePicker2.click()">Upload</button>
+                        <button *ngIf="!encryptLoading" type="submit" class="btn btn-outline-primary me-2"
+                         [disabled]="form.invalid" (click)="decrypt_image()">Decrypt</button>
                       </div>
+
+                      <input style="display: none;" type = "file" accept="image/*" #filePicker2 (change)="onFileSelected2($event)" name="file" id = "file">
                  </div>
               </div>
         </form>

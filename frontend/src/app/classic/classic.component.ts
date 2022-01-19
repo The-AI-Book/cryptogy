@@ -201,7 +201,13 @@ export class ClassicComponent implements OnInit {
 
   decrypt_image(){
     //console.log("decrypt image!");
-    this.cryptoService.decrypt_image()
+    this.cryptoService.decrypt_image(
+      null, 
+      "",
+      "", 
+      "", 
+      ""
+    )
     .subscribe(
       data => {
         //console.log(data);

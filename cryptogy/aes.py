@@ -1126,101 +1126,29 @@ def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
     cv2.imwrite(filename, enc_img)
     return True
 
+def decrypt_image(key, iv, encryptionMode: str, image, filename: str):
+    enc_img = cv2.imread(image)
+
+    if encryptionMode == "cbc" or encryptionMode == "pcbc":
+        dec_img_bytes = AES.new(key, AES.MODE_CBC, iv).decrypt(enc_img.tobytes())  # Decrypt the array of bytes.
+    elif encryptionMode == "ofb":
+        dec_img_bytes = AES.new(key, AES.MODE_OFB, iv).decrypt(enc_img.tobytes()) # Decrypt the array of bytes.
+    elif encryptionMode == "cfb":
+        dec_img_bytes = AES.new(key, AES.MODE_CFB, iv).decrypt(enc_img.tobytes())  # Decrypt the array of bytes.
+    elif encryptionMode == "ctr":
+        dec_img_bytes = AES.new(key, AES.MODE_CTR).decrypt(enc_img.tobytes())  # Decrypt the array of bytes.
+    else:
+        dec_img_bytes = AES.new(key, AES.MODE_ECB).decrypt(enc_img.tobytes())
+
+    dec_img = np.frombuffer(dec_img_bytes, np.uint8).reshape(enc_img.shape) # The shape of the encrypted and decrypted image is the same (304, 451, 3)
+    pad = int(dec_img[-1, -1, 0])  # Get the stored padding value
+    dec_img = dec_img[0:-pad, :, :].copy()  # Remove the padding rows, new shape is (300, 451, 3)
+    cv2.imwrite(filename, dec_img)
+    return True
+
 if __name__ == "__main__":
     cleartext = b"thisismycleartexttobeencryptedthreetimes"
 
-    # AES-128
-    key128 = b'P' * 16
-    cipher128 = AESCipher()
-    cipher128.setKey(key128)
-    iv = b'\x01' * 16
-
-    # Modo CBC
-    ciphertext = cipher128.encrypt_cbc(cleartext, iv)
-    print(ciphertext)
-    print(cipher128.decrypt_cbc(ciphertext, iv))
-
-    # Modo PCBC
-    ciphertext = cipher128.encrypt_pcbc(cleartext, iv)
-    print(ciphertext)
-    print(cipher128.decrypt_pcbc(ciphertext, iv))
-
-    # Modo CFB
-    ciphertext = cipher128.encrypt_cfb(cleartext, iv)
-    print(ciphertext)
-    print(cipher128.decrypt_cfb(ciphertext, iv))
-
-    # Modo OFB
-    ciphertext = cipher128.encrypt_ofb(cleartext, iv)
-    print(ciphertext)
-    print(cipher128.decrypt_ofb(ciphertext, iv))
-
-    # Modo CTR
-    ciphertext = cipher128.encrypt_ctr(cleartext, iv)
-    print(ciphertext)
-    print(cipher128.decrypt_ctr(ciphertext, iv))
-
-    # AES-192
-    key192 = b'P' * 24
-    cipher192 = AESCipher()
-    cipher192.setKey(key192)
-    iv = b'\x01' * 16
-
-    # Modo CBC
-    ciphertext = cipher192.encrypt_cbc(cleartext, iv)
-    print(ciphertext)
-    print(cipher192.decrypt_cbc(ciphertext, iv))
-
-    # Modo PCBC
-    ciphertext = cipher192.encrypt_pcbc(cleartext, iv)
-    print(ciphertext)
-    print(cipher192.decrypt_pcbc(ciphertext, iv))
-
-    # Modo CFB
-    ciphertext = cipher192.encrypt_cfb(cleartext, iv)
-    print(ciphertext)
-    print(cipher192.decrypt_cfb(ciphertext, iv))
-
-    # Modo OFB
-    ciphertext = cipher192.encrypt_ofb(cleartext, iv)
-    print(ciphertext)
-    print(cipher192.decrypt_ofb(ciphertext, iv))
-
-    # Modo CTR
-    ciphertext = cipher192.encrypt_ctr(cleartext, iv)
-    print(ciphertext)
-    print(cipher192.decrypt_ctr(ciphertext, iv))
-
-    # AES-256
-    key256 = b'P' * 32
-    cipher256 = AESCipher()
-    cipher256.setKey(key256)
-    iv = b'\x01' * 16
-
-    # Modo CBC
-    ciphertext = cipher256.encrypt_cbc(cleartext, iv)
-    print(ciphertext)
-    print(cipher256.decrypt_cbc(ciphertext, iv))
-
-    # Modo PCBC
-    ciphertext = cipher256.encrypt_pcbc(cleartext, iv)
-    print(ciphertext)
-    print(cipher256.decrypt_pcbc(ciphertext, iv))
-
-    # Modo CFB
-    ciphertext = cipher256.encrypt_cfb(cleartext, iv)
-    print(ciphertext)
-    print(cipher256.decrypt_cfb(ciphertext, iv))
-
-    # Modo OFB
-    ciphertext = cipher256.encrypt_ofb(cleartext, iv)
-    print(ciphertext)
-    print(cipher256.decrypt_ofb(ciphertext, iv))
-
-    # Modo CTR
-    ciphertext = cipher256.encrypt_ctr(cleartext, iv)
-    print(ciphertext)
-    print(cipher256.decrypt_ctr(ciphertext, iv))
 
 
 

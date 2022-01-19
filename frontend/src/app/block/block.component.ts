@@ -21,6 +21,7 @@ export class BlockComponent implements OnInit {
 
   imageLoading: boolean = false;
   errorImage: boolean = false;
+
   clearImage = null;
   cipherImage = null;
 
@@ -39,7 +40,8 @@ export class BlockComponent implements OnInit {
       schedule: new FormControl(""), 
       keyLength: new FormControl("16"), 
       encryptionMode: new FormControl("cbc"), 
-      file: new FormControl(null)
+      file: new FormControl(null), 
+      decrypt_image: new FormControl(null)
     });
     this.generate_random_key();
 
@@ -199,7 +201,8 @@ export class BlockComponent implements OnInit {
       values.initialPermutation,
       values.schedule, 
       values.encryptionMode
-    ).subscribe(
+    )
+    .subscribe(
       data => {
         this.decryptLoading = false;
         this.form.patchValue({"cleartext": data["cleartext"]});
@@ -213,7 +216,13 @@ export class BlockComponent implements OnInit {
 
   decrypt_image(){
     //console.log("decrypt image!");
-    this.cryptoService.decrypt_image()
+    this.cryptoService.decrypt_image(
+      this.form.value.decrypt_image, 
+      this.form.value.cipher,
+      this.form.value.key, 
+      this.form.value.initialPermutation, 
+      this.form.value.encryptionMode
+    )
     .subscribe(
       data => {
         //console.log(data);
@@ -245,6 +254,26 @@ export class BlockComponent implements OnInit {
     this.form.updateValueAndValidity();
   }
 
+  onFileSelected2(event: any){
+    const files = event.target.files;
+    if (files.length === 0)
+        return;
+
+    const mimeType = files[0].type;
+    if (mimeType.match(/image\/*/) == null) {
+        return;
+    }
+
+    this.form.patchValue({decrypt_image: files[0]});
+    this.form.updateValueAndValidity();
+    const reader = new FileReader();
+    reader.readAsDataURL(files[0]); 
+    reader.onload = (_event) => { 
+        this.cipherImage = reader.result; 
+    }
+
+  }
+
   onFileSelected(event: any){
     const files = event.target.files;
     if (files.length === 0)
@@ -258,9 +287,9 @@ export class BlockComponent implements OnInit {
     this.form.patchValue({file: files[0]});
     this.form.updateValueAndValidity();
 
-    console.log(files);
-    console.log(files[0]);
-    console.log(this.form.value.file);
+    //console.log(files);
+    //console.log(files[0]);
+    //console.log(this.form.value.file);
 
     const reader = new FileReader();
     reader.readAsDataURL(files[0]); 

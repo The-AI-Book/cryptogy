@@ -463,6 +463,25 @@ def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
     cv2.imwrite(filename, enc_img)
     return True
 
+def decrypt_image(key, iv, encryptionMode: str, image, filename: str):
+    from Crypto import Random
+    #key = Random.new().read(DES.key_size)
+    #iv = Random.new().read(DES.block_size)
+
+    enc_img = cv2.imread(image)
+    if encryptionMode == "cbc" or encryptionMode == "pcbc":
+        dec_img_bytes = DES.new(key, DES.MODE_CBC, iv).decrypt(enc_img.tobytes())
+    elif encryptionMode == "ecb":
+        dec_img_bytes = DES.new(key, DES.MODE_ECB, iv).decrypt(enc_img.tobytes())
+    else:
+        dec_img_bytes = DES.new(key, DES.MODE_ECB).decrypt(enc_img.tobytes())
+
+    dec_img = np.frombuffer(dec_img_bytes, np.uint8).reshape(enc_img.shape) # The shape of the encrypted and decrypted image is the same (304, 451, 3)
+    pad = int(dec_img[-1, -1, 0])  # Get the stored padding value
+    dec_img = dec_img[0:-pad, :, :].copy()  # Remove the padding rows, new shape is (300, 451, 3)
+    cv2.imwrite(filename, dec_img)
+    return True
+
 if __name__ == '__main__':
 
     url = "32x32.jpg"

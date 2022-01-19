@@ -228,20 +228,37 @@ def encrypt_image():
 @app.route("/api/decrypt_image", methods = ["POST", "GET"])
 def decrypt_image():
     from utils import images_inv_key
+    data = request.values
+    cipher = data["cipher"]
     #img = request.files.getlist("files")[0]
     image = "./images/encrypt_temp.png"
     img = open(image, 'rb')
-    img = HillCipher.imagToMat(img, resize = 32)
-    
-    prev = Image.fromarray(img) 
-    prev.save("./images/previous_encrypt.png")
 
-
-    cipher = HillCipher(32, key = images_key, force_key=True)    
-    new_img = cipher.decode_image(img, key_inv = images_inv_key)
-    new_img = new_img.convert("L")
-    new_img.save("./images/decrypt_temp.png")
-    file =  send_from_directory("./images", mimetype = "image/jpg", path = "decrypt_temp.png", as_attachment=False, max_age = 0)
+    if cipher == "hill" or cipher == "permutation":
+        img = HillCipher.imagToMat(img, resize = 32)
+        prev = Image.fromarray(img) 
+        prev.save("./images/previous_encrypt.png")
+        cipher = HillCipher(32, key = images_key, force_key=True)    
+        new_img = cipher.decode_image(img, key_inv = images_inv_key)
+        new_img = new_img.convert("L")
+        new_img.save("./images/decrypt_temp.png")
+        file =  send_from_directory("./images", mimetype = "image/jpg", path = "decrypt_temp.png", as_attachment=False, max_age = 0)
+    elif cipher == "aes":
+        #key = bytes.fromhex(data["key"])
+        #iv = bytes.fromhex(data["initialPermutation"])
+        key = b'Sixteen byte key'
+        iv = b'0000000000000000'
+        encryptionMode = data["encryptionMode"]
+        route = "./images/raw_img.png"
+        res = cryptogy.aes.decrypt_image(key, iv, encryptionMode, route, filename = "./images/decrypt_temp.png")
+        file = send_from_directory("./images", mimetype = "image/jpg", path = "decrypt_temp.png", as_attachment=False, max_age = 0)
+    elif cipher == "des" or "sdes" or "3des":
+        key = b'Sixteen byte key'
+        iv = b'0000000000000000'
+        encryptionMode = data["encryptionMode"]
+        route = "./images/raw_img.png"
+        res = cryptogy.des.decrypt_image(key, iv, encryptionMode, route, filename = "./images/decrypt_temp.png")
+        file = send_from_directory("./images", mimetype = "image/jpg", path = "decrypt_temp.png", as_attachment=False, max_age = 0)    
     return file 
 
 
