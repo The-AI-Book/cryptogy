@@ -6,7 +6,8 @@ import copy
 import random 
 from typing import List
 from PIL import Image
-
+from Crypto.Cipher import DES
+import cv2
 """
 Parameters        |  S-DES                       |  DES                         |
 Plaintext Length  |  8 bits                      |  64 bits                     |
@@ -435,11 +436,32 @@ class TripleDESCipher(Cipher):
         cleartext3 = self.des3.decode(None, None, cleartext2[0])
         return cleartext3[0], cleartext1[1], cleartext1[2]
 
-class DESCipherImage(Cipher):
+def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
+    from Crypto import Random
+    key = Random.new().read(DES.key_size)
+    iv = Random.new().read(DES.block_size)
+    def format_image(img):
+        # Pad zero rows in case number of bytes is not a multiple of 16 (just an example - there are many options for padding)
+        if img.size % 16 > 0:
+            row = img.shape[0]
+            pad = 16 - (row % 16)  # Number of rows to pad (4 rows)
+            img = np.pad(img, ((0, pad), (0, 0), (0, 0)))  # Pad rows at the bottom  - new shape is (304, 451, 3) - 411312 bytes.
+            img[-1, -1, 0] = pad  # Store the pad value in the last element
+        return img
 
-    def __init__(self):
-        pass
-
+    img = cv2.imread(image)
+    img = format_image(img)
+    img_bytes = img.tobytes()  # Convert NumPy array to sequence of bytes (411312 bytes)
+    if encryptionMode == "cbc" or encryptionMode == "pcbc":
+        enc_img_bytes = DES.new(key, DES.MODE_CBC, iv).encrypt(img_bytes)  # Encrypt the array of bytes.
+    elif encryptionMode == "ecb":
+        enc_img_bytes = DES.new(key, DES.MODE_ECB, iv).encrypt(img_bytes)  # Encrypt the array of bytes..
+    else:
+        enc_img_bytes = DES.new(key, DES.MODE_ECB).encrypt(img_bytes)
+    # Convert the encrypted buffer to NumPy array and reshape to the shape of the padded image (304, 451, 3)
+    enc_img = np.frombuffer(enc_img_bytes, np.uint8).reshape(img.shape)
+    cv2.imwrite(filename, enc_img)
+    return True
 
 if __name__ == '__main__':
 

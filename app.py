@@ -5,6 +5,7 @@ import logging
 import cryptogy
 from cryptogy.hill_cipher import HillCipher, HillCryptAnalizer
 from cryptogy.stream_ciphers import AutokeyCipher, AutokeyCryptAnalizer, StreamCipher
+import cryptogy.des
 from cryptogy.des import SDESCipher, DESCipher, TripleDESCipher
 import cryptogy.aes
 from cryptogy.aes import AESCipher
@@ -179,9 +180,10 @@ def analyze():
 def encrypt_image():
 
     from utils import images_key
-    data = request.get_json()
+    data = request.values
     cipher = data["cipher"]
     img = request.files.getlist("files")[0]
+    img.save("./images/raw_img.png")
 
     if cipher == "hill" or cipher == "permutation":
         img = HillCipher.imagToMat(img, resize = 32)
@@ -190,13 +192,21 @@ def encrypt_image():
         new_img.save("./images/encrypt_temp.png")
         file =  send_from_directory("./images", mimetype = "image/jpg", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
     elif cipher == "aes":
-        key = bytes.fromhex(data["key"])
-        iv = bytes.fromhex(data["initialPermutation"])
+        #key = bytes.fromhex(data["key"])
+        #iv = bytes.fromhex(data["initialPermutation"])
+        key = b'Sixteen byte key'
+        iv = b'0000000000000000'
         encryptionMode = data["encryptionMode"]
-        res = cryptogy.aes.encrypt_image(key, iv, encryptionMode, img, filename = "encrypt_temp.png")
+        route = "./images/raw_img.png"
+        res = cryptogy.aes.encrypt_image(key, iv, encryptionMode, route, filename = "./images/encrypt_temp.png")
         file = send_from_directory("./images", mimetype = "image/jpg", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
     elif cipher == "des" or "sdes" or "3des":
-        pass
+        key = b'Sixteen byte key'
+        iv = b'0000000000000000'
+        encryptionMode = data["encryptionMode"]
+        route = "./images/raw_img.png"
+        res = cryptogy.des.encrypt_image(key, iv, encryptionMode, route, filename = "./images/encrypt_temp.png")
+        file = send_from_directory("./images", mimetype = "image/jpg", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
     return file 
 
 @app.route("/api/decrypt_image", methods = ["POST", "GET"])
