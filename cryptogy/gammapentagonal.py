@@ -16,6 +16,8 @@ class GammaPentagonalCipher(Cipher):
         data = f.read()
     b = eval(data)
 
+    graphs = [a, b]
+
     with open("cryptogy/gammapentagonalgraphasmall.txt", "r") as f:
         data = f.read()
     asmall = eval(data)
@@ -23,6 +25,10 @@ class GammaPentagonalCipher(Cipher):
     with open("cryptogy/gammapentagonalgraphbsmall.txt", "r") as f:
         data = f.read()
     bsmall = eval(data)
+
+    graphssmall = [asmall, bsmall]
+
+    curgraph = 0
 
     """
     Unused: Graph is hardcoded now.
@@ -66,8 +72,10 @@ class GammaPentagonalCipher(Cipher):
         super().__init__()
         self.key = self.iniKey(key)
         self.dicts = None
-        self.points = GammaPentagonalCipher.a
-        self.pointssmall = GammaPentagonalCipher.asmall
+        self.points = GammaPentagonalCipher.graphs[GammaPentagonalCipher.curgraph]
+        self.pointssmall = GammaPentagonalCipher.graphssmall[
+            GammaPentagonalCipher.curgraph
+        ]
 
     def getRouteKey(self, Xi, Yi, coord):
         a, b = coord
@@ -135,40 +143,46 @@ class GammaPentagonalCipher(Cipher):
         return cleartext
 
     def changeGraph(self):
-        print("Changing Graph")
-        if self.points == GammaPentagonalCipher.a:
-            self.points = GammaPentagonalCipher.b
-            self.pointssmall = GammaPentagonalCipher.bsmall
-        elif self.points == GammaPentagonalCipher.b:
-            self.points = GammaPentagonalCipher.a
-            self.pointssmall = GammaPentagonalCipher.asmall
+        GammaPentagonalCipher.curgraph = (GammaPentagonalCipher.curgraph + 1) % 2
+        print(GammaPentagonalCipher.curgraph)
 
-    def showGraph(self, filename: str):
-        print("asdf")
-        Xi, Yi = self.key[:2]
-        # Generar grafo en networkx.
-        g = nx.DiGraph()
-        g.add_nodes_from(self.pointssmall.keys())
-        for k, v in self.pointssmall.items():
-            kn = tuple(map(lambda i, j: i + j, k, (Xi, Yi)))
-            vn = [tuple(map(lambda i, j: i + j, t, (Xi, Yi))) for t in v]
-            g.add_edges_from(([(t, kn) for t in vn]))
 
-        # Definir las posiciones de los nodos.
-        pos = {(x, y): (x, y) for x, y in g.nodes()}
+def showGraph(key, filename: str):
+    pointssmall = GammaPentagonalCipher.graphssmall[GammaPentagonalCipher.curgraph]
+    print("asdf")
+    print(type(key))
+    key = [int(x) for x in key.split(",")]
+    print(key)
+    Xi, Yi = key[:2]
+    # Generar grafo en networkx.
+    g = nx.DiGraph()
+    keysn = [tuple(map(lambda i, j: i + j, x, (Xi, Yi))) for x in pointssmall.keys()]
+    g.add_nodes_from(keysn)
+    for k, v in pointssmall.items():
+        kn = tuple(map(lambda i, j: i + j, k, (Xi, Yi)))
+        vn = [tuple(map(lambda i, j: i + j, t, (Xi, Yi))) for t in v]
+        g.add_edges_from(([(t, kn) for t in vn]))
 
-        # Dibujar el grafo.
-        nx.draw_networkx(g, pos=pos, node_size=1000)
+    # Definir las posiciones de los nodos.
+    pos = {(x, y): (x, y) for x, y in g.nodes()}
 
-        # Opciones de grafica.
-        plt.gca().set_aspect("equal")
-        plt.gca().set_xlim([-10, 10])
-        plt.gca().set_ylim([-10, 10])
-        plt.gca().axhline(y=0, lw=2, color="k")
-        plt.gca().axvline(x=0, lw=2, color="k")
-        plt.grid("on")
-        plt.savefig(filename)
-        return True
+    # Dibujar el grafo.
+    nx.draw_networkx(g, pos=pos, node_size=500)
+
+    # Opciones de grafica.
+    plt.gca().set_aspect("equal")
+    plt.gca().set_xlim([-25, 25])
+    plt.gca().set_ylim([-25, 25])
+    plt.gca().axhline(y=0, lw=2, color="k")
+    plt.gca().axvline(x=0, lw=2, color="k")
+    plt.grid("on")
+    plt.tight_layout()
+    plt.savefig(filename)
+    plt.gca().clear()
+    plt.close()
+    g.clear()
+    print("printed")
+    return True
 
 
 if __name__ == "__main__":

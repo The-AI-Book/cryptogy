@@ -15,7 +15,7 @@
             <div class="form-group col-10">
 
                 <div class = "d-flex justify-content-center">
-                    <img [src] = "graphImage" height = "300px" class = "shadow-sm" onerror="this.src = 'assets/img/error.png'">
+                    <img [src] = "graphImage" height = "800px" class = "shadow-sm" onerror="this.src = 'assets/img/error.png'">
                 </div>
                 <br>
 
@@ -25,8 +25,8 @@
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     Loading...
                 </button>
-                <button class = "btn btn-outline-info me-3" (click)="change_graph()">Change Graph Type</button>
-                <button class = "btn btn-outline-info me-3" (click)="show_graph()">Show Graph</button>
+                <button class = "btn btn-outline-info me-3" type="submit" (click)="change_graph()">Change Graph Type</button>
+                <button class = "btn btn-outline-info me-3" type="submit" (click)="show_graph()">Show Graph</button>
 
                 <p *ngIf="errorRandomKey" class="alert alert-danger mt-2">
                     Unexpected error while generating random key.

@@ -38,16 +38,17 @@ export class GammaPentagonalComponent implements OnInit {
   }
 
   change_graph(){
-    this.cryptoService.change_graph(
-      this.form.value.show_graph, 
+    console.log("change graph!");
+    this.cryptoService.change_graph( 
       this.form.value.cipher,
       this.form.value.key, 
     )  
   }
 
   show_graph(){
+    console.log("show graph!");
+    console.log(this.form.value.file);
     this.cryptoService.show_graph(
-      this.form.value.show_graph, 
       this.form.value.cipher,
       this.form.value.key, 
     )

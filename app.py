@@ -252,7 +252,7 @@ def encrypt_image():
         # iv = bytes.fromhex(data["initialPermutation"])
         key = b"Sixteen byte key"
         iv = b"0000000000000000"
-        
+
         encryptionMode = data["encryptionMode"]
         route = "./images/raw_img.png"
         res = cryptogy.aes.encrypt_image(
@@ -266,11 +266,11 @@ def encrypt_image():
             max_age=0,
         )
     elif cipher == "des" or "sdes" or "3des":
-        #key = b"Sixteen byte key"
-        #iv = b"0000000000000000"
+        # key = b"Sixteen byte key"
+        # iv = b"0000000000000000"
 
-        key = b'\x97t\x84\xdb \x8b\xb2b'
-        iv = b'Uh:d2HqF'
+        key = b"\x97t\x84\xdb \x8b\xb2b"
+        iv = b"Uh:d2HqF"
 
         encryptionMode = data["encryptionMode"]
         route = "./images/raw_img.png"
@@ -296,11 +296,11 @@ def decrypt_image():
     print(data)
     cipher = data["cipher"]
     # img = request.files.getlist("files")[0]
-    #image = "./images/encrypt_temp.png"
+    # image = "./images/encrypt_temp.png"
     img = request.files.getlist("files")[0]
     img.save("./images/encrypted_raw_img.png")
 
-    #img = open(image, "rb")
+    # img = open(image, "rb")
 
     if cipher == "hill" or cipher == "permutation":
         img = HillCipher.imagToMat(img, resize=32)
@@ -335,10 +335,10 @@ def decrypt_image():
             max_age=0,
         )
     elif cipher == "des" or "sdes" or "3des":
-        #key = b"Sixteen byte key"
-        #iv = b"0000000000000000"
-        key = b'\x97t\x84\xdb \x8b\xb2b'
-        iv = b'Uh:d2HqF'
+        # key = b"Sixteen byte key"
+        # iv = b"0000000000000000"
+        key = b"\x97t\x84\xdb \x8b\xb2b"
+        iv = b"Uh:d2HqF"
         encryptionMode = data["encryptionMode"]
         route = "./images/encrypted_raw_img.png"
         res = cryptogy.des.decrypt_image(
@@ -362,15 +362,14 @@ def change_graph():
         data = request.values
     cipher = utils.get_cipher(data)
     cipher.changeGraph()
-    return
+    return "success"
 
 
 @app.route("/api/show_graph", methods=["POST", "GET"])
 def show_graph():
-    print("aqui")
-    cipher = GammaPentagonalCipher()
-
-    cipher.showGraph(filename="./images/graph_temp.png")
+    data = request.values
+    key = data["key"]
+    res = cryptogy.gammapentagonal.showGraph(key, filename="./images/graph_temp.png")
     file = send_from_directory(
         "./images",
         mimetype="image/jpg",
