@@ -10,6 +10,7 @@ from hmac import new as new_hmac, compare_digest
 from Crypto.Cipher import AES
 import cv2
 import numpy as np
+from PIL import Image
 
 s_box = (
     0x63, 
@@ -1108,7 +1109,8 @@ def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
             img[-1, -1, 0] = pad  # Store the pad value in the last element
         return img
 
-    img = cv2.imread(image)
+    img = Image.open(image)
+    img = np.asarray(img)
     img = format_image(img)
     img_bytes = img.tobytes()  # Convert NumPy array to sequence of bytes (411312 bytes)
     if encryptionMode == "cbc" or encryptionMode == "pcbc":
