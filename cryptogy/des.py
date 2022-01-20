@@ -5,7 +5,6 @@ import random
 from typing import List
 from PIL import Image
 from Crypto.Cipher import DES
-import cv2
 """
 Parameters        |  S-DES                       |  DES                         |
 Plaintext Length  |  8 bits                      |  64 bits                     |
@@ -450,7 +449,7 @@ def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
     # Read image
     img = Image.open(image)
     img = np.asarray(img)
-    
+
     img = format_image(img)
     img_bytes = img.tobytes()  # Convert NumPy array to sequence of bytes (411312 bytes)
     if encryptionMode == "cbc" or encryptionMode == "pcbc":

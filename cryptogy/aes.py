@@ -8,7 +8,6 @@ from typing import List
 from hashlib import pbkdf2_hmac
 from hmac import new as new_hmac, compare_digest
 from Crypto.Cipher import AES
-import cv2
 import numpy as np
 from PIL import Image
 
@@ -1108,7 +1107,7 @@ def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
             img = np.pad(img, ((0, pad), (0, 0), (0, 0)))  # Pad rows at the bottom  - new shape is (304, 451, 3) - 411312 bytes.
             img[-1, -1, 0] = pad  # Store the pad value in the last element
         return img
-        
+
     # Read image
     img = Image.open(image)
     img = np.asarray(img)

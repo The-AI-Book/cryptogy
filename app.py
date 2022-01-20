@@ -16,7 +16,6 @@ import io
 from PIL import Image
 from utils import images_key
 from Crypto.Cipher import AES, DES, DES3
-import cv2
 import numpy as np
 
 logging.basicConfig(
