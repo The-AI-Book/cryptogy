@@ -141,4 +141,39 @@ export class CryptogyService {
         }
         return this.http.post(this.endpoint + "/api/analyze", CryptoData);
     }
+
+    change_graph(
+        cipher: string,
+        keyLength: string, 
+        numPartitions: string
+    ){
+        const CryptoData: Crypto = {
+           cipher: cipher,
+           keyLength: keyLength,
+           key: "",
+           cleartext: "",
+           ciphertext: "",
+           keyStream: "", 
+           numPartitions: numPartitions, 
+           initialPermutation: "",
+           schedule: "",
+           encryptionMode: ""
+        }
+        return this.http.post(this.endpoint + "/api/change_graph", CryptoData);
+    }
+
+    show_graph(
+        file: File, 
+        cipher: string, 
+        key: string, 
+    ){
+        console.log(file);
+        const data = new FormData();
+        data.append("cipher", cipher);
+        data.append("key", key);
+        data.append("files", file, file.name);
+        console.log(data);
+        return this.http.post(this.endpoint + "/api/show_graph", {responseType: "blob"})
+    }
+
 }

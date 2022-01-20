@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, make_response, send_file
 from flask.helpers import send_from_directory
+from cryptogy.gammapentagonal import GammaPentagonalCipher
 from flask_cors import CORS
 import logging
 import cryptogy
@@ -18,59 +19,67 @@ from Crypto.Cipher import AES, DES, DES3
 import cv2
 import numpy as np
 
-logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    filename="app.log", filemode="w", format="%(name)s - %(levelname)s - %(message)s"
+)
 
 app = Flask(__name__)
 cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+app.config["CORS_HEADERS"] = "Content-Type"
+
 
 def get_response_image(image_path):
-    pil_img = Image.open(image_path, mode='r') # reads the PIL image
+    pil_img = Image.open(image_path, mode="r")  # reads the PIL image
     byte_arr = io.BytesIO()
-    pil_img.save(byte_arr, format='PNG') # convert the PIL image to byte array
-    encoded_img = encodebytes(byte_arr.getvalue()).decode('ascii') # encode as base64
+    pil_img.save(byte_arr, format="PNG")  # convert the PIL image to byte array
+    encoded_img = encodebytes(byte_arr.getvalue()).decode("ascii")  # encode as base64
     return encoded_img
 
 
-@app.route('/<path:path>', methods=['GET'])
+@app.route("/<path:path>", methods=["GET"])
 def static_proxy(path):
-  return send_from_directory('./static', path)
+    return send_from_directory("./static", path)
+
 
 # Main page.
-@app.route('/', methods = ["GET"])
+@app.route("/", methods=["GET"])
 def root():
     """
     Return the frontend of the application.
     """
-    return send_from_directory("./static", 'index.html')
+    return send_from_directory("./static", "index.html")
+
 
 # Main page.
-@app.route('/classic', methods = ["GET"])
+@app.route("/classic", methods=["GET"])
 def classic():
     """
     Return the frontend of the application.
-    """ 
-    return send_from_directory("./static", 'index.html')
+    """
+    return send_from_directory("./static", "index.html")
+
 
 # Main page.
-@app.route('/block', methods = ["GET"])
+@app.route("/block", methods=["GET"])
 def block():
     """
     Return the frontend of the application.
-    """ 
-    return send_from_directory("./static", 'index.html')
+    """
+    return send_from_directory("./static", "index.html")
+
 
 # Main page.
-@app.route('/gamma-pentagonal', methods = ["GET"])
+@app.route("/gamma-pentagonal", methods=["GET"])
 def gamma_pentagonal():
     """
     Return the frontend of the application.
-    """ 
-    return send_from_directory("./static", 'index.html')  
+    """
+    return send_from_directory("./static", "index.html")
 
-@app.route("/api/generate_random_key", methods = ["POST"])
+
+@app.route("/api/generate_random_key", methods=["POST"])
 def generate_random_key():
-    data=request.get_json()
+    data = request.get_json()
     if data == None:
         data = request.values
     cipher = utils.get_cipher(data)
@@ -78,15 +87,20 @@ def generate_random_key():
     print(random_key)
     if isinstance(cipher, HillCipher):
         random_key = utils.format_darray(random_key)
-    elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher) or isinstance(cipher, TripleDESCipher):
+    elif (
+        isinstance(cipher, SDESCipher)
+        or isinstance(cipher, DESCipher)
+        or isinstance(cipher, TripleDESCipher)
+    ):
         random_key = utils.format_list(random_key)
     elif isinstance(cipher, AESCipher):
         random_key = random_key.hex()
-    return jsonify({"random_key":random_key}), 200
+    return jsonify({"random_key": random_key}), 200
 
-@app.route("/api/encrypt", methods = ["POST"])
+
+@app.route("/api/encrypt", methods=["POST"])
 def encrypt():
-    data=request.get_json()
+    data = request.get_json()
     if data == None:
         data = request.values
     cleartext = data["cleartext"].lower().replace(" ", "")
@@ -110,32 +124,46 @@ def encrypt():
         encryptionMode = data["encryptionMode"]
         iv = bytes.fromhex(data["initialPermutation"])
         encode_text = cryptogy.aes.encrypt_text(key, iv, encryptionMode, cleartext)
-        
+
     if isinstance(cipher, AutokeyCipher):
-        return jsonify({"ciphertext": encode_text[0], "key_stream": encode_text[1]}), 200
-    elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher) or isinstance(cipher, TripleDESCipher):
-        #print("Encrypt schedule: ")
-        #print(encode_text[1])
+        return (
+            jsonify({"ciphertext": encode_text[0], "key_stream": encode_text[1]}),
+            200,
+        )
+    elif (
+        isinstance(cipher, SDESCipher)
+        or isinstance(cipher, DESCipher)
+        or isinstance(cipher, TripleDESCipher)
+    ):
+        # print("Encrypt schedule: ")
+        # print(encode_text[1])
         string = ""
-        for list_ in encode_text[2]: # schedule
+        for list_ in encode_text[2]:  # schedule
             string += utils.format_list(list_) + ";"
-        return jsonify({"ciphertext": encode_text[0], "permutation": utils.format_list(encode_text[1]), "schedule": string})
-    
+        return jsonify(
+            {
+                "ciphertext": encode_text[0],
+                "permutation": utils.format_list(encode_text[1]),
+                "schedule": string,
+            }
+        )
+
     elif isinstance(cipher, AESCipher):
         ciphertext = encode_text[0].hex()
         iv = encode_text[1].hex()
         return jsonify({"ciphertext": ciphertext, "initialPermutation": iv}), 200
     else:
-        return jsonify({"ciphertext":encode_text}), 200
+        return jsonify({"ciphertext": encode_text}), 200
 
-@app.route("/api/decrypt", methods = ["POST"])
+
+@app.route("/api/decrypt", methods=["POST"])
 def decrypt():
-    data=request.get_json()
+    data = request.get_json()
     if data == None:
         data = request.values
     ciphertext = data["ciphertext"]
     cipher = utils.get_cipher(data)
-   
+
     if data["cipher"] == "aes":
         ciphertext = bytes.fromhex(data["ciphertext"])
         key = bytes.fromhex(data["key"])
@@ -146,7 +174,11 @@ def decrypt():
         key_stream = utils.format_key(data["keyStream"])
         cleartext = cipher.decode(key_stream, ciphertext)
 
-    elif isinstance(cipher, SDESCipher) or isinstance(cipher, DESCipher) or isinstance(cipher, TripleDESCipher):
+    elif (
+        isinstance(cipher, SDESCipher)
+        or isinstance(cipher, DESCipher)
+        or isinstance(cipher, TripleDESCipher)
+    ):
         permutation = utils.format_key(data["initialPermutation"], return_np=False)
         schedule = utils.format_key(data["schedule"], return_np=False)
         encryptionMode = data["encryptionMode"]
@@ -162,11 +194,12 @@ def decrypt():
     else:
         cipher.setKey(key)
         cleartext = cipher.decode(ciphertext)
-    return jsonify({"cleartext":cleartext}), 200
+    return jsonify({"cleartext": cleartext}), 200
 
-@app.route("/api/analyze", methods = ["POST"])
+
+@app.route("/api/analyze", methods=["POST"])
 def analyze():
-    data=request.get_json()
+    data = request.get_json()
     if data == None:
         data = request.values
     ciphertext = data["ciphertext"]
@@ -175,92 +208,168 @@ def analyze():
         cleartext = data["cleartext"]
         try:
             results = analyzer.breakCipher(cleartext, ciphertext)
-        except Exception as e: 
+        except Exception as e:
             print(str(e))
-            return jsonify({"error":str(e)}), 400
+            return jsonify({"error": str(e)}), 400
     elif isinstance(analyzer, HillCryptAnalizer):
         cleartext = data["cleartext"]
         numPartitions = int(data["numPartitions"])
         try:
             results = analyzer.breakCipher(ciphertext, cleartext, numPartitions)
-        except Exception as e: 
-            return jsonify({"error":str(e)}), 400
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
     else:
         try:
             results = analyzer.breakCipher(ciphertext)
-        except Exception as e: 
-            return jsonify({"error":str(e)}), 400
-    return jsonify({"cleartext":results}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
+    return jsonify({"cleartext": results}), 200
 
-@app.route("/api/encrypt_image", methods = ["POST", "GET"])
+
+@app.route("/api/encrypt_image", methods=["POST", "GET"])
 def encrypt_image():
     print("ENCRYPT IMAGE")
     from utils import images_key
+
     data = request.values
     cipher = data["cipher"]
     img = request.files.getlist("files")[0]
     img.save("./images/raw_img.png")
 
     if cipher == "hill" or cipher == "permutation":
-        img = HillCipher.imagToMat(img, resize = 32)
-        cipher = HillCipher(32, key = images_key, force_key=True)    
+        img = HillCipher.imagToMat(img, resize=32)
+        cipher = HillCipher(32, key=images_key, force_key=True)
         new_img = cipher.encode_image(img)
         new_img.save("./images/encrypt_temp.png")
-        file =  send_from_directory("./images", mimetype = "image/png", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
+        file = send_from_directory(
+            "./images",
+            mimetype="image/png",
+            path="encrypt_temp.png",
+            as_attachment=False,
+            max_age=0,
+        )
     elif cipher == "aes":
-        #key = bytes.fromhex(data["key"])
-        #iv = bytes.fromhex(data["initialPermutation"])
-        key = b'Sixteen byte key'
-        iv = b'0000000000000000'
+        # key = bytes.fromhex(data["key"])
+        # iv = bytes.fromhex(data["initialPermutation"])
+        key = b"Sixteen byte key"
+        iv = b"0000000000000000"
         encryptionMode = data["encryptionMode"]
         route = "./images/raw_img.png"
-        res = cryptogy.aes.encrypt_image(key, iv, encryptionMode, route, filename = "./images/encrypt_temp.png")
-        file = send_from_directory("./images", mimetype = "image/jpg", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
+        res = cryptogy.aes.encrypt_image(
+            key, iv, encryptionMode, route, filename="./images/encrypt_temp.png"
+        )
+        file = send_from_directory(
+            "./images",
+            mimetype="image/jpg",
+            path="encrypt_temp.png",
+            as_attachment=False,
+            max_age=0,
+        )
     elif cipher == "des" or "sdes" or "3des":
-        key = b'Sixteen byte key'
-        iv = b'0000000000000000'
+        key = b"Sixteen byte key"
+        iv = b"0000000000000000"
         encryptionMode = data["encryptionMode"]
         route = "./images/raw_img.png"
-        res = cryptogy.des.encrypt_image(key, iv, encryptionMode, route, filename = "./images/encrypt_temp.png")
-        file = send_from_directory("./images", mimetype = "image/jpg", path = "encrypt_temp.png", as_attachment=False, max_age = 0)
-    return file 
+        res = cryptogy.des.encrypt_image(
+            key, iv, encryptionMode, route, filename="./images/encrypt_temp.png"
+        )
+        file = send_from_directory(
+            "./images",
+            mimetype="image/jpg",
+            path="encrypt_temp.png",
+            as_attachment=False,
+            max_age=0,
+        )
+    return file
 
-@app.route("/api/decrypt_image", methods = ["POST", "GET"])
+
+@app.route("/api/decrypt_image", methods=["POST", "GET"])
 def decrypt_image():
     from utils import images_inv_key
+
     data = request.values
     cipher = data["cipher"]
-    #img = request.files.getlist("files")[0]
+    # img = request.files.getlist("files")[0]
     image = "./images/encrypt_temp.png"
-    img = open(image, 'rb')
+    img = open(image, "rb")
 
     if cipher == "hill" or cipher == "permutation":
-        img = HillCipher.imagToMat(img, resize = 32)
-        prev = Image.fromarray(img) 
+        img = HillCipher.imagToMat(img, resize=32)
+        prev = Image.fromarray(img)
         prev.save("./images/previous_encrypt.png")
-        cipher = HillCipher(32, key = images_key, force_key=True)    
-        new_img = cipher.decode_image(img, key_inv = images_inv_key)
+        cipher = HillCipher(32, key=images_key, force_key=True)
+        new_img = cipher.decode_image(img, key_inv=images_inv_key)
         new_img = new_img.convert("L")
         new_img.save("./images/decrypt_temp.png")
-        file =  send_from_directory("./images", mimetype = "image/jpg", path = "decrypt_temp.png", as_attachment=False, max_age = 0)
+        file = send_from_directory(
+            "./images",
+            mimetype="image/jpg",
+            path="decrypt_temp.png",
+            as_attachment=False,
+            max_age=0,
+        )
     elif cipher == "aes":
-        #key = bytes.fromhex(data["key"])
-        #iv = bytes.fromhex(data["initialPermutation"])
-        key = b'Sixteen byte key'
-        iv = b'0000000000000000'
+        # key = bytes.fromhex(data["key"])
+        # iv = bytes.fromhex(data["initialPermutation"])
+        key = b"Sixteen byte key"
+        iv = b"0000000000000000"
         encryptionMode = data["encryptionMode"]
         route = "./images/raw_img.png"
-        res = cryptogy.aes.decrypt_image(key, iv, encryptionMode, route, filename = "./images/decrypt_temp.png")
-        file = send_from_directory("./images", mimetype = "image/jpg", path = "decrypt_temp.png", as_attachment=False, max_age = 0)
+        res = cryptogy.aes.decrypt_image(
+            key, iv, encryptionMode, route, filename="./images/decrypt_temp.png"
+        )
+        file = send_from_directory(
+            "./images",
+            mimetype="image/jpg",
+            path="decrypt_temp.png",
+            as_attachment=False,
+            max_age=0,
+        )
     elif cipher == "des" or "sdes" or "3des":
-        key = b'Sixteen byte key'
-        iv = b'0000000000000000'
+        key = b"Sixteen byte key"
+        iv = b"0000000000000000"
         encryptionMode = data["encryptionMode"]
         route = "./images/raw_img.png"
-        res = cryptogy.des.decrypt_image(key, iv, encryptionMode, route, filename = "./images/decrypt_temp.png")
-        file = send_from_directory("./images", mimetype = "image/jpg", path = "decrypt_temp.png", as_attachment=False, max_age = 0)    
-    return file 
+        res = cryptogy.des.decrypt_image(
+            key, iv, encryptionMode, route, filename="./images/decrypt_temp.png"
+        )
+        file = send_from_directory(
+            "./images",
+            mimetype="image/jpg",
+            path="decrypt_temp.png",
+            as_attachment=False,
+            max_age=0,
+        )
+    return file
 
 
-if __name__ == '__main__':
-    app.run(port = 5000, debug = True)
+@app.route("/api/change_graph", methods=["POST"])
+def change_graph():
+    print("1234")
+    data = request.get_json()
+    if data == None:
+        data = request.values
+    cipher = utils.get_cipher(data)
+    cipher.changeGraph()
+    return
+
+
+@app.route("/api/show_graph", methods=["POST", "GET"])
+def show_graph():
+    print("aqui")
+    cipher = GammaPentagonalCipher()
+
+    cipher.showGraph(filename="./images/graph_temp.png")
+    file = send_from_directory(
+        "./images",
+        mimetype="image/jpg",
+        path="graph_temp.png",
+        as_attachment=False,
+        max_age=0,
+    )
+    return file
+
+
+if __name__ == "__main__":
+    app.run(port=5000, debug=True)
+

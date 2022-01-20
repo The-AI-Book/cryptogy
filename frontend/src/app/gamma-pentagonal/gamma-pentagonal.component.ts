@@ -10,7 +10,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 })
 export class GammaPentagonalComponent implements OnInit {
 
-  constructor(private cryptoService: CryptogyService) { }
+  constructor(private cryptoService: CryptogyService, private domSanitizer: DomSanitizer) { }
 
   form: FormGroup;
   randomKeyLoading: boolean = false;
@@ -20,6 +20,8 @@ export class GammaPentagonalComponent implements OnInit {
   errorEncrypt: boolean  = false;
   decryptLoading: boolean = false;
   errorDecrypt: boolean = false;
+
+  graphImage = null;
 
   ngOnInit(): void {
     this.form = new FormGroup({
@@ -32,6 +34,42 @@ export class GammaPentagonalComponent implements OnInit {
       numPartitions: new FormControl(2, {validators: Validators.required}), 
       file: new FormControl(null)
     });
+    this.generate_random_key();
+  }
+
+  change_graph(){
+    this.cryptoService.change_graph(
+      this.form.value.show_graph, 
+      this.form.value.cipher,
+      this.form.value.key, 
+    )  
+  }
+
+  show_graph(){
+    this.cryptoService.show_graph(
+      this.form.value.show_graph, 
+      this.form.value.cipher,
+      this.form.value.key, 
+    )
+    .subscribe(
+      data => {
+        //console.log(data);
+        console.log("Loading image!");
+        const reader = new FileReader();
+        reader.readAsDataURL(new Blob([<any> data]));
+        reader.onload = (e) => {
+          let url = e.target.result as string;
+          let secureUrl = this.domSanitizer.bypassSecurityTrustResourceUrl(
+            url
+          );
+          this.graphImage = secureUrl;
+          //console.log(this.graphImage);
+        }
+      }, 
+      err => {
+        console.log(err);
+      }
+    )
   }
 
   generate_random_key(){
