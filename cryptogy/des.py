@@ -438,8 +438,8 @@ class TripleDESCipher(Cipher):
 
 def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
     from Crypto import Random
-    key = Random.new().read(DES.key_size)
-    iv = Random.new().read(DES.block_size)
+    #key = Random.new().read(DES.key_size)
+    #iv = Random.new().read(DES.block_size)
     def format_image(img):
         # Pad zero rows in case number of bytes is not a multiple of 16 (just an example - there are many options for padding)
         if img.size % 16 > 0:

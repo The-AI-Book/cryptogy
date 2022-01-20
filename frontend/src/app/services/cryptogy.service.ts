@@ -91,7 +91,7 @@ export class CryptogyService {
         data.append("encryptionMode", encryptionMode);
         data.append("files", file, file.name);
         console.log(data);
-        return this.http.get(this.endpoint + "/api/decrypt_image", {responseType: "blob"})
+        return this.http.post(this.endpoint + "/api/decrypt_image", data, {responseType: "blob"})
     }
 
 

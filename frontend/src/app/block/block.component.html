@@ -174,7 +174,9 @@
                          <button class = "btn btn-outline-danger me-2" (click)="filePicker.click()">Upload</button>
                          <button *ngIf="!encryptLoading" type="submit" class="btn btn-outline-primary me-2"
                          [disabled]="form.invalid || form.value.file == ''" (click)="encrypt_image()">Encrypt</button>
-                     </div>
+                         <button class="btn btn-outline-info" (click)="deleteClearImage()"
+                         [disabled]="form.value.clearImage != null">Clear</button>    
+                    </div>
                      
                      <input style="display: none;" type = "file" accept="image/*" #filePicker (change)="onFileSelected($event)" name="file" id = "file">
                 </div>
@@ -197,6 +199,8 @@
                         <button class = "btn btn-outline-danger me-2" (click)="filePicker2.click()">Upload</button>
                         <button *ngIf="!encryptLoading" type="submit" class="btn btn-outline-primary me-2"
                          [disabled]="form.invalid" (click)="decrypt_image()">Decrypt</button>
+                         <button class="btn btn-outline-info" (click)="deleteCipherImage()"
+                         [disabled]="form.value.cipherImage != null">Clear</button>  
                       </div>
 
                       <input style="display: none;" type = "file" accept="image/*" #filePicker2 (change)="onFileSelected2($event)" name="file" id = "file">
