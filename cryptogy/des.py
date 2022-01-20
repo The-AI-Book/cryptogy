@@ -1,3 +1,4 @@
+from PIL import Image
 from math import exp
 from turtle import clear
 from .cipher import Cipher, CryptAnalizer
