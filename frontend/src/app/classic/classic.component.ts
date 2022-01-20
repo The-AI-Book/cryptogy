@@ -107,6 +107,7 @@ export class ClassicComponent implements OnInit {
       values.keyLength, 
       values.numPartitions, 
       "", 
+      "", 
       ""
     ).subscribe(
       data => {
@@ -133,7 +134,13 @@ export class ClassicComponent implements OnInit {
 
   encrypt_image(){
     //console.log("encrypt image!");
-    this.cryptoService.encrypt_image(this.form.value.file)
+    this.cryptoService.encrypt_image(
+      this.form.value.file, 
+      this.form.value.cipher, 
+      "", 
+      "", 
+      ""
+    )
     .subscribe(
       data => {
         //console.log(data);
@@ -175,6 +182,7 @@ export class ClassicComponent implements OnInit {
       values.keyStream, 
       values.numPartitions, 
       "", 
+      "", 
       ""
     ).subscribe(
       data => {
@@ -193,7 +201,13 @@ export class ClassicComponent implements OnInit {
 
   decrypt_image(){
     //console.log("decrypt image!");
-    this.cryptoService.decrypt_image()
+    this.cryptoService.decrypt_image(
+      null, 
+      "",
+      "", 
+      "", 
+      ""
+    )
     .subscribe(
       data => {
         //console.log(data);

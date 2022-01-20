@@ -1,10 +1,11 @@
-from math import exp
 from .cipher import Cipher, CryptAnalizer
 import numpy as np
 import copy
 import random 
 from typing import List
-
+from PIL import Image
+from Crypto.Cipher import DES
+import cv2
 """
 Parameters        |  S-DES                       |  DES                         |
 Plaintext Length  |  8 bits                      |  64 bits                     |
@@ -80,7 +81,7 @@ class DESCipher(Cipher):
             xor_list.append(result)
         return xor_list
 
-    def __init__(self, key = None):
+    def __init__(self, key = None, mode = "ebc"):
         """
         DES is a 16-round Feistel cipher having block length 64:
         it encrypts a plaintext bistring x using a 56-bit key, K, obtaining a 
@@ -101,10 +102,17 @@ class DESCipher(Cipher):
         self.key = self.iniKey(key)
         self.permutation = DESCipher.generatePermutation(self.BLOCK_LENGTH)
         self.schedule = self.generateKeySchedule()
+        self.mode = mode
+
+    def setEncryptionMode(self, mode):
+        self.mode = mode
+    
+    def setInitialPermutation(self, permutation):
+        self.permutation = permutation
 
     def funcPermutation(self, block):
         """
-        The Permutation P is as fllows:
+        The Permutation P is as follows:
         It is apply over C1.C2. ... C7.C8
         32 bits block.
         """
@@ -195,23 +203,43 @@ class DESCipher(Cipher):
         return new_L, new_R
 
     def encode(self, cleartext: str):
+        ### Encryption Modes.
+        ### https://es.wikipedia.org/wiki/Modos_de_operaci%C3%B3n_de_una_unidad_de_cifrado_por_bloques#Modo_ECB_(Electronic_codebook)
+
 
         #print(self.schedule)
         # Get bits and blocks.
         bits = DESCipher.tobits(cleartext)
         blocks = self.getBlocks(bits)
+        current_cleartext = None
+        current_block = None
 
         # Encode text.
         ciphertext = ""
         for i in range(len(blocks)):
-            blocks[i] = DESCipher.applyPermutation(self.permutation, blocks[i])
+
+            current_cleartext = blocks[i]
+            if self.mode != "ecb":
+                blocks[i] = DESCipher.applyPermutation(self.permutation, blocks[i])
+
+            if current_block is not None:
+                if self.mode == "cbc":
+                    blocks[i] = DESCipher.computeXOR(blocks[i], current_block)
+                elif self.mode == "pcbc":
+                    xor_block = DESCipher.computeXOR(current_cleartext, blocks[i])
+                    blocks[i] = DESCipher.computeXOR(blocks[i], xor_block)
 
             L = blocks[i][0: int(self.BLOCK_LENGTH / 2)]
             R = blocks[i][int(self.BLOCK_LENGTH / 2): self.BLOCK_LENGTH]
             L, R = self.applyRounds(L, R) # 16 rounds.
             blocks[i] = R + L
-            blocks[i] = DESCipher.applyPermutation(DESCipher.inv(self.permutation), blocks[i])
+
+            if self.mode != "ecb":
+                blocks[i] = DESCipher.applyPermutation(DESCipher.inv(self.permutation), blocks[i])
+
+            current_block = blocks[i]
             ciphertext += DESCipher.frombits(blocks[i])
+
         return ciphertext, self.permutation, self.schedule
 
     def decode(self, permutation: List[int], schedule: List[List[int]], ciphertext: str):
@@ -220,6 +248,89 @@ class DESCipher(Cipher):
         if schedule is not None:
             self.schedule = schedule
         return self.encode(ciphertext)
+
+    def imagToMat(self, image):
+        image = Image.open(image)
+        image = np.asarray(image)
+        return image
+
+    def encode_image(self, image, filename = "guru991.txt"):
+        
+        def list_int_to_str(list_: List[int]):
+            new_list = list()
+            for element in list_:
+                new_list.append(str(element))
+            return new_list
+
+        def format_pixel(pixeles: List[int]):
+            pixeles = list_int_to_str(pixeles)
+            dicc = {
+                "0": "cero",
+                "1": "uno", 
+                "2": "dos", 
+                "3": "tres",
+                "4": "cuatro", 
+                "5": "cinco", 
+                "6": "seis", 
+                "7": "siete", 
+                "8": "ocho", 
+                "9": "nueve"
+            }
+            row_text = ""
+            for pixel in pixeles:
+                pixel_text = ""
+                for number in pixel: 
+                    pixel_text += (dicc[number] + "pi")
+                row_text += pixel_text + "tao"
+            return row_text
+                
+
+        f = open(filename,"w+")
+        img = self.imagToMat(image)
+        img = np.reshape(img, (3, img.shape[0], img.shape[1]))
+        img = np.resize(img, (3, 2, 2))
+        #img = img.convert("L")
+        print(img.shape)
+        #print(img.shape[1])
+        #print()
+        #import sys
+        #sys.exit()
+        
+        for k in range(img.shape[0]):
+            print("chnnale number: ", k)
+            for i in range(img.shape[1]):
+                print("row number: ", i)
+                pixel = format_pixel(list(img[k][i, :]))
+                #print(pixel)
+                cpt, perm, sche = self.encode(pixel)
+                print(cpt)
+                print("---")
+                print(type(cpt), type(cpt.encode("utf-8").hex() ))
+                f.write("{cpt}".format(cpt = cpt.encode("utf-8").hex()))
+                f.write("\n\n")
+            f.write("new_channel")
+            f.write("\n\n")
+        f.close()
+        return perm, sche
+
+    def decode_image(self, filename):
+        with open(filename) as file:
+            lines = file.readlines()
+            
+            #lines = [line.rstrip() for line in lines]
+        print(lines[0])
+        
+        print("*****8")
+        row0 = bytes.fromhex(lines[0]).decode("utf-8")
+        row1 = bytes.fromhex(lines[1]).decode("utf-8")
+        print("row: ")
+        print(row0)
+        print("row: ")
+        print(row1)
+        #print(r)
+        result = cipher.decode(self.permutation, self.schedule, row0)
+        print("result!")
+        print(result)
         
 class SDESCipher(DESCipher):
 
@@ -273,8 +384,120 @@ class SDESCipher(DESCipher):
         #print(len(C))
         return self.funcPermutation(C)
 
+class TripleDESCipher(Cipher):
+
+    def __init__(self, mode = "ebc"):
+        super().__init__()
+        self.des1 = DESCipher()
+        self.des2 = DESCipher()
+        self.des3 = DESCipher()
+
+    def generateRandomKey(self):
+        return self.des1.generateRandomKey()
+
+    def setEncryptionMode(self, mode):
+        self.des1.setEncryptionMode(mode)
+        self.des2.setEncryptionMode(mode)
+        self.des3.setEncryptionMode(mode)
+
+    def configDES(self):
+        key2 = [1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0] 
+        schedule2 = [[1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1], [1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1], [1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0], [0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1], [0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1], [0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0], [0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1], [1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1], [0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1], [0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0], [1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1], [0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0], [1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0], [0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0], [1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1]]
+        perm2 = [28, 6, 24, 42, 23, 46, 55, 5, 18, 11, 41, 3, 7, 47, 27, 37, 22, 14, 40, 39, 48, 19, 29, 9, 52, 54, 1, 17, 21, 13, 59, 38, 43, 51, 57, 60, 61, 25, 35, 34, 36, 63, 33, 15, 20, 32, 31, 16, 56, 2, 44, 45, 8, 26, 4, 10, 49, 0, 30, 50, 58, 12, 62, 53]
+        self.des2.key = key2
+        self.des2.schedule = schedule2
+        self.des2.permutation = perm2
+
+        key3 = [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0]
+        schedule3 = [[0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0], [1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1], [1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0], [1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0], [1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0], [0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0], [1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0], [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1], [0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0], [0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0], [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0]]
+        perm3 = [24, 20, 36, 17, 7, 32, 12, 3, 44, 48, 11, 50, 2, 0, 18, 15, 39, 51, 4, 29, 54, 37, 30, 56, 23, 46, 58, 27, 21, 6, 61, 45, 10, 47, 34, 49, 8, 59, 33, 22, 25, 1, 14, 5, 57, 53, 52, 19, 40, 63, 42, 9, 28, 43, 35, 16, 38, 41, 13, 31, 26, 62, 55, 60]
+        self.des3.key = key3
+        self.des3.schedule = schedule3
+        self.des3.permutation = perm3
+
+    def encode(self, cleartext):
+        self.configDES()
+        ciphertext, perm1, schedule1 = self.des1.encode(cleartext)
+        ciphertext, perm2, schedule2  = self.des2.encode(ciphertext)
+        ciphertext, perm3, schedule3  = self.des3.encode(ciphertext)
+        return ciphertext, perm1, schedule1 
+
+    def decode(self, permutation: List[int], schedule: List[List[int]], ciphertext):
+        self.configDES()
+        if permutation is not None:
+            self.des1.permutation = permutation
+        if schedule is not None:
+            self.des1.schedule = schedule   
+
+        cleartext1 = self.des1.decode(None, None, ciphertext)
+        cleartext2 = self.des2.decode(None, None, cleartext1[0])
+        cleartext3 = self.des3.decode(None, None, cleartext2[0])
+        return cleartext3[0], cleartext1[1], cleartext1[2]
+
+def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
+    from Crypto import Random
+    #key = Random.new().read(DES.key_size)
+    #iv = Random.new().read(DES.block_size)
+    def format_image(img):
+        # Pad zero rows in case number of bytes is not a multiple of 16 (just an example - there are many options for padding)
+        if img.size % 16 > 0:
+            row = img.shape[0]
+            pad = 16 - (row % 16)  # Number of rows to pad (4 rows)
+            img = np.pad(img, ((0, pad), (0, 0), (0, 0)))  # Pad rows at the bottom  - new shape is (304, 451, 3) - 411312 bytes.
+            img[-1, -1, 0] = pad  # Store the pad value in the last element
+        return img
+
+    img = cv2.imread(image)
+    img = format_image(img)
+    img_bytes = img.tobytes()  # Convert NumPy array to sequence of bytes (411312 bytes)
+    if encryptionMode == "cbc" or encryptionMode == "pcbc":
+        enc_img_bytes = DES.new(key, DES.MODE_CBC, iv).encrypt(img_bytes)  # Encrypt the array of bytes.
+    elif encryptionMode == "ecb":
+        enc_img_bytes = DES.new(key, DES.MODE_ECB, iv).encrypt(img_bytes)  # Encrypt the array of bytes..
+    else:
+        enc_img_bytes = DES.new(key, DES.MODE_ECB).encrypt(img_bytes)
+    # Convert the encrypted buffer to NumPy array and reshape to the shape of the padded image (304, 451, 3)
+    enc_img = np.frombuffer(enc_img_bytes, np.uint8).reshape(img.shape)
+    cv2.imwrite(filename, enc_img)
+    return True
+
+def decrypt_image(key, iv, encryptionMode: str, image, filename: str):
+    from Crypto import Random
+    #key = Random.new().read(DES.key_size)
+    #iv = Random.new().read(DES.block_size)
+
+    enc_img = cv2.imread(image)
+    if encryptionMode == "cbc" or encryptionMode == "pcbc":
+        dec_img_bytes = DES.new(key, DES.MODE_CBC, iv).decrypt(enc_img.tobytes())
+    elif encryptionMode == "ecb":
+        dec_img_bytes = DES.new(key, DES.MODE_ECB, iv).decrypt(enc_img.tobytes())
+    else:
+        dec_img_bytes = DES.new(key, DES.MODE_ECB).decrypt(enc_img.tobytes())
+
+    dec_img = np.frombuffer(dec_img_bytes, np.uint8).reshape(enc_img.shape) # The shape of the encrypted and decrypted image is the same (304, 451, 3)
+    pad = int(dec_img[-1, -1, 0])  # Get the stored padding value
+    dec_img = dec_img[0:-pad, :, :].copy()  # Remove the padding rows, new shape is (300, 451, 3)
+    cv2.imwrite(filename, dec_img)
+    return True
+
 if __name__ == '__main__':
 
+    url = "32x32.jpg"
+    cipher = DESCipher(mode = "pcbc")
+    print("key")
+    print(cipher.key)
+    print("schedule")
+    print(cipher.schedule)
+    print("initial perm")
+    print(cipher.permutation)
+    #txt, perm, sche = cipher.encode("encriptar")
+    #print(txt)
+    #txt, perm, sche = cipher.decode(perm, sche, txt)
+    #print(txt)
+    #cipher.encode_image(url, "../images/guru991.txt")
+    #file = "../images/guru991.txt"
+    #print("DESCRYOT IAGE")
+    #cipher.decode_image(file)
     """
     cleartext = "holamundoholamundoholaxxawde"
     cipher = DESCipher()
@@ -286,6 +509,7 @@ if __name__ == '__main__':
     res2 = cipher.encode(res)
     print("decode:")
     print(res2)
+    """
     """
     cleartext = "holamundoholamundoholaxxawde"
     cipher = DESCipher()
@@ -301,7 +525,7 @@ if __name__ == '__main__':
     res2 = cipher.decode(None, res)[0]
     print("decode:")
     print(res2)
-
+    """
 
   
     #print(len(res[1]))

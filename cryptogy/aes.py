@@ -3,47 +3,530 @@ from .cipher import Cipher, CryptAnalizer
 import numpy as np
 import os
 import copy
-import random 
+import random
 from typing import List
 from hashlib import pbkdf2_hmac
 from hmac import new as new_hmac, compare_digest
+from Crypto.Cipher import AES
+import cv2
+import numpy as np
 
 s_box = (
-    0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
-    0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
-    0xB7, 0xFD, 0x93, 0x26, 0x36, 0x3F, 0xF7, 0xCC, 0x34, 0xA5, 0xE5, 0xF1, 0x71, 0xD8, 0x31, 0x15,
-    0x04, 0xC7, 0x23, 0xC3, 0x18, 0x96, 0x05, 0x9A, 0x07, 0x12, 0x80, 0xE2, 0xEB, 0x27, 0xB2, 0x75,
-    0x09, 0x83, 0x2C, 0x1A, 0x1B, 0x6E, 0x5A, 0xA0, 0x52, 0x3B, 0xD6, 0xB3, 0x29, 0xE3, 0x2F, 0x84,
-    0x53, 0xD1, 0x00, 0xED, 0x20, 0xFC, 0xB1, 0x5B, 0x6A, 0xCB, 0xBE, 0x39, 0x4A, 0x4C, 0x58, 0xCF,
-    0xD0, 0xEF, 0xAA, 0xFB, 0x43, 0x4D, 0x33, 0x85, 0x45, 0xF9, 0x02, 0x7F, 0x50, 0x3C, 0x9F, 0xA8,
-    0x51, 0xA3, 0x40, 0x8F, 0x92, 0x9D, 0x38, 0xF5, 0xBC, 0xB6, 0xDA, 0x21, 0x10, 0xFF, 0xF3, 0xD2,
-    0xCD, 0x0C, 0x13, 0xEC, 0x5F, 0x97, 0x44, 0x17, 0xC4, 0xA7, 0x7E, 0x3D, 0x64, 0x5D, 0x19, 0x73,
-    0x60, 0x81, 0x4F, 0xDC, 0x22, 0x2A, 0x90, 0x88, 0x46, 0xEE, 0xB8, 0x14, 0xDE, 0x5E, 0x0B, 0xDB,
-    0xE0, 0x32, 0x3A, 0x0A, 0x49, 0x06, 0x24, 0x5C, 0xC2, 0xD3, 0xAC, 0x62, 0x91, 0x95, 0xE4, 0x79,
-    0xE7, 0xC8, 0x37, 0x6D, 0x8D, 0xD5, 0x4E, 0xA9, 0x6C, 0x56, 0xF4, 0xEA, 0x65, 0x7A, 0xAE, 0x08,
-    0xBA, 0x78, 0x25, 0x2E, 0x1C, 0xA6, 0xB4, 0xC6, 0xE8, 0xDD, 0x74, 0x1F, 0x4B, 0xBD, 0x8B, 0x8A,
-    0x70, 0x3E, 0xB5, 0x66, 0x48, 0x03, 0xF6, 0x0E, 0x61, 0x35, 0x57, 0xB9, 0x86, 0xC1, 0x1D, 0x9E,
-    0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
-    0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16,
+    0x63, 
+    0x7C,
+    0x77, 
+    0x7B, 
+    0xF2,
+    0x6B,
+    0x6F,
+    0xC5,
+    0x30,
+    0x01,
+    0x67,
+    0x2B,
+    0xFE,
+    0xD7,
+    0xAB,
+    0x76,
+    0xCA,
+    0x82,
+    0xC9,
+    0x7D,
+    0xFA,
+    0x59,
+    0x47,
+    0xF0,
+    0xAD,
+    0xD4,
+    0xA2,
+    0xAF,
+    0x9C,
+    0xA4,
+    0x72,
+    0xC0,
+    0xB7,
+    0xFD,
+    0x93,
+    0x26,
+    0x36,
+    0x3F,
+    0xF7,
+    0xCC,
+    0x34,
+    0xA5,
+    0xE5,
+    0xF1,
+    0x71,
+    0xD8,
+    0x31,
+    0x15,
+    0x04,
+    0xC7,
+    0x23,
+    0xC3,
+    0x18,
+    0x96,
+    0x05,
+    0x9A,
+    0x07,
+    0x12,
+    0x80,
+    0xE2,
+    0xEB,
+    0x27,
+    0xB2,
+    0x75,
+    0x09,
+    0x83,
+    0x2C,
+    0x1A,
+    0x1B,
+    0x6E,
+    0x5A,
+    0xA0,
+    0x52,
+    0x3B,
+    0xD6,
+    0xB3,
+    0x29,
+    0xE3,
+    0x2F,
+    0x84,
+    0x53,
+    0xD1,
+    0x00,
+    0xED,
+    0x20,
+    0xFC,
+    0xB1,
+    0x5B,
+    0x6A,
+    0xCB,
+    0xBE,
+    0x39,
+    0x4A,
+    0x4C,
+    0x58,
+    0xCF,
+    0xD0,
+    0xEF,
+    0xAA,
+    0xFB,
+    0x43,
+    0x4D,
+    0x33,
+    0x85,
+    0x45,
+    0xF9,
+    0x02,
+    0x7F,
+    0x50,
+    0x3C,
+    0x9F,
+    0xA8,
+    0x51,
+    0xA3,
+    0x40,
+    0x8F,
+    0x92,
+    0x9D,
+    0x38,
+    0xF5,
+    0xBC,
+    0xB6,
+    0xDA,
+    0x21,
+    0x10,
+    0xFF,
+    0xF3,
+    0xD2,
+    0xCD,
+    0x0C,
+    0x13,
+    0xEC,
+    0x5F,
+    0x97,
+    0x44,
+    0x17,
+    0xC4,
+    0xA7,
+    0x7E,
+    0x3D,
+    0x64,
+    0x5D,
+    0x19,
+    0x73,
+    0x60,
+    0x81,
+    0x4F,
+    0xDC,
+    0x22,
+    0x2A,
+    0x90,
+    0x88,
+    0x46,
+    0xEE,
+    0xB8,
+    0x14,
+    0xDE,
+    0x5E,
+    0x0B,
+    0xDB,
+    0xE0,
+    0x32,
+    0x3A,
+    0x0A,
+    0x49,
+    0x06,
+    0x24,
+    0x5C,
+    0xC2,
+    0xD3,
+    0xAC,
+    0x62,
+    0x91,
+    0x95,
+    0xE4,
+    0x79,
+    0xE7,
+    0xC8,
+    0x37,
+    0x6D,
+    0x8D,
+    0xD5,
+    0x4E,
+    0xA9,
+    0x6C,
+    0x56,
+    0xF4,
+    0xEA,
+    0x65,
+    0x7A,
+    0xAE,
+    0x08,
+    0xBA,
+    0x78,
+    0x25,
+    0x2E,
+    0x1C,
+    0xA6,
+    0xB4,
+    0xC6,
+    0xE8,
+    0xDD,
+    0x74,
+    0x1F,
+    0x4B,
+    0xBD,
+    0x8B,
+    0x8A,
+    0x70,
+    0x3E,
+    0xB5,
+    0x66,
+    0x48,
+    0x03,
+    0xF6,
+    0x0E,
+    0x61,
+    0x35,
+    0x57,
+    0xB9,
+    0x86,
+    0xC1,
+    0x1D,
+    0x9E,
+    0xE1,
+    0xF8,
+    0x98,
+    0x11,
+    0x69,
+    0xD9,
+    0x8E,
+    0x94,
+    0x9B,
+    0x1E,
+    0x87,
+    0xE9,
+    0xCE,
+    0x55,
+    0x28,
+    0xDF,
+    0x8C,
+    0xA1,
+    0x89,
+    0x0D,
+    0xBF,
+    0xE6,
+    0x42,
+    0x68,
+    0x41,
+    0x99,
+    0x2D,
+    0x0F,
+    0xB0,
+    0x54,
+    0xBB,
+    0x16,
 )
 
 inv_s_box = (
-    0x52, 0x09, 0x6A, 0xD5, 0x30, 0x36, 0xA5, 0x38, 0xBF, 0x40, 0xA3, 0x9E, 0x81, 0xF3, 0xD7, 0xFB,
-    0x7C, 0xE3, 0x39, 0x82, 0x9B, 0x2F, 0xFF, 0x87, 0x34, 0x8E, 0x43, 0x44, 0xC4, 0xDE, 0xE9, 0xCB,
-    0x54, 0x7B, 0x94, 0x32, 0xA6, 0xC2, 0x23, 0x3D, 0xEE, 0x4C, 0x95, 0x0B, 0x42, 0xFA, 0xC3, 0x4E,
-    0x08, 0x2E, 0xA1, 0x66, 0x28, 0xD9, 0x24, 0xB2, 0x76, 0x5B, 0xA2, 0x49, 0x6D, 0x8B, 0xD1, 0x25,
-    0x72, 0xF8, 0xF6, 0x64, 0x86, 0x68, 0x98, 0x16, 0xD4, 0xA4, 0x5C, 0xCC, 0x5D, 0x65, 0xB6, 0x92,
-    0x6C, 0x70, 0x48, 0x50, 0xFD, 0xED, 0xB9, 0xDA, 0x5E, 0x15, 0x46, 0x57, 0xA7, 0x8D, 0x9D, 0x84,
-    0x90, 0xD8, 0xAB, 0x00, 0x8C, 0xBC, 0xD3, 0x0A, 0xF7, 0xE4, 0x58, 0x05, 0xB8, 0xB3, 0x45, 0x06,
-    0xD0, 0x2C, 0x1E, 0x8F, 0xCA, 0x3F, 0x0F, 0x02, 0xC1, 0xAF, 0xBD, 0x03, 0x01, 0x13, 0x8A, 0x6B,
-    0x3A, 0x91, 0x11, 0x41, 0x4F, 0x67, 0xDC, 0xEA, 0x97, 0xF2, 0xCF, 0xCE, 0xF0, 0xB4, 0xE6, 0x73,
-    0x96, 0xAC, 0x74, 0x22, 0xE7, 0xAD, 0x35, 0x85, 0xE2, 0xF9, 0x37, 0xE8, 0x1C, 0x75, 0xDF, 0x6E,
-    0x47, 0xF1, 0x1A, 0x71, 0x1D, 0x29, 0xC5, 0x89, 0x6F, 0xB7, 0x62, 0x0E, 0xAA, 0x18, 0xBE, 0x1B,
-    0xFC, 0x56, 0x3E, 0x4B, 0xC6, 0xD2, 0x79, 0x20, 0x9A, 0xDB, 0xC0, 0xFE, 0x78, 0xCD, 0x5A, 0xF4,
-    0x1F, 0xDD, 0xA8, 0x33, 0x88, 0x07, 0xC7, 0x31, 0xB1, 0x12, 0x10, 0x59, 0x27, 0x80, 0xEC, 0x5F,
-    0x60, 0x51, 0x7F, 0xA9, 0x19, 0xB5, 0x4A, 0x0D, 0x2D, 0xE5, 0x7A, 0x9F, 0x93, 0xC9, 0x9C, 0xEF,
-    0xA0, 0xE0, 0x3B, 0x4D, 0xAE, 0x2A, 0xF5, 0xB0, 0xC8, 0xEB, 0xBB, 0x3C, 0x83, 0x53, 0x99, 0x61,
-    0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D,
+    0x52,
+    0x09,
+    0x6A,
+    0xD5,
+    0x30,
+    0x36,
+    0xA5,
+    0x38,
+    0xBF,
+    0x40,
+    0xA3,
+    0x9E,
+    0x81,
+    0xF3,
+    0xD7,
+    0xFB,
+    0x7C,
+    0xE3,
+    0x39,
+    0x82,
+    0x9B,
+    0x2F,
+    0xFF,
+    0x87,
+    0x34,
+    0x8E,
+    0x43,
+    0x44,
+    0xC4,
+    0xDE,
+    0xE9,
+    0xCB,
+    0x54,
+    0x7B,
+    0x94,
+    0x32,
+    0xA6,
+    0xC2,
+    0x23,
+    0x3D,
+    0xEE,
+    0x4C,
+    0x95,
+    0x0B,
+    0x42,
+    0xFA,
+    0xC3,
+    0x4E,
+    0x08,
+    0x2E,
+    0xA1,
+    0x66,
+    0x28,
+    0xD9,
+    0x24,
+    0xB2,
+    0x76,
+    0x5B,
+    0xA2,
+    0x49,
+    0x6D,
+    0x8B,
+    0xD1,
+    0x25,
+    0x72,
+    0xF8,
+    0xF6,
+    0x64,
+    0x86,
+    0x68,
+    0x98,
+    0x16,
+    0xD4,
+    0xA4,
+    0x5C,
+    0xCC,
+    0x5D,
+    0x65,
+    0xB6,
+    0x92,
+    0x6C,
+    0x70,
+    0x48,
+    0x50,
+    0xFD,
+    0xED,
+    0xB9,
+    0xDA,
+    0x5E,
+    0x15,
+    0x46,
+    0x57,
+    0xA7,
+    0x8D,
+    0x9D,
+    0x84,
+    0x90,
+    0xD8,
+    0xAB,
+    0x00,
+    0x8C,
+    0xBC,
+    0xD3,
+    0x0A,
+    0xF7,
+    0xE4,
+    0x58,
+    0x05,
+    0xB8,
+    0xB3,
+    0x45,
+    0x06,
+    0xD0,
+    0x2C,
+    0x1E,
+    0x8F,
+    0xCA,
+    0x3F,
+    0x0F,
+    0x02,
+    0xC1,
+    0xAF,
+    0xBD,
+    0x03,
+    0x01,
+    0x13,
+    0x8A,
+    0x6B,
+    0x3A,
+    0x91,
+    0x11,
+    0x41,
+    0x4F,
+    0x67,
+    0xDC,
+    0xEA,
+    0x97,
+    0xF2,
+    0xCF,
+    0xCE,
+    0xF0,
+    0xB4,
+    0xE6,
+    0x73,
+    0x96,
+    0xAC,
+    0x74,
+    0x22,
+    0xE7,
+    0xAD,
+    0x35,
+    0x85,
+    0xE2,
+    0xF9,
+    0x37,
+    0xE8,
+    0x1C,
+    0x75,
+    0xDF,
+    0x6E,
+    0x47,
+    0xF1,
+    0x1A,
+    0x71,
+    0x1D,
+    0x29,
+    0xC5,
+    0x89,
+    0x6F,
+    0xB7,
+    0x62,
+    0x0E,
+    0xAA,
+    0x18,
+    0xBE,
+    0x1B,
+    0xFC,
+    0x56,
+    0x3E,
+    0x4B,
+    0xC6,
+    0xD2,
+    0x79,
+    0x20,
+    0x9A,
+    0xDB,
+    0xC0,
+    0xFE,
+    0x78,
+    0xCD,
+    0x5A,
+    0xF4,
+    0x1F,
+    0xDD,
+    0xA8,
+    0x33,
+    0x88,
+    0x07,
+    0xC7,
+    0x31,
+    0xB1,
+    0x12,
+    0x10,
+    0x59,
+    0x27,
+    0x80,
+    0xEC,
+    0x5F,
+    0x60,
+    0x51,
+    0x7F,
+    0xA9,
+    0x19,
+    0xB5,
+    0x4A, 
+    0x0D,
+    0x2D, 
+    0xE5, 
+    0x7A,
+    0x9F,
+    0x93,
+    0xC9,
+    0x9C,
+    0xEF,
+    0xA0,
+    0xE0,
+    0x3B,
+    0x4D,
+    0xAE,
+    0x2A,
+    0xF5,
+    0xB0,
+    0xC8,
+    0xEB,
+    0xBB,
+    0x3C,
+    0x83,
+    0x53,
+    0x99,
+    0x61,
+    0x17,
+    0x2B,
+    0x04,
+    0x7E,
+    0xBA,
+    0x77,
+    0xD6,
+    0x26,
+    0xE1,
+    0x69,
+    0x14,
+    0x63,
+    0x55,
+    0x21,
+    0x0C,
+    0x7D,
 )
 
 
@@ -69,6 +552,7 @@ def inv_shift_rows(s):
     s[0][1], s[1][1], s[2][1], s[3][1] = s[3][1], s[0][1], s[1][1], s[2][1]
     s[0][2], s[1][2], s[2][2], s[3][2] = s[2][2], s[3][2], s[0][2], s[1][2]
     s[0][3], s[1][3], s[2][3], s[3][3] = s[1][3], s[2][3], s[3][3], s[0][3]
+
 
 def add_round_key(s, k):
     for i in range(4):
@@ -109,24 +593,55 @@ def inv_mix_columns(s):
 
 
 r_con = (
-    0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,
-    0x80, 0x1B, 0x36, 0x6C, 0xD8, 0xAB, 0x4D, 0x9A,
-    0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35, 0x6A,
-    0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39,
+    0x00,
+    0x01,
+    0x02,
+    0x04,
+    0x08,
+    0x10,
+    0x20,
+    0x40,
+    0x80,
+    0x1B,
+    0x36,
+    0x6C,
+    0xD8,
+    0xAB,
+    0x4D,
+    0x9A,
+    0x2F,
+    0x5E,
+    0xBC,
+    0x63,
+    0xC6,
+    0x97,
+    0x35,
+    0x6A,
+    0xD4,
+    0xB3,
+    0x7D,
+    0xFA,
+    0xEF,
+    0xC5,
+    0x91,
+    0x39,
 )
 
 
 def bytes2matrix(text):
     """ Converts a 16-byte array into a 4x4 matrix.  """
-    return [list(text[i:i+4]) for i in range(0, len(text), 4)]
+    return [list(text[i : i + 4]) for i in range(0, len(text), 4)]
+
 
 def matrix2bytes(matrix):
     """ Converts a 4x4 matrix into a 16-byte array.  """
     return bytes(sum(matrix, []))
 
+
 def xor_bytes(a, b):
     """ Returns a new byte array with the elements xor'ed. """
-    return bytes(i^j for i, j in zip(a, b))
+    return bytes(i ^ j for i, j in zip(a, b))
+
 
 def inc_bytes(a):
     """ Returns a new byte array with the value increment by 1 """
@@ -139,6 +654,7 @@ def inc_bytes(a):
             break
     return bytes(out)
 
+
 def pad(plaintext):
     """
     Pads the given plaintext with PKCS#7 padding to a multiple of 16 bytes.
@@ -148,6 +664,7 @@ def pad(plaintext):
     padding_len = 16 - (len(plaintext) % 16)
     padding = bytes([padding_len] * padding_len)
     return plaintext + padding
+
 
 def unpad(plaintext):
     """
@@ -160,9 +677,18 @@ def unpad(plaintext):
     assert all(p == padding_len for p in padding)
     return message
 
+
 def split_blocks(message, block_size=16, require_padding=True):
-        assert len(message) % block_size == 0 or not require_padding
-        return [message[i:i+16] for i in range(0, len(message), block_size)]
+    assert len(message) % block_size == 0 or not require_padding
+    return [message[i : i + 16] for i in range(0, len(message), block_size)]
+
+
+AES_KEY_SIZE = 16
+HMAC_KEY_SIZE = 16
+IV_SIZE = 16
+
+SALT_SIZE = 16
+HMAC_SIZE = 32
 
 
 class AESCipher:
@@ -172,28 +698,42 @@ class AESCipher:
     This is a raw implementation of AES, without key stretching or IV
     management. Unless you need that, please use `encrypt` and `decrypt`.
     """
+
     rounds_by_key_size = {16: 10, 24: 12, 32: 14}
-    def __init__(self, master_key):
+
+    def __init__(self):
+        pass
+
+    def setKey(self, master_key):
         """
         Initializes the object with a given key.
         """
         assert len(master_key) in AESCipher.rounds_by_key_size
+        self.master_key = master_key
         self.n_rounds = AESCipher.rounds_by_key_size[len(master_key)]
         self._key_matrices = self._expand_key(master_key)
 
+    def setIV(self, iv):
+        assert len(iv) == 16
+        self.iv = iv
+
     # En el FrontEnd se muestra como key.hex() para que se muestre de la forma: '0c0b02010a040e080d0907030006050f'
-    def generateRandomKey(self, keyLength):
-        if (keyLength == 128)
+    def generateRandomKey(self):
+        if len(self.master_key) == 16:
             sample = random.sample(range(16), 16)
             key = bytes(sample)
-        elif (keyLength == 192):
+        if len(self.master_key) == 24:
             sample = random.sample(range(24), 24)
             key = bytes(sample)
-        elif (keyLength == 256):
+        elif len(self.master_key) == 32:
             sample = random.sample(range(32), 32)
             key = bytes(sample)
+        return key #.hex()
 
-        return key
+    def generateRandomIV(self):
+        sample = random.sample(range(16), 16)
+        iv = bytes(sample)
+        return iv
 
     def _expand_key(self, master_key):
         """
@@ -227,7 +767,7 @@ class AESCipher:
             key_columns.append(word)
 
         # Group key words in 4x4 byte matrices.
-        return [key_columns[4*i : 4*(i+1)] for i in range(len(key_columns) // 4)]
+        return [key_columns[4 * i : 4 * (i + 1)] for i in range(len(key_columns) // 4)]
 
     def encrypt_block(self, plaintext):
         """
@@ -290,7 +830,7 @@ class AESCipher:
             blocks.append(block)
             previous = block
 
-        return b''.join(blocks)
+        return b"".join(blocks)
 
     def decrypt_cbc(self, ciphertext, iv):
         """
@@ -306,7 +846,7 @@ class AESCipher:
             blocks.append(xor_bytes(previous, self.decrypt_block(ciphertext_block)))
             previous = ciphertext_block
 
-        return unpad(b''.join(blocks))
+        return unpad(b"".join(blocks))
 
     def encrypt_pcbc(self, plaintext, iv):
         """
@@ -322,12 +862,14 @@ class AESCipher:
         prev_plaintext = bytes(16)
         for plaintext_block in split_blocks(plaintext):
             # PCBC mode encrypt: encrypt(plaintext_block XOR (prev_ciphertext XOR prev_plaintext))
-            ciphertext_block = self.encrypt_block(xor_bytes(plaintext_block, xor_bytes(prev_ciphertext, prev_plaintext)))
+            ciphertext_block = self.encrypt_block(
+                xor_bytes(plaintext_block, xor_bytes(prev_ciphertext, prev_plaintext))
+            )
             blocks.append(ciphertext_block)
             prev_ciphertext = ciphertext_block
             prev_plaintext = plaintext_block
 
-        return b''.join(blocks)
+        return b"".join(blocks)
 
     def decrypt_pcbc(self, ciphertext, iv):
         """
@@ -341,12 +883,15 @@ class AESCipher:
         prev_plaintext = bytes(16)
         for ciphertext_block in split_blocks(ciphertext):
             # PCBC mode decrypt: (prev_plaintext XOR prev_ciphertext) XOR decrypt(ciphertext_block)
-            plaintext_block = xor_bytes(xor_bytes(prev_ciphertext, prev_plaintext), self.decrypt_block(ciphertext_block))
+            plaintext_block = xor_bytes(
+                xor_bytes(prev_ciphertext, prev_plaintext),
+                self.decrypt_block(ciphertext_block),
+            )
             blocks.append(plaintext_block)
             prev_ciphertext = ciphertext_block
             prev_plaintext = plaintext_block
 
-        return unpad(b''.join(blocks))
+        return unpad(b"".join(blocks))
 
     def encrypt_cfb(self, plaintext, iv):
         """
@@ -358,11 +903,13 @@ class AESCipher:
         prev_ciphertext = iv
         for plaintext_block in split_blocks(plaintext, require_padding=False):
             # CFB mode encrypt: plaintext_block XOR encrypt(prev_ciphertext)
-            ciphertext_block = xor_bytes(plaintext_block, self.encrypt_block(prev_ciphertext))
+            ciphertext_block = xor_bytes(
+                plaintext_block, self.encrypt_block(prev_ciphertext)
+            )
             blocks.append(ciphertext_block)
             prev_ciphertext = ciphertext_block
 
-        return b''.join(blocks)
+        return b"".join(blocks)
 
     def decrypt_cfb(self, ciphertext, iv):
         """
@@ -374,11 +921,13 @@ class AESCipher:
         prev_ciphertext = iv
         for ciphertext_block in split_blocks(ciphertext, require_padding=False):
             # CFB mode decrypt: ciphertext XOR decrypt(prev_ciphertext)
-            plaintext_block = xor_bytes(ciphertext_block, self.encrypt_block(prev_ciphertext))
+            plaintext_block = xor_bytes(
+                ciphertext_block, self.encrypt_block(prev_ciphertext)
+            )
             blocks.append(plaintext_block)
             prev_ciphertext = ciphertext_block
 
-        return b''.join(blocks)
+        return b"".join(blocks)
 
     def encrypt_ofb(self, plaintext, iv):
         """
@@ -395,7 +944,7 @@ class AESCipher:
             blocks.append(ciphertext_block)
             previous = block
 
-        return b''.join(blocks)
+        return b"".join(blocks)
 
     def decrypt_ofb(self, ciphertext, iv):
         """
@@ -412,7 +961,7 @@ class AESCipher:
             blocks.append(plaintext_block)
             previous = block
 
-        return b''.join(blocks)
+        return b"".join(blocks)
 
     def encrypt_ctr(self, plaintext, iv):
         """
@@ -428,7 +977,7 @@ class AESCipher:
             blocks.append(block)
             nonce = inc_bytes(nonce)
 
-        return b''.join(blocks)
+        return b"".join(blocks)
 
     def decrypt_ctr(self, ciphertext, iv):
         """
@@ -444,92 +993,163 @@ class AESCipher:
             blocks.append(block)
             nonce = inc_bytes(nonce)
 
-        return b''.join(blocks)
+        return b"".join(blocks)
 
-AES_KEY_SIZE = 16
-HMAC_KEY_SIZE = 16
-IV_SIZE = 16
+    def get_key_iv(password, salt, workload=100000):
+        """
+        Stretches the password and extracts an AES key, an HMAC key and an AES
+        initialization vector.
+        """
+        stretched = pbkdf2_hmac(
+            "sha256", password, salt, workload, AES_KEY_SIZE + IV_SIZE + HMAC_KEY_SIZE
+        )
+        aes_key, stretched = stretched[:AES_KEY_SIZE], stretched[AES_KEY_SIZE:]
+        hmac_key, stretched = stretched[:HMAC_KEY_SIZE], stretched[HMAC_KEY_SIZE:]
+        iv = stretched[:IV_SIZE]
+        return aes_key, hmac_key, iv
 
-SALT_SIZE = 16
-HMAC_SIZE = 32
+    def encrypt(self, key, plaintext: str, workload=100000):
+        """
+        Encrypts `plaintext` with `key` using AES-128, an HMAC to verify integrity,
+        and PBKDF2 to stretch the given key.
 
-def get_key_iv(password, salt, workload=100000):
-    """
-    Stretches the password and extracts an AES key, an HMAC key and an AES
-    initialization vector.
-    """
-    stretched = pbkdf2_hmac('sha256', password, salt, workload, AES_KEY_SIZE + IV_SIZE + HMAC_KEY_SIZE)
-    aes_key, stretched = stretched[:AES_KEY_SIZE], stretched[AES_KEY_SIZE:]
-    hmac_key, stretched = stretched[:HMAC_KEY_SIZE], stretched[HMAC_KEY_SIZE:]
-    iv = stretched[:IV_SIZE]
-    return aes_key, hmac_key, iv
+        The exact algorithm is specified in the module docstring.
+        """
+        if isinstance(key, str):
+            key = key.encode("utf-8")
+        if isinstance(plaintext, str):
+            plaintext = plaintext.encode("utf-8")
 
+        salt = os.urandom(SALT_SIZE)
+        key, hmac_key, iv = AESCipher.get_key_iv(key, salt, workload)
+        cipher = AESCipher()
+        cipher.setKey(key)
+        ciphertext = cipher.encrypt_cbc(plaintext, iv)
+        hmac = new_hmac(hmac_key, salt + ciphertext, "sha256").digest()
+        assert len(hmac) == HMAC_SIZE
 
-def encrypt(key, plaintext, workload=100000):
-    """
-    Encrypts `plaintext` with `key` using AES-128, an HMAC to verify integrity,
-    and PBKDF2 to stretch the given key.
+        return hmac + salt + ciphertext
 
-    The exact algorithm is specified in the module docstring.
-    """
-    if isinstance(key, str):
-        key = key.encode('utf-8')
-    if isinstance(plaintext, str):
-        plaintext = plaintext.encode('utf-8')
+    def decrypt(self, key, ciphertext: str, workload=100000):
+        """
+        Decrypts `ciphertext` with `key` using AES-128, an HMAC to verify integrity,
+        and PBKDF2 to stretch the given key.
+        """
+        assert len(ciphertext) % 16 == 0, "Ciphertext must be made of full 16-byte blocks."
 
-    salt = os.urandom(SALT_SIZE)
-    key, hmac_key, iv = get_key_iv(key, salt, workload)
-    ciphertext = AESCipher(key).encrypt_cbc(plaintext, iv)
-    hmac = new_hmac(hmac_key, salt + ciphertext, 'sha256').digest()
-    assert len(hmac) == HMAC_SIZE
+        assert len(ciphertext) >= 32, """
+        Ciphertext must be at least 32 bytes long (16 byte salt + 16 byte block). To
+        encrypt or decrypt single blocks use `AES(key).decrypt_block(ciphertext)`.
+        """
 
-    return hmac + salt + ciphertext
+        if isinstance(key, str):
+            key = key.encode('utf-8')
 
+        hmac, ciphertext = ciphertext[:HMAC_SIZE], ciphertext[HMAC_SIZE:]
+        salt, ciphertext = ciphertext[:SALT_SIZE], ciphertext[SALT_SIZE:]
+        key, hmac_key, iv = AESCipher.get_key_iv(key, salt, workload)
 
-def decrypt(key, ciphertext, workload=100000):
-    """
-    Decrypts `ciphertext` with `key` using AES-128, an HMAC to verify integrity,
-    and PBKDF2 to stretch the given key.
+        expected_hmac = new_hmac(hmac_key, salt + ciphertext, 'sha256').digest()
+        assert compare_digest(hmac, expected_hmac), 'Ciphertext corrupted or tampered.'
 
-    The exact algorithm is specified in the module docstring.
-    """
+        cipher = AESCipher()
+        cipher.setKey(key)
 
-    assert len(ciphertext) % 16 == 0, "Ciphertext must be made of full 16-byte blocks."
+        return cipher.decrypt_cbc(ciphertext, iv)
 
-    assert len(ciphertext) >= 32, """
-    Ciphertext must be at least 32 bytes long (16 byte salt + 16 byte block). To
-    encrypt or decrypt single blocks use `AES(key).decrypt_block(ciphertext)`.
-    """
+def encrypt_text(key, iv, encryptionMode : str, cleartext : str):
+    cipher = AESCipher()
+    cipher.setKey(key)
+    if len(iv) != 16:
+        iv = cipher.generateRandomIV() # b'\x01' * 16
 
-    if isinstance(key, str):
-        key = key.encode('utf-8')
-
-    hmac, ciphertext = ciphertext[:HMAC_SIZE], ciphertext[HMAC_SIZE:]
-    salt, ciphertext = ciphertext[:SALT_SIZE], ciphertext[SALT_SIZE:]
-    key, hmac_key, iv = get_key_iv(key, salt, workload)
-
-    expected_hmac = new_hmac(hmac_key, salt + ciphertext, 'sha256').digest()
-    assert compare_digest(hmac, expected_hmac), 'Ciphertext corrupted or tampered.'
-
-    return AESCipher(key).decrypt_cbc(ciphertext, iv)
-
-if __name__ == '__main__':
-    cleartext = b'thisismycleartexttobeencryptedthreetimes'
+    if encryptionMode == "cbc":
+        ciphertext = cipher.encrypt_cbc(str.encode(cleartext), iv)
+    elif encryptionMode == "pcbc":
+        ciphertext = cipher.encrypt_pcbc(str.encode(cleartext), iv)
+    elif encryptionMode == "cfb":
+        ciphertext = cipher.encrypt_cfb(str.encode(cleartext), iv)
+    elif encryptionMode == "ofb":
+        ciphertext = cipher.encrypt_ofb(str.encode(cleartext), iv)
+    elif encryptionMode == "ctr":
+        ciphertext = cipher.encrypt_ctr(str.encode(cleartext), iv)
+    elif encryptionMode == "ecb":
+        ciphertext = AES.new(key, AES.MODE_ECB).encrypt(str.encode(cleartext))
     
-    # AES-128
-    key128 = b'\x00' * 16
-    ciphertext = encrypt(key128, cleartext)
-    print(ciphertext)
-    print(decrypt(key128, ciphertext))
+    return ciphertext, iv
 
-    # AES-192
-    key192 = b'\x00' * 24
-    ciphertext = encrypt(key192, cleartext)
-    print(ciphertext)
-    print(decrypt(key192, ciphertext))
+def decrypt_text(key, iv, encryptionMode, ciphertext):
+    cipher = AESCipher()
+    cipher.setKey(key)
+    cipher.setIV(iv)
 
-    # AES-256
-    key256 = b'\x00' * 32
-    ciphertext = encrypt(key256, cleartext)
-    print(ciphertext)
-    print(decrypt(key256, ciphertext))
+    if encryptionMode == "cbc":
+        cleartext = cipher.decrypt_cbc(ciphertext, iv)
+    elif encryptionMode == "pcbc":
+        cleartext = cipher.decrypt_pcbc(ciphertext, iv)
+    elif encryptionMode == "cfb":
+        cleartext = cipher.decrypt_cfb(ciphertext, iv)
+    elif encryptionMode == "ofb":
+        cleartext = cipher.decrypt_ofb(ciphertext, iv)
+    elif encryptionMode == "ctr":
+        cleartext = cipher.decrypt_ctr(ciphertext, iv)
+    elif encryptionMode == "ecb":
+        cleartext = AES.new(key, AES.MODE_ECB).decrypt(ciphertext)
+    return cleartext
+
+def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
+
+    def format_image(img):
+        # Pad zero rows in case number of bytes is not a multiple of 16 (just an example - there are many options for padding)
+        if img.size % 16 > 0:
+            row = img.shape[0]
+            pad = 16 - (row % 16)  # Number of rows to pad (4 rows)
+            img = np.pad(img, ((0, pad), (0, 0), (0, 0)))  # Pad rows at the bottom  - new shape is (304, 451, 3) - 411312 bytes.
+            img[-1, -1, 0] = pad  # Store the pad value in the last element
+        return img
+
+    img = cv2.imread(image)
+    img = format_image(img)
+    img_bytes = img.tobytes()  # Convert NumPy array to sequence of bytes (411312 bytes)
+    if encryptionMode == "cbc" or encryptionMode == "pcbc":
+        enc_img_bytes = AES.new(key, AES.MODE_CBC, iv).encrypt(img_bytes)  # Encrypt the array of bytes.
+    elif encryptionMode == "ofb":
+        enc_img_bytes = AES.new(key, AES.MODE_OFB, iv).encrypt(img_bytes)  # Encrypt the array of bytes.
+    elif encryptionMode == "cfb":
+        enc_img_bytes = AES.new(key, AES.MODE_CFB, iv).encrypt(img_bytes)  # Encrypt the array of bytes.
+    elif encryptionMode == "ctr":
+        enc_img_bytes = AES.new(key, AES.MODE_CTR).encrypt(img_bytes)  # Encrypt the array of bytes.
+    else:
+        enc_img_bytes = AES.new(key, AES.MODE_ECB).encrypt(img_bytes)
+    # Convert the encrypted buffer to NumPy array and reshape to the shape of the padded image (304, 451, 3)
+    enc_img = np.frombuffer(enc_img_bytes, np.uint8).reshape(img.shape)
+    cv2.imwrite(filename, enc_img)
+    return True
+
+def decrypt_image(key, iv, encryptionMode: str, image, filename: str):
+    enc_img = cv2.imread(image)
+
+    if encryptionMode == "cbc" or encryptionMode == "pcbc":
+        dec_img_bytes = AES.new(key, AES.MODE_CBC, iv).decrypt(enc_img.tobytes())  # Decrypt the array of bytes.
+    elif encryptionMode == "ofb":
+        dec_img_bytes = AES.new(key, AES.MODE_OFB, iv).decrypt(enc_img.tobytes()) # Decrypt the array of bytes.
+    elif encryptionMode == "cfb":
+        dec_img_bytes = AES.new(key, AES.MODE_CFB, iv).decrypt(enc_img.tobytes())  # Decrypt the array of bytes.
+    elif encryptionMode == "ctr":
+        dec_img_bytes = AES.new(key, AES.MODE_CTR).decrypt(enc_img.tobytes())  # Decrypt the array of bytes.
+    else:
+        dec_img_bytes = AES.new(key, AES.MODE_ECB).decrypt(enc_img.tobytes())
+
+    dec_img = np.frombuffer(dec_img_bytes, np.uint8).reshape(enc_img.shape) # The shape of the encrypted and decrypted image is the same (304, 451, 3)
+    pad = int(dec_img[-1, -1, 0])  # Get the stored padding value
+    dec_img = dec_img[0:-pad, :, :].copy()  # Remove the padding rows, new shape is (300, 451, 3)
+    cv2.imwrite(filename, dec_img)
+    return True
+
+if __name__ == "__main__":
+    cleartext = b"thisismycleartexttobeencryptedthreetimes"
+
+
+
+
+

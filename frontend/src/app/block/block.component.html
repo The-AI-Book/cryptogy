@@ -6,8 +6,8 @@
             <img src="assets/img/llave2.png" style="width: 200px;">
         </div>
         <div class="row section-title" data-aos="fade-down">
-            <h2>Block Cryptosystems</h2>
-            <p>Interact with block ciphers such as: S-DES, DES, 3-AES and AES.</p>
+            <h2 class = "mt-3">Block Cryptosystems</h2>
+            <p>Interact with block ciphers such as: S-DES, DES, 3DES and AES.</p>
 
         </div>
 
@@ -15,11 +15,12 @@
 
             <div class="form-group col-10">
 
+            
                 <label class="mb-2" for="cipher">Select cryptosystem</label>
                 <select class="form-control" id="cipher" formControlName="cipher" (change)="cryptosystem_change()">
                     <option value="sdes">S-DES</option>
                     <option value="des">DES</option>
-                    <option value="3des">3-AES</option>
+                    <option value="3des">3-DES</option>
                     <option value="aes">AES</option>
                 </select>
 
@@ -40,10 +41,36 @@
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     Loading...
                 </button>
-
                 <p *ngIf="errorRandomKey" class="alert alert-danger mt-2">
                     Unexpected error while generating random key.
                 </p>
+
+                <div *ngIf="form.value.cipher == 'aes'" class="col-12 form-group mt-4">
+                    <label class="mb-2" for="cipher">Key Length</label>
+                    <select class="form-control" id="keyLength" formControlName="keyLength" (change)="generate_random_key()">
+                        <option value="16" selected>128 bits</option>
+                        <option value="24">192 bits</option>
+                        <option value="32">256 bits</option>
+                    </select>
+                </div>
+
+                <div *ngIf="form.value.cipher == 'aes' || form.value.cipher == 'des' || form.value.cipher == '3des'" class="col-12 form-group mt-4">
+                    <label class="mb-2" for="cipher">Encryption Mode</label>
+                    <select class="form-control" id="encryptionMode" formControlName="encryptionMode" (change)="generate_random_key()">
+                        <option value="cbc" selected>CBC</option>
+                        <option value="ecb" *ngIf = "form.value.cipher == 'des' || form.value.cipher == '3des' || form.value.cipher == 'aes'">ECB</option>
+                        <option value="pcbc">PCBC</option>
+                        <option value="cfb" *ngIf = "form.value.cipher == 'aes'">CFB</option>
+                        <option value="ofb" *ngIf = "form.value.cipher == 'aes'">OFB</option>
+                        <option value="ctr" *ngIf = "form.value.cipher == 'aes'">CTR</option>
+                    </select>
+                </div>
+
+                <div *ngIf="form.value.cipher == 'hill' || form.value.cipher == 'permutation'" class="form-group mt-3">
+                    <label for="key" class="mb-2">Key Length</label>
+                    <input type="text" class="form-control" id="key" formControlName="numPartitions">
+                </div>
+            
             </div>
 
             <div class="col-10 form-group mt-4">
@@ -53,15 +80,26 @@
                     Invalid key.
                 </p>
             </div>
-            
-            <div class="col-10 form-group mt-4">
-                <label for="schedule" class="mb-2">IP (Permutation)</label>
-                <input class="form-control" id="initialPermutation" formControlName="initialPermutation">
+
+            <div class="col-10 form-group mt-4"
+                *ngIf="this.form.value.cipher == 'aes'">
+                <label for="key" class="mb-2">Enter Initialization Vector (IV)</label>
+                <input type="text" class="form-control" id="initialPermutation" formControlName="initialPermutation">
+                <p style="font-size:11px;">This will be automatically generated when clicking <strong>Encrypt</strong> and will be used for decryption.</p>
             </div>
 
-            <div class="col-10 form-group mt-4">
+            <div class="col-10 form-group mt-4"
+                *ngIf="this.form.value.cipher == 'sdes' || this.form.value.cipher == 'des'">
+                <label for="schedule" class="mb-2">IP (Permutation)</label>
+                <input class="form-control" id="initialPermutation" formControlName="initialPermutation">
+                <p style="font-size:11px;">This will be automatically generated when clicking <strong>Encrypt</strong> and will be used for decryption.</p>
+            </div>
+
+            <div class="col-10 form-group mt-4"
+                *ngIf="this.form.value.cipher == 'sdes' || this.form.value.cipher == 'des'">
                 <label for="schedule" class="mb-2">Key Schedule</label>
-                <textarea style = "min-height: 100px;" class="form-control" id="schedule" formControlName="schedule"></textarea>
+                <textarea style="min-height: 100px;" class="form-control" id="schedule"
+                    formControlName="schedule"></textarea>
             </div>
 
             <div *ngIf="form.value.cipher == 'stream'" class="col-10 form-group mt-4">
@@ -71,6 +109,8 @@
                     Invalid key.
                 </p>
             </div>
+
+            
 
             <div class="col-10 col-lg-5 mt-3">
 
@@ -105,8 +145,7 @@
                 <div class="d-flex mt-4 justify-content-center">
 
                     <button *ngIf="!decryptLoading" type="submit" class="btn btn-outline-primary me-1"
-                        [disabled]="form.invalid || form.value.ciphertext == ''"
-                        (click)="decrypt()">Decrpyt</button>
+                        [disabled]="form.invalid || form.value.ciphertext == ''" (click)="decrypt()">Decrypt</button>
                     <button *ngIf="decryptLoading" class="btn btn-primary me-1" type="submit" style="width: 120px;">
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         Loading...
@@ -120,15 +159,53 @@
                 <p *ngIf="errorDecrypt" class="alert alert-danger mt-2">
                     Unexpected error while decrypting cipher text.
                 </p>
-     
+
             </div>
 
-            <div *ngIf="form.value.cipher == 'stream' || form.value.cipher == 'hill' || form.value.cipher == 'permutation'"
-                class="col-10 mt-3 alert alert-warning">
-                Cryptoanalysis of this cipher requires a pair of cleartext and ciphertext.
-            </div>
+            <!-- Encriptado de imágenes -->
+            <div class="col-10 col-lg-5 mt-4" *ngIf="form.value.cipher == 'aes' || form.value.cipher == 'sdes' || this.form.value.cipher == 'des' || this.form.value.cipher == '3des'">
+                <div class = "form-group">
+                     <label for="key" class="mb-2">Clear image</label>
+                     <div class = "d-flex justify-content-center">
+                         <img [src] = "clearImage" width = "420px" class = "shadow-sm" onerror="this.src = 'assets/img/error.png'">
+                     </div>
+       
+                     <div class = "d-flex justify-content-center mt-4">
+                         <button class = "btn btn-outline-danger me-2" (click)="filePicker.click()">Upload</button>
+                         <button *ngIf="!encryptLoading" type="submit" class="btn btn-outline-primary me-2"
+                         [disabled]="form.invalid || form.value.file == ''" (click)="encrypt_image()">Encrypt</button>
+                         <button class="btn btn-outline-info" (click)="deleteClearImage()"
+                         [disabled]="form.value.clearImage != null">Clear</button>    
+                    </div>
+                     
+                     <input style="display: none;" type = "file" accept="image/*" #filePicker (change)="onFileSelected($event)" name="file" id = "file">
+                </div>
+             </div>
+             
+             <div class="col-10 col-lg-5 mt-4" *ngIf="form.value.cipher == 'aes' || form.value.cipher == 'sdes' || this.form.value.cipher == 'des' || this.form.value.cipher == '3des'">
+                 <div class = "form-group">
+                      <label for="key" class="mb-2">Cipher image</label>
+                      <div class = "d-flex justify-content-center">
+                         <img #imgcrypt [src] = "cipherImage" width = "420px" class = "shadow-sm" onerror="this.src = 'assets/img/error.png'">
+                      </div>
 
-     
+                      <!--
+                     <div class = "d-flex justify-content-center" *ngIf = "loadDummyImage == true">
+                         <img src = "assets/img/imagen_encriptada.png" width = "420px" height = "300px" class = "shadow-sm">
+                     </div>
+                     -->
+                   
+                      <div class = "d-flex justify-content-center mt-4">
+                        <button class = "btn btn-outline-danger me-2" (click)="filePicker2.click()">Upload</button>
+                        <button *ngIf="!encryptLoading" type="submit" class="btn btn-outline-primary me-2"
+                         [disabled]="form.invalid" (click)="decrypt_image()">Decrypt</button>
+                         <button class="btn btn-outline-info" (click)="deleteCipherImage()"
+                         [disabled]="form.value.cipherImage != null">Clear</button>  
+                      </div>
+
+                      <input style="display: none;" type = "file" accept="image/*" #filePicker2 (change)="onFileSelected2($event)" name="file" id = "file">
+                 </div>
+              </div>
         </form>
 
     </div>

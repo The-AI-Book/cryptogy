@@ -24,8 +24,10 @@ export class CryptogyService {
            keyStream: "", 
            numPartitions: numPartitions, 
            initialPermutation: "",
-           schedule: ""
+           schedule: "",
+           encryptionMode: ""
         }
+        //console.log(this.endpoint + "/api/generate_random_key");
         return this.http.post(this.endpoint + "/api/generate_random_key", CryptoData);
     }
 
@@ -36,8 +38,10 @@ export class CryptogyService {
         keyLength: string, 
         numPartitions: string, 
         initialPermutation: string,
-        schedule: string
+        schedule: string, 
+        encryptionMode: string
     ){
+
         const CryptoData: Crypto = {
             key: key,
             cipher: cipher, 
@@ -47,22 +51,47 @@ export class CryptogyService {
             keyStream: "", 
             numPartitions: numPartitions, 
             initialPermutation: initialPermutation,
-            schedule: schedule
+            schedule: schedule, 
+            encryptionMode: encryptionMode
         }
         console.log(CryptoData);
         return this.http.post(this.endpoint + "/api/encrypt", CryptoData);
     }
 
     encrypt_image(
-        file: File
+        file: File, 
+        cipher: string, 
+        key: string, 
+        initialPermutation: string, 
+        encryptionMode: string
     ){
+        console.log(file);
         const data = new FormData();
+        data.append("cipher", cipher);
+        data.append("key", key);
+        data.append("initialPermutation", initialPermutation);
+        data.append("encryptionMode", encryptionMode);
         data.append("files", file, file.name);
+        console.log(data);
         return this.http.post(this.endpoint + "/api/encrypt_image", data, {responseType: "blob"})
     }
 
-    decrypt_image(){
-        return this.http.get(this.endpoint + "/api/decrypt_image", {responseType: "blob"})
+    decrypt_image(
+        file: File, 
+        cipher: string, 
+        key: string, 
+        initialPermutation: string, 
+        encryptionMode: string
+    ){
+        console.log(file);
+        const data = new FormData();
+        data.append("cipher", cipher);
+        data.append("key", key);
+        data.append("initialPermutation", initialPermutation);
+        data.append("encryptionMode", encryptionMode);
+        data.append("files", file, file.name);
+        console.log(data);
+        return this.http.post(this.endpoint + "/api/decrypt_image", data, {responseType: "blob"})
     }
 
 
@@ -74,7 +103,8 @@ export class CryptogyService {
         keyStream: string, 
         numPartitions: string, 
         initialPermutation: string,
-        schedule: string
+        schedule: string,
+        encryptionMode: string
     ){
         const CryptoData: Crypto = {
             key: key, 
@@ -85,7 +115,8 @@ export class CryptogyService {
             cleartext: "", 
             numPartitions: numPartitions, 
             initialPermutation: initialPermutation,
-            schedule: schedule
+            schedule: schedule,
+            encryptionMode: encryptionMode
         }
         console.log(CryptoData);
         return this.http.post(this.endpoint + "/api/decrypt", CryptoData);
@@ -105,8 +136,44 @@ export class CryptogyService {
             keyLength: "", 
             numPartitions: numPartitions, 
             initialPermutation: "",
-            schedule: ""
+            schedule: "", 
+            encryptionMode: ""
         }
         return this.http.post(this.endpoint + "/api/analyze", CryptoData);
     }
+
+    change_graph(
+        cipher: string,
+        keyLength: string, 
+        numPartitions: string
+    ){
+        const CryptoData: Crypto = {
+           cipher: cipher,
+           keyLength: keyLength,
+           key: "",
+           cleartext: "",
+           ciphertext: "",
+           keyStream: "", 
+           numPartitions: numPartitions, 
+           initialPermutation: "",
+           schedule: "",
+           encryptionMode: ""
+        }
+        return this.http.post(this.endpoint + "/api/change_graph", CryptoData);
+    }
+
+    show_graph(
+        file: File, 
+        cipher: string, 
+        key: string, 
+    ){
+        console.log(file);
+        const data = new FormData();
+        data.append("cipher", cipher);
+        data.append("key", key);
+        data.append("files", file, file.name);
+        console.log(data);
+        return this.http.post(this.endpoint + "/api/show_graph", {responseType: "blob"})
+    }
+
 }
