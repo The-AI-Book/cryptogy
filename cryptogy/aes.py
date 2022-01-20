@@ -1108,9 +1108,11 @@ def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
             img = np.pad(img, ((0, pad), (0, 0), (0, 0)))  # Pad rows at the bottom  - new shape is (304, 451, 3) - 411312 bytes.
             img[-1, -1, 0] = pad  # Store the pad value in the last element
         return img
-
+        
+    # Read image
     img = Image.open(image)
     img = np.asarray(img)
+
     img = format_image(img)
     img_bytes = img.tobytes()  # Convert NumPy array to sequence of bytes (411312 bytes)
     if encryptionMode == "cbc" or encryptionMode == "pcbc":
@@ -1125,11 +1127,17 @@ def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
         enc_img_bytes = AES.new(key, AES.MODE_ECB).encrypt(img_bytes)
     # Convert the encrypted buffer to NumPy array and reshape to the shape of the padded image (304, 451, 3)
     enc_img = np.frombuffer(enc_img_bytes, np.uint8).reshape(img.shape)
-    cv2.imwrite(filename, enc_img)
+
+    # Save image
+    enc_img = Image.fromarray(enc_img.astype('uint8'), 'RGB')
+    enc_img.save(filename)
+    
     return True
 
 def decrypt_image(key, iv, encryptionMode: str, image, filename: str):
-    enc_img = cv2.imread(image)
+    # Read image
+    enc_img = Image.open(image)
+    enc_img = np.asarray(enc_img)
 
     if encryptionMode == "cbc" or encryptionMode == "pcbc":
         dec_img_bytes = AES.new(key, AES.MODE_CBC, iv).decrypt(enc_img.tobytes())  # Decrypt the array of bytes.
@@ -1145,7 +1153,11 @@ def decrypt_image(key, iv, encryptionMode: str, image, filename: str):
     dec_img = np.frombuffer(dec_img_bytes, np.uint8).reshape(enc_img.shape) # The shape of the encrypted and decrypted image is the same (304, 451, 3)
     pad = int(dec_img[-1, -1, 0])  # Get the stored padding value
     dec_img = dec_img[0:-pad, :, :].copy()  # Remove the padding rows, new shape is (300, 451, 3)
-    cv2.imwrite(filename, dec_img)
+
+    # Save image
+    dec_img = Image.fromarray(dec_img.astype('uint8'), 'RGB')
+    dec_img.save(filename)
+
     return True
 
 if __name__ == "__main__":
