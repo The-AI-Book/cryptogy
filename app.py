@@ -253,6 +253,7 @@ def encrypt_image():
         # iv = bytes.fromhex(data["initialPermutation"])
         key = b"Sixteen byte key"
         iv = b"0000000000000000"
+        
         encryptionMode = data["encryptionMode"]
         route = "./images/raw_img.png"
         res = cryptogy.aes.encrypt_image(
@@ -266,8 +267,12 @@ def encrypt_image():
             max_age=0,
         )
     elif cipher == "des" or "sdes" or "3des":
-        key = b"Sixteen byte key"
-        iv = b"0000000000000000"
+        #key = b"Sixteen byte key"
+        #iv = b"0000000000000000"
+
+        key = b'\x97t\x84\xdb \x8b\xb2b'
+        iv = b'Uh:d2HqF'
+
         encryptionMode = data["encryptionMode"]
         route = "./images/raw_img.png"
         res = cryptogy.des.encrypt_image(
@@ -288,10 +293,15 @@ def decrypt_image():
     from utils import images_inv_key
 
     data = request.values
+    print("DATAA DECRYPT!!")
+    print(data)
     cipher = data["cipher"]
     # img = request.files.getlist("files")[0]
-    image = "./images/encrypt_temp.png"
-    img = open(image, "rb")
+    #image = "./images/encrypt_temp.png"
+    img = request.files.getlist("files")[0]
+    img.save("./images/encrypted_raw_img.png")
+
+    #img = open(image, "rb")
 
     if cipher == "hill" or cipher == "permutation":
         img = HillCipher.imagToMat(img, resize=32)
@@ -314,7 +324,7 @@ def decrypt_image():
         key = b"Sixteen byte key"
         iv = b"0000000000000000"
         encryptionMode = data["encryptionMode"]
-        route = "./images/raw_img.png"
+        route = "./images/encrypted_raw_img.png"
         res = cryptogy.aes.decrypt_image(
             key, iv, encryptionMode, route, filename="./images/decrypt_temp.png"
         )
@@ -326,10 +336,12 @@ def decrypt_image():
             max_age=0,
         )
     elif cipher == "des" or "sdes" or "3des":
-        key = b"Sixteen byte key"
-        iv = b"0000000000000000"
+        #key = b"Sixteen byte key"
+        #iv = b"0000000000000000"
+        key = b'\x97t\x84\xdb \x8b\xb2b'
+        iv = b'Uh:d2HqF'
         encryptionMode = data["encryptionMode"]
-        route = "./images/raw_img.png"
+        route = "./images/encrypted_raw_img.png"
         res = cryptogy.des.decrypt_image(
             key, iv, encryptionMode, route, filename="./images/decrypt_temp.png"
         )

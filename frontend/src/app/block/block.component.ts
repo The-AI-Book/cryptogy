@@ -52,7 +52,9 @@ export class BlockComponent implements OnInit {
     });
 
     this.form.get("cipher").valueChanges.subscribe(val => {
+      this.form.patchValue({"decrypt_image": null});
       this.form.patchValue({"file": null});
+      this.clearImage = null;
       this.cipherImage = null;
     })
   }
@@ -175,6 +177,12 @@ export class BlockComponent implements OnInit {
             url
           );
           this.cipherImage = secureUrl;
+          //var file = new File([this.cipherImage], "encrypted_image");
+          //console.log(file);
+          var file = new File([data], "my_image.png", {type:"image/png", lastModified:new Date().getTime()})
+          this.form.patchValue({"decrypt_image": file});
+          this.form.updateValueAndValidity();
+          console.log(this.form.value.decrypt_image);
           //console.log(this.cipherImage);
         }
       }, 
@@ -215,7 +223,8 @@ export class BlockComponent implements OnInit {
   }
 
   decrypt_image(){
-    //console.log("decrypt image!");
+    console.log("decrypt image!");
+    console.log(this.form.value.decrypt_image);
     this.cryptoService.decrypt_image(
       this.form.value.decrypt_image, 
       this.form.value.cipher,
@@ -266,6 +275,11 @@ export class BlockComponent implements OnInit {
 
     this.form.patchValue({decrypt_image: files[0]});
     this.form.updateValueAndValidity();
+
+    console.log(files);
+    console.log(files[0]);
+    console.log(this.form.value.decrypt_image);
+
     const reader = new FileReader();
     reader.readAsDataURL(files[0]); 
     reader.onload = (_event) => { 
@@ -296,6 +310,15 @@ export class BlockComponent implements OnInit {
     reader.onload = (_event) => { 
         this.clearImage = reader.result; 
     }
+  }
+
+
+  deleteCipherImage(){
+    this.cipherImage = null;
+  }
+
+  deleteClearImage(){
+    this.clearImage = null;
   }
 
 }
