@@ -1,5 +1,3 @@
-from math import exp
-from turtle import clear
 from .cipher import Cipher, CryptAnalizer
 import numpy as np
 import copy
