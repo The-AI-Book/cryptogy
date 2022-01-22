@@ -16,10 +16,10 @@ import io
 from PIL import Image
 from utils import images_key
 import numpy as np
-import psutil
+#import psutil
 import os
 import gc
-process = psutil.Process(os.getpid())
+#process = psutil.Process(os.getpid())
 
 logging.basicConfig(
     filename="app.log", filemode="w", format="%(name)s - %(levelname)s - %(message)s"
@@ -100,12 +100,6 @@ def generate_random_key():
         random_key = random_key.hex()
     gc.collect()
     return jsonify({"random_key": random_key}), 200
-
-@app.route("/api/memory", methods=["GET"])
-def memory():
-    print("HOLA MUDNO")
-    gc.collect()
-    return jsonify({'memory': process.memory_info().rss})
 
 @app.route("/api/encrypt", methods=["POST"])
 def encrypt():
