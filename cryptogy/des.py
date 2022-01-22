@@ -462,7 +462,7 @@ def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
     enc_img = np.frombuffer(enc_img_bytes, np.uint8).reshape(img.shape)
 
     # Save image
-    enc_img = Image.frofmarray(enc_img.astype('uint8'), 'RGB')
+    enc_img = Image.fromarray(enc_img.astype('uint8'), 'RGB')
     enc_img.save(filename)
     return True
 

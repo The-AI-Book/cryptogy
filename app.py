@@ -16,10 +16,7 @@ import io
 from PIL import Image
 from utils import images_key
 import numpy as np
-<<<<<<< HEAD
 import os
-=======
->>>>>>> 3f48935543fed51f8dae51e61f2098f76f0ac306
 import gc
 
 logging.basicConfig(
@@ -275,7 +272,7 @@ def encrypt_image():
         )
         file = send_from_directory(
             "./images",
-            mimetype="image/jpg",
+            mimetype="image/png",
             path="encrypt_temp.png",
             as_attachment=False,
             max_age=0,
@@ -294,7 +291,7 @@ def encrypt_image():
         )
         file = send_from_directory(
             "./images",
-            mimetype="image/jpg",
+            mimetype="image/png",
             path="encrypt_temp.png",
             as_attachment=False,
             max_age=0,
@@ -401,4 +398,4 @@ def show_graph():
     return file
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=False)
+    app.run(port=5000, debug=True)

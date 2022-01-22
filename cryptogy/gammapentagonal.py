@@ -9,21 +9,21 @@ class GammaPentagonalCipher(Cipher):
 
     with open("cryptogy/gammapentagonalgrapha.txt", "r") as f:
         data = f.read()
-    a = eval(data)
+    a = None #eval(data)
 
     with open("cryptogy/gammapentagonalgraphb.txt", "r") as f:
         data = f.read()
-    b = eval(data)
+    b = None #eval(data)
 
     graphs = [a, b]
 
     with open("cryptogy/gammapentagonalgraphasmall.txt", "r") as f:
         data = f.read()
-    asmall = eval(data)
+    asmall = None #eval(data)
 
     with open("cryptogy/gammapentagonalgraphbsmall.txt", "r") as f:
         data = f.read()
-    bsmall = eval(data)
+    bsmall = None #eval(data)
 
     graphssmall = [asmall, bsmall]
 
