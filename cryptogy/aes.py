@@ -600,6 +600,7 @@ def encrypt_image(key, iv, encryptionMode: str, image, filename: str):
     # Read image
     img = Image.open(image)
     img = np.asarray(img)
+    #img = np.reshape(())
 
     img = format_image(img)
     img_bytes = img.tobytes()  # Convert NumPy array to sequence of bytes (411312 bytes)

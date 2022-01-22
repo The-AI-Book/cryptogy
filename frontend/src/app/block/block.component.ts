@@ -51,12 +51,7 @@ export class BlockComponent implements OnInit {
        this.form.updateValueAndValidity();
     });
 
-    this.form.get("cipher").valueChanges.subscribe(val => {
-      this.form.patchValue({"decrypt_image": null});
-      this.form.patchValue({"file": null});
-      this.clearImage = null;
-      this.cipherImage = null;
-    })
+
   }
 
   cryptosystem_change() {
