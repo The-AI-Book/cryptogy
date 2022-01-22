@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 plt.rcParams["figure.figsize"] = (25, 25)
 
-
 class GammaPentagonalCipher(Cipher):
 
     with open("cryptogy/gammapentagonalgrapha.txt", "r") as f:
@@ -144,15 +143,15 @@ class GammaPentagonalCipher(Cipher):
 
     def changeGraph(self):
         GammaPentagonalCipher.curgraph = (GammaPentagonalCipher.curgraph + 1) % 2
-        print(GammaPentagonalCipher.curgraph)
+        #print(GammaPentagonalCipher.curgraph)
 
 
 def showGraph(key, filename: str):
     pointssmall = GammaPentagonalCipher.graphssmall[GammaPentagonalCipher.curgraph]
-    print("asdf")
-    print(type(key))
+    #print("asdf")
+    #print(type(key))
     key = [int(x) for x in key.split(",")]
-    print(key)
+    #print(key)
     Xi, Yi = key[:2]
     # Generar grafo en networkx.
     g = nx.DiGraph()
@@ -181,7 +180,7 @@ def showGraph(key, filename: str):
     plt.gca().clear()
     plt.close()
     g.clear()
-    print("printed")
+    #print("printed")
     return True
 
 

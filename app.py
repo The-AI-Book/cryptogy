@@ -83,7 +83,7 @@ def generate_random_key():
         data = request.values
     cipher = utils.get_cipher(data)
     random_key = cipher.generateRandomKey()
-    print(random_key)
+    #print(random_key)
     if isinstance(cipher, HillCipher):
         random_key = utils.format_darray(random_key)
     elif (
@@ -116,7 +116,7 @@ def encrypt():
     elif data["cipher"] in ["sdes", "des"]:
         if data["initialPermutation"] != "":
             iv = utils.format_str_to_list(data["initialPermutation"])
-            print(iv)
+            #print(iv)
             cipher.setInitialPermutation(iv)
         encode_text = cipher.encode(cleartext)
     else:
@@ -208,7 +208,7 @@ def analyze():
         try:
             results = analyzer.breakCipher(cleartext, ciphertext)
         except Exception as e:
-            print(str(e))
+            #print(str(e))
             return jsonify({"error": str(e)}), 400
     elif isinstance(analyzer, HillCryptAnalizer):
         cleartext = data["cleartext"]
@@ -227,7 +227,7 @@ def analyze():
 
 @app.route("/api/encrypt_image", methods=["POST", "GET"])
 def encrypt_image():
-    print("ENCRYPT IMAGE")
+    #print("ENCRYPT IMAGE")
     from utils import images_key
 
     data = request.values
@@ -292,8 +292,8 @@ def decrypt_image():
     from utils import images_inv_key
 
     data = request.values
-    print("DATAA DECRYPT!!")
-    print(data)
+    #print("DATAA DECRYPT!!")
+    #print(data)
     cipher = data["cipher"]
     # img = request.files.getlist("files")[0]
     # image = "./images/encrypt_temp.png"
@@ -356,7 +356,7 @@ def decrypt_image():
 
 @app.route("/api/change_graph", methods=["POST"])
 def change_graph():
-    print("1234")
+    #print("1234")
     data = request.get_json()
     if data == None:
         data = request.values
@@ -382,4 +382,3 @@ def show_graph():
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
-
