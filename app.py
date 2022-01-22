@@ -6,16 +6,15 @@ import logging
 import cryptogy
 from cryptogy.hill_cipher import HillCipher, HillCryptAnalizer
 from cryptogy.stream_ciphers import AutokeyCipher, AutokeyCryptAnalizer, StreamCipher
-#import cryptogy.des
-#from cryptogy.des import SDESCipher, DESCipher, TripleDESCipher
-#import cryptogy.aes
-#from cryptogy.aes import AESCipher
+import cryptogy.des
+from cryptogy.des import SDESCipher, DESCipher, TripleDESCipher
+import cryptogy.aes
+from cryptogy.aes import AESCipher
 import utils
 from base64 import encodebytes
 import io
 from PIL import Image
 from utils import images_key
-from Crypto.Cipher import AES, DES, DES3
 import numpy as np
 import psutil
 import os
@@ -91,7 +90,14 @@ def generate_random_key():
     #print(random_key)
     if isinstance(cipher, HillCipher):
         random_key = utils.format_darray(random_key)
-    
+    elif (
+        isinstance(cipher, SDESCipher)
+        or isinstance(cipher, DESCipher)
+        or isinstance(cipher, TripleDESCipher)
+    ):
+        random_key = utils.format_list(random_key)
+    elif isinstance(cipher, AESCipher):
+        random_key = random_key.hex()
     gc.collect()
     return jsonify({"random_key": random_key}), 200
 
@@ -128,6 +134,39 @@ def encrypt():
         iv = bytes.fromhex(data["initialPermutation"])
         encode_text = cryptogy.aes.encrypt_text(key, iv, encryptionMode, cleartext)
 
+    if isinstance(cipher, AutokeyCipher):
+        gc.collect()
+        return (
+            jsonify({"ciphertext": encode_text[0], "key_stream": encode_text[1]}),
+            200,
+        )
+    elif (
+        isinstance(cipher, SDESCipher)
+        or isinstance(cipher, DESCipher)
+        or isinstance(cipher, TripleDESCipher)
+    ):
+        # print("Encrypt schedule: ")
+        # print(encode_text[1])
+        string = ""
+        for list_ in encode_text[2]:  # schedule
+            string += utils.format_list(list_) + ";"
+        gc.collect()
+        return jsonify(
+            {
+                "ciphertext": encode_text[0],
+                "permutation": utils.format_list(encode_text[1]),
+                "schedule": string,
+            }
+        )
+
+    elif isinstance(cipher, AESCipher):
+        ciphertext = encode_text[0].hex()
+        iv = encode_text[1].hex()
+        gc.collect()
+        return jsonify({"ciphertext": ciphertext, "initialPermutation": iv}), 200
+    else:
+        gc.collect()
+        return jsonify({"ciphertext": encode_text}), 200
 
 
 @app.route("/api/decrypt", methods=["POST"])
@@ -148,6 +187,26 @@ def decrypt():
         key_stream = utils.format_key(data["keyStream"])
         cleartext = cipher.decode(key_stream, ciphertext)
 
+    elif (
+        isinstance(cipher, SDESCipher)
+        or isinstance(cipher, DESCipher)
+        or isinstance(cipher, TripleDESCipher)
+    ):
+        permutation = utils.format_key(data["initialPermutation"], return_np=False)
+        schedule = utils.format_key(data["schedule"], return_np=False)
+        encryptionMode = data["encryptionMode"]
+        cipher.setEncryptionMode(encryptionMode)
+        cleartext = cipher.decode(permutation, schedule, ciphertext)[0]
+
+    elif isinstance(cipher, AESCipher):
+        cipher.setKey(key)
+        encryptionMode = data["encryptionMode"]
+        iv = bytes.fromhex(data["initialPermutation"])
+        cleartext = cryptogy.aes.decrypt_text(key, iv, encryptionMode, ciphertext)
+        cleartext = cleartext.decode("utf-8")
+    else:
+        cipher.setKey(key)
+        cleartext = cipher.decode(ciphertext)
     gc.collect()
     return jsonify({"cleartext": cleartext}), 200
 
