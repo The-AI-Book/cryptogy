@@ -17,6 +17,10 @@ from PIL import Image
 from utils import images_key
 from Crypto.Cipher import AES, DES, DES3
 import numpy as np
+import psutil
+import os
+import gc
+process = psutil.Process(os.getpid())
 
 logging.basicConfig(
     filename="app.log", filemode="w", format="%(name)s - %(levelname)s - %(message)s"
@@ -26,7 +30,6 @@ app = Flask(__name__)
 cors = CORS(app)
 app.config["CORS_HEADERS"] = "Content-Type"
 
-
 def get_response_image(image_path):
     pil_img = Image.open(image_path, mode="r")  # reads the PIL image
     byte_arr = io.BytesIO()
@@ -34,11 +37,10 @@ def get_response_image(image_path):
     encoded_img = encodebytes(byte_arr.getvalue()).decode("ascii")  # encode as base64
     return encoded_img
 
-
 @app.route("/<path:path>", methods=["GET"])
 def static_proxy(path):
+    gc.collect()
     return send_from_directory("./static", path)
-
 
 # Main page.
 @app.route("/", methods=["GET"])
@@ -46,8 +48,8 @@ def root():
     """
     Return the frontend of the application.
     """
+    gc.collect()
     return send_from_directory("./static", "index.html")
-
 
 # Main page.
 @app.route("/classic", methods=["GET"])
@@ -55,6 +57,7 @@ def classic():
     """
     Return the frontend of the application.
     """
+    gc.collect()
     return send_from_directory("./static", "index.html")
 
 
@@ -64,6 +67,7 @@ def block():
     """
     Return the frontend of the application.
     """
+    gc.collect()
     return send_from_directory("./static", "index.html")
 
 
@@ -73,11 +77,12 @@ def gamma_pentagonal():
     """
     Return the frontend of the application.
     """
+    gc.collect()
     return send_from_directory("./static", "index.html")
-
 
 @app.route("/api/generate_random_key", methods=["POST"])
 def generate_random_key():
+    
     data = request.get_json()
     if data == None:
         data = request.values
@@ -94,8 +99,14 @@ def generate_random_key():
         random_key = utils.format_list(random_key)
     elif isinstance(cipher, AESCipher):
         random_key = random_key.hex()
+    gc.collect()
     return jsonify({"random_key": random_key}), 200
 
+@app.route("/api/memory", methods=["GET"])
+def memory():
+    print("HOLA MUDNO")
+    gc.collect()
+    return jsonify({'memory': process.memory_info().rss})
 
 @app.route("/api/encrypt", methods=["POST"])
 def encrypt():
@@ -125,6 +136,7 @@ def encrypt():
         encode_text = cryptogy.aes.encrypt_text(key, iv, encryptionMode, cleartext)
 
     if isinstance(cipher, AutokeyCipher):
+        gc.collect()
         return (
             jsonify({"ciphertext": encode_text[0], "key_stream": encode_text[1]}),
             200,
@@ -139,6 +151,7 @@ def encrypt():
         string = ""
         for list_ in encode_text[2]:  # schedule
             string += utils.format_list(list_) + ";"
+        gc.collect()
         return jsonify(
             {
                 "ciphertext": encode_text[0],
@@ -150,8 +163,10 @@ def encrypt():
     elif isinstance(cipher, AESCipher):
         ciphertext = encode_text[0].hex()
         iv = encode_text[1].hex()
+        gc.collect()
         return jsonify({"ciphertext": ciphertext, "initialPermutation": iv}), 200
     else:
+        gc.collect()
         return jsonify({"ciphertext": encode_text}), 200
 
 
@@ -193,6 +208,7 @@ def decrypt():
     else:
         cipher.setKey(key)
         cleartext = cipher.decode(ciphertext)
+    gc.collect()
     return jsonify({"cleartext": cleartext}), 200
 
 
@@ -209,6 +225,7 @@ def analyze():
             results = analyzer.breakCipher(cleartext, ciphertext)
         except Exception as e:
             #print(str(e))
+            gc.collect()
             return jsonify({"error": str(e)}), 400
     elif isinstance(analyzer, HillCryptAnalizer):
         cleartext = data["cleartext"]
@@ -216,12 +233,15 @@ def analyze():
         try:
             results = analyzer.breakCipher(ciphertext, cleartext, numPartitions)
         except Exception as e:
+            gc.collect()
             return jsonify({"error": str(e)}), 400
     else:
         try:
             results = analyzer.breakCipher(ciphertext)
         except Exception as e:
+            gc.collect()
             return jsonify({"error": str(e)}), 400
+    gc.collect()
     return jsonify({"cleartext": results}), 200
 
 
@@ -284,6 +304,7 @@ def encrypt_image():
             as_attachment=False,
             max_age=0,
         )
+    gc.collect()
     return file
 
 
@@ -327,6 +348,7 @@ def decrypt_image():
         res = cryptogy.aes.decrypt_image(
             key, iv, encryptionMode, route, filename="./images/decrypt_temp.png"
         )
+        gc.collect()
         file = send_from_directory(
             "./images",
             mimetype="image/jpg",
@@ -344,6 +366,7 @@ def decrypt_image():
         res = cryptogy.des.decrypt_image(
             key, iv, encryptionMode, route, filename="./images/decrypt_temp.png"
         )
+        gc.collect()
         file = send_from_directory(
             "./images",
             mimetype="image/jpg",
@@ -351,6 +374,7 @@ def decrypt_image():
             as_attachment=False,
             max_age=0,
         )
+    gc.collect()
     return file
 
 
@@ -362,7 +386,8 @@ def change_graph():
         data = request.values
     cipher = utils.get_cipher(data)
     cipher.changeGraph()
-    return "success"
+    gc.collect()
+    return jsonify({"message": "ok"})
 
 
 @app.route("/api/show_graph", methods=["POST", "GET"])
@@ -377,6 +402,7 @@ def show_graph():
         as_attachment=False,
         max_age=0,
     )
+    gc.collect()
     return file
 
 
