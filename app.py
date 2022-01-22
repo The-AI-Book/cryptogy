@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, make_response, send_file
 from flask.helpers import send_from_directory
-from cryptogy.gammapentagonal import GammaPentagonalCipher
+#from cryptogy.gammapentagonal import GammaPentagonalCipher
 from flask_cors import CORS
 import logging
 import cryptogy
@@ -407,4 +407,4 @@ def show_graph():
 
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    app.run(port=5000, debug=False)
