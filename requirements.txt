@@ -27,5 +27,3 @@ python-dateutil==2.8.2
 requests==2.26.0
 six==1.16.0
 sympy==1.9
-typing_extensions
-ggv-truz-ybo
