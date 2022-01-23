@@ -116,7 +116,10 @@ export class GammaPentagonalComponent implements OnInit {
       values.numPartitions, 
       "", 
       "", 
-      ""
+      "",
+      0,
+      0,
+      0
     ).subscribe(
       data => {
         this.encryptLoading = false;
@@ -152,7 +155,10 @@ export class GammaPentagonalComponent implements OnInit {
       values.numPartitions, 
       "", 
       "", 
-      ""
+      "",
+      0,
+      0,
+      0
     ).subscribe(
       data => {
         this.decryptLoading = false;

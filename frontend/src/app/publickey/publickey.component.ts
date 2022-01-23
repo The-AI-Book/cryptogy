@@ -4,11 +4,11 @@ import { CryptogyService } from '../services/cryptogy.service';
 import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
-  selector: 'app-block',
-  templateUrl: './block.component.html',
-  styleUrls: ['./block.component.css']
+  selector: 'app-publickey',
+  templateUrl: './publickey.component.html',
+  styleUrls: ['./publickey.component.css']
 })
-export class BlockComponent implements OnInit {
+export class PublickeyComponent implements OnInit {
 
   randomKeyLoading: boolean = false;
   errorRandomKey: boolean = false;
@@ -32,25 +32,18 @@ export class BlockComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = new FormGroup({
-      cipher: new FormControl("aes", { validators: Validators.required }),
+      cipher: new FormControl("rsa", { validators: Validators.required }),
       key: new FormControl(null, { validators: Validators.required }),
       cleartext: new FormControl(''),
       ciphertext: new FormControl(''),
-      initialPermutation: new FormControl(""),
-      schedule: new FormControl(""), 
-      keyLength: new FormControl("16"), 
-      encryptionMode: new FormControl("cbc"), 
       file: new FormControl(null), 
       decrypt_image: new FormControl(null)
     });
     this.generate_random_key();
 
     this.form.get("key").valueChanges.subscribe(val => {
-       this.form.patchValue({"schedule": ""});
-       this.form.patchValue({"initialPermutation": ""});
        this.form.updateValueAndValidity();
     });
-
 
   }
 
@@ -96,9 +89,6 @@ export class BlockComponent implements OnInit {
     //  }
     //}
 
-
-    this.form.patchValue({"schedule": ""});
-    //this.form.patchValue({"initialPermutation": ""});
     this.form.updateValueAndValidity();
 
     this.invalidKey = false;
@@ -112,14 +102,14 @@ export class BlockComponent implements OnInit {
       values.key,
       values.cipher,
       cleartext, 
-      values.keyLength,
       "0",
-      values.initialPermutation,
-      values.schedule, 
-      values.encryptionMode,
-      0,
-      0,
-      0
+      "0",
+      "0",
+      "0",
+      "0",
+      values.numberP,
+      values.numberQ,
+      values.numberE,
     ).subscribe(
       data => {
         this.encryptLoading = false;
@@ -133,13 +123,13 @@ export class BlockComponent implements OnInit {
           this.form.patchValue({"schedule": data["schedule"]});
           this.form.updateValueAndValidity();
         }
-        if(data["initialPermutation"]){
-          console.log("initial");
-          if(data["initialPermutation"] != this.form.value.initialPermutation){
+        if(data["numberP"]){
+          console.log("numero primo P");
+          if(data["numberP"] != this.form.value.numberP){
               console.log("change")
-              console.log(this.form.value.initialPermutation);
-              console.log(data["initialPermutation"]);
-              this.form.patchValue({"initialPermutation": data["initialPermutation"]});
+              console.log(this.form.value.numberP);
+              console.log(data["numberP"]);
+              this.form.patchValue({"numberP": data["numberP"]});
               this.form.updateValueAndValidity();
           }
         }
@@ -158,12 +148,12 @@ export class BlockComponent implements OnInit {
     this.cryptoService.encrypt_image(
       this.form.value.file, 
       this.form.value.cipher,
-      this.form.value.key, 
-      this.form.value.initialPermutation, 
-      this.form.value.encryptionMode,
-      0,
-      0,
-      0,
+      this.form.value.key,
+      "0",
+      "0",
+      this.form.value.numberP, 
+      this.form.value.numberQ,
+      this.form.value.numberE,
     )
     .subscribe(
       data => {
@@ -204,15 +194,15 @@ export class BlockComponent implements OnInit {
       values.key,
       values.cipher,
       ciphertext, 
-      values.keyLength, 
-      "0", 
-      "0", 
-      values.initialPermutation,
-      values.schedule, 
-      values.encryptionMode,
-      0,
-      0,
-      0,
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      values.numberP,
+      values.numberQ,
+      values.numberE,
     )
     .subscribe(
       data => {
@@ -230,14 +220,14 @@ export class BlockComponent implements OnInit {
     console.log("decrypt image!");
     console.log(this.form.value.decrypt_image);
     this.cryptoService.decrypt_image(
-      this.form.value.decrypt_image, 
+      this.form.value.decrypt_image,
       this.form.value.cipher,
-      this.form.value.key, 
-      this.form.value.initialPermutation, 
-      this.form.value.encryptionMode,
-      0,
-      0,
-      0
+      this.form.value.key,
+      "0",
+      "0",
+      this.form.value.numberP, 
+      this.form.value.numberQ,
+      this.form.value.numberE,
     )
     .subscribe(
       data => {

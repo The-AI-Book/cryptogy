@@ -108,7 +108,10 @@ export class ClassicComponent implements OnInit {
       values.numPartitions, 
       "", 
       "", 
-      ""
+      "",
+      0,
+      0,
+      0,
     ).subscribe(
       data => {
         this.encryptLoading = false;
@@ -139,7 +142,10 @@ export class ClassicComponent implements OnInit {
       this.form.value.cipher, 
       "", 
       "", 
-      ""
+      "",
+      0,
+      0,
+      0
     )
     .subscribe(
       data => {
@@ -183,7 +189,10 @@ export class ClassicComponent implements OnInit {
       values.numPartitions, 
       "", 
       "", 
-      ""
+      "",
+      0,
+      0,
+      0
     ).subscribe(
       data => {
         this.decryptLoading = false;
@@ -206,7 +215,10 @@ export class ClassicComponent implements OnInit {
       "",
       "", 
       "", 
-      ""
+      "",
+      0,
+      0,
+      0
     )
     .subscribe(
       data => {
