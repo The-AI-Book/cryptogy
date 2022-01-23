@@ -1,4 +1,4 @@
-FROM python:3.8-slim.
+FROM python:3.11.0a4-slim-bullseye
 LABEL key="Cryptogy"
 ENV PYTHONUNBUFFERED 1
 RUN apt-get update
