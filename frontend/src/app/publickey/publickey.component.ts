@@ -19,12 +19,6 @@ export class PublickeyComponent implements OnInit {
   decryptLoading: boolean = false;
   errorDecrypt: boolean = false;
 
-  imageLoading: boolean = false;
-  errorImage: boolean = false;
-
-  clearImage = null;
-  cipherImage = null;
-
   form: FormGroup;
   key: string = "";
   invalidKey: boolean = false;
@@ -35,9 +29,7 @@ export class PublickeyComponent implements OnInit {
       cipher: new FormControl("rsa", { validators: Validators.required }),
       key: new FormControl(null, { validators: Validators.required }),
       cleartext: new FormControl(''),
-      ciphertext: new FormControl(''),
-      file: new FormControl(null), 
-      decrypt_image: new FormControl(null)
+      ciphertext: new FormControl('')
     });
     this.generate_random_key();
 
@@ -143,46 +135,6 @@ export class PublickeyComponent implements OnInit {
     )
   }
 
-  encrypt_image(){
-    //console.log("encrypt image!");
-    this.cryptoService.encrypt_image(
-      this.form.value.file, 
-      this.form.value.cipher,
-      this.form.value.key,
-      "0",
-      "0",
-      this.form.value.numberP, 
-      this.form.value.numberQ,
-      this.form.value.numberE,
-    )
-    .subscribe(
-      data => {
-        //console.log(data);
-        //console.log("Loading image!");
-        const reader = new FileReader();
-        reader.readAsDataURL(new Blob([<any> data]));
-        reader.onload = (e) => {
-
-          let url = e.target.result as string;
-          let secureUrl = this.domSanitizer.bypassSecurityTrustResourceUrl(
-            url
-          );
-          this.cipherImage = secureUrl;
-          //var file = new File([this.cipherImage], "encrypted_image");
-          //console.log(file);
-          var file = new File([data], "my_image.png", {type:"image/png", lastModified:new Date().getTime()})
-          this.form.patchValue({"decrypt_image": file});
-          this.form.updateValueAndValidity();
-          console.log(this.form.value.decrypt_image);
-          //console.log(this.cipherImage);
-        }
-      }, 
-      err => {
-        console.log(err);
-      }
-    )
-  }
-
   decrypt() {
 
     let values = this.form.value;
@@ -216,40 +168,6 @@ export class PublickeyComponent implements OnInit {
     )
   }
 
-  decrypt_image(){
-    console.log("decrypt image!");
-    console.log(this.form.value.decrypt_image);
-    this.cryptoService.decrypt_image(
-      this.form.value.decrypt_image,
-      this.form.value.cipher,
-      this.form.value.key,
-      "0",
-      "0",
-      this.form.value.numberP, 
-      this.form.value.numberQ,
-      this.form.value.numberE,
-    )
-    .subscribe(
-      data => {
-        //console.log(data);
-        //console.log("Loading image!");
-        const reader = new FileReader();
-        reader.readAsDataURL(new Blob([<any> data]));
-        reader.onload = (e) => {
-          let url = e.target.result as string;
-          let secureUrl = this.domSanitizer.bypassSecurityTrustResourceUrl(
-            url
-          );
-          this.clearImage = secureUrl;
-          //console.log(this.clearImage);
-        }
-      }, 
-      err => {
-        console.log(err);
-      }
-    )
-  }
-
   clearText(){
     this.form.patchValue({"cleartext":""})
     this.form.updateValueAndValidity();
@@ -259,64 +177,5 @@ export class PublickeyComponent implements OnInit {
     this.form.patchValue({"ciphertext":""})
     this.form.updateValueAndValidity();
   }
-
-  onFileSelected2(event: any){
-    const files = event.target.files;
-    if (files.length === 0)
-        return;
-
-    const mimeType = files[0].type;
-    if (mimeType.match(/image\/*/) == null) {
-        return;
-    }
-
-    this.form.patchValue({decrypt_image: files[0]});
-    this.form.updateValueAndValidity();
-
-    console.log(files);
-    console.log(files[0]);
-    console.log(this.form.value.decrypt_image);
-
-    const reader = new FileReader();
-    reader.readAsDataURL(files[0]); 
-    reader.onload = (_event) => { 
-        this.cipherImage = reader.result; 
-    }
-
-  }
-
-  onFileSelected(event: any){
-    const files = event.target.files;
-    if (files.length === 0)
-        return;
-
-    const mimeType = files[0].type;
-    if (mimeType.match(/image\/*/) == null) {
-        return;
-    }
-
-    this.form.patchValue({file: files[0]});
-    this.form.updateValueAndValidity();
-
-    //console.log(files);
-    //console.log(files[0]);
-    //console.log(this.form.value.file);
-
-    const reader = new FileReader();
-    reader.readAsDataURL(files[0]); 
-    reader.onload = (_event) => { 
-        this.clearImage = reader.result; 
-    }
-  }
-
-
-  deleteCipherImage(){
-    this.cipherImage = null;
-  }
-
-  deleteClearImage(){
-    this.clearImage = null;
-  }
-
 }
 
