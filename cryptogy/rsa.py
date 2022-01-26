@@ -1,9 +1,8 @@
-from .cipher import Cipher
+from cipher import Cipher
 import random 
-import numpy as np
-import math
 from sympy import mod_inverse
 from math import gcd
+import binascii
 from typing import List
 
 # Pre generated primes
@@ -61,7 +60,9 @@ def isPrime(mrc):
 
 def generateRandomPrimeNumber():
     """
-    Generates a candidate prime number, runs Rabin Miller Primality test, it proposes another candidate if the test is failed
+    Generates a candidate prime number, runs Rabin Miller Primality test, 
+    it proposes another candidate if the test is failed, 
+    otherwise returns the initial candidate
     """
     while True:
         prime_candidate = getLowLevelPrime(128)
@@ -70,17 +71,56 @@ def generateRandomPrimeNumber():
         else:
             return prime_candidate
 
+# Text to bits.
+def text_to_bits(text, encoding='utf-8', errors='surrogatepass'):
+    bits = bin(int(binascii.hexlify(text.encode(encoding, errors)), 16))[2:]
+    return bits.zfill(8 * ((len(bits) + 7) // 8))
+
+# Int2bytes.
+def int2bytes(i):
+    hex_string = '%x' % i
+    n = len(hex_string)
+    return binascii.unhexlify(hex_string.zfill(n + (n & 1)))
+
+# IntToString.
+def int2string(i, encoding='utf-8', errors='surrogatepass'):
+    bytes_ = int2bytes(i)
+    return bytes_.decode(encoding, errors)
+
+# String to int.
+def string2int(text):
+    bits_ = text_to_bits(text)
+    return int(bits_, 2)
+
+# Convert a string to a list of substring of length 4 or less.
+def string_to_4list(text):
+    list_of_messages = list()
+    pos = 0
+    while pos < len(text):
+        try:
+            list_of_messages.append(text[pos: pos + 4])
+            pos += 4
+        except:
+            list_of_messages.append(text[pos: len(text)])
+    return list_of_messages
 
 class RSACipher(Cipher):
     def __init__(self, key = None):
         super().__init__()
-        self.key = self.iniKey(key)
 
     def validKey(self, key):
-        return isPrime(key)
+        return isPrime(key[0]) and isPrime(key[1]) and key[0] != key[1]
+
+    def setKey(self, key):
+        """
+        Initializes the object with a given key.
+        """
+        self.key = key
 
     def generateRandomKey(self):
-        return generateRandomPrimeNumber()
+        pNumber = generateRandomPrimeNumber()
+        qNumber = generateRandomPrimeNumber()
+        return (pNumber, qNumber)
 
     def generatePublicKey(self, pNumber : int, qNumber : int):
         n = pNumber * qNumber
@@ -107,11 +147,38 @@ class RSACipher(Cipher):
         privateKey = (n, dNumber)
         return privateKey
 
-    def encode(self, pNumber : int, qNumber : int, cleartext: str = "hot", ):
+    def encode(self, pNumber : int, qNumber : int, cleartext: str):
+        n, eNumber = RSACipher.generatePublicKey(self, pNumber, qNumber)
+
+        ciphertext = list()
+        list_of_messages = string_to_4list(cleartext)
         
+        for subtext in list_of_messages:
+            
+            m = string2int(subtext)
+            c = pow(m, eNumber, n)
+            ciphertext.append(c)
+            
+        return ciphertext
 
 
-    def decode(self, pNumber : int, qNumber : int, eNumber : int, ciphertext: str = "AXG"):  
+    def decode(self, pNumber : int, qNumber : int, ciphertext : list):  
+        n, dNumber = RSACipher.generatePrivateKey(self, pNumber, qNumber)
+
+        cleartext = list()
+
+        for c in ciphertext:
+            m = pow(c, dNumber, n)
+            cleartext.append(int2string(m))
+
+        return "".join(cleartext)
         
 
 if __name__ == "__main__":
+    message = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s"
+    cipher = RSACipher()
+    p, q = cipher.generateRandomKey()
+    ciphertext = cipher.encode(p, q, message)
+    print(ciphertext)
+    cleartext = cipher.decode(p, q, ciphertext)
+    print(cleartext)
