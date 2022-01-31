@@ -116,7 +116,10 @@ export class BlockComponent implements OnInit {
       "0",
       values.initialPermutation,
       values.schedule, 
-      values.encryptionMode
+      values.encryptionMode,
+      0,
+      0,
+      0
     ).subscribe(
       data => {
         this.encryptLoading = false;
@@ -157,7 +160,10 @@ export class BlockComponent implements OnInit {
       this.form.value.cipher,
       this.form.value.key, 
       this.form.value.initialPermutation, 
-      this.form.value.encryptionMode
+      this.form.value.encryptionMode,
+      0,
+      0,
+      0,
     )
     .subscribe(
       data => {
@@ -203,7 +209,10 @@ export class BlockComponent implements OnInit {
       "0", 
       values.initialPermutation,
       values.schedule, 
-      values.encryptionMode
+      values.encryptionMode,
+      0,
+      0,
+      0,
     )
     .subscribe(
       data => {
@@ -225,7 +234,10 @@ export class BlockComponent implements OnInit {
       this.form.value.cipher,
       this.form.value.key, 
       this.form.value.initialPermutation, 
-      this.form.value.encryptionMode
+      this.form.value.encryptionMode,
+      0,
+      0,
+      0
     )
     .subscribe(
       data => {
