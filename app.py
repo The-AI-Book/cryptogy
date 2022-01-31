@@ -10,8 +10,6 @@ import cryptogy.des
 from cryptogy.des import SDESCipher, DESCipher, TripleDESCipher
 import cryptogy.aes
 from cryptogy.aes import AESCipher
-import cryptogy.rsa
-from cryptogy.rsa import RSACipher
 import utils
 from base64 import encodebytes
 import io

@@ -9,7 +9,4 @@ export interface Crypto{
     initialPermutation: string;
     schedule: string;
     encryptionMode: string;
-    numberP: number;
-    numberQ: number;
-    numberE: number;
 }
