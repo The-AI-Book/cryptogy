@@ -13,7 +13,6 @@ import { PresentationComponent } from './presentation/presentation.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BlockComponent } from './block/block.component';
 import { GammaPentagonalComponent } from './gamma-pentagonal/gamma-pentagonal.component';
-import { PublickeyComponent } from './publickey/publickey.component';
 
 @NgModule({
   declarations: [
@@ -26,7 +25,6 @@ import { PublickeyComponent } from './publickey/publickey.component';
     PresentationComponent,
     BlockComponent,
     GammaPentagonalComponent,
-    PublickeyComponent,
   ],
   imports: [
     BrowserModule,
