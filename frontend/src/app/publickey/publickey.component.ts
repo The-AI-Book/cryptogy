@@ -28,6 +28,8 @@ export class PublickeyComponent implements OnInit {
     this.form = new FormGroup({
       cipher: new FormControl("rsa", { validators: Validators.required }),
       key: new FormControl(null, { validators: Validators.required }),
+      numberP: new FormControl(null), 
+      numberQ: new FormControl(null),
       cleartext: new FormControl(''),
       ciphertext: new FormControl('')
     });
@@ -57,8 +59,13 @@ export class PublickeyComponent implements OnInit {
       "0"
     )
       .subscribe(data => {
-        //console.log(data);
+        console.log(data);
         this.form.patchValue({"key": data["random_key"] })
+        let values = String(data["random_key"]).split(",")
+        this.form.patchValue({"numberP": values[0] });
+        this.form.patchValue({"numberQ": values[1] });
+        //let p = values[0]
+        //let q = values[1]
         this.form.updateValueAndValidity();
         this.randomKeyLoading = false;
       }, err => {

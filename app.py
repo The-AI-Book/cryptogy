@@ -85,6 +85,7 @@ def generate_random_key():
     data = request.get_json()
     if data == None:
         data = request.values
+    print("CIPHER: ", data["cipher"])
     cipher = utils.get_cipher(data)
     random_key = cipher.generateRandomKey()
     #print(random_key)
@@ -98,15 +99,18 @@ def generate_random_key():
         random_key = utils.format_list(random_key)
     elif isinstance(cipher, AESCipher):
         random_key = random_key.hex()
-    gc.collect()
+
     return jsonify({"random_key": random_key}), 200
 
 
 @app.route("/api/encrypt", methods=["POST"])
 def encrypt():
+    
     data = request.get_json()
     if data == None:
         data = request.values
+    print("DATAA ")
+    print(data)
     cleartext = data["cleartext"].lower().replace(" ", "")
 
     if data["cipher"] == "aes":
@@ -116,8 +120,12 @@ def encrypt():
     cipher = utils.get_cipher(data)
     cipher.setKey(key)
 
-    if data["cipher"] not in ["aes", "sdes", "des"]:
+    if data["cipher"] not in ["aes", "sdes", "des", "rsa"]:
         encode_text = cipher.encode(cleartext)
+    elif data["cipher"] == "rsa":
+        pNumber = int(key[0])
+        qNumber = int(key[1])
+        encode_text = cipher.encode(pNumber, qNumber, cleartext)
     elif data["cipher"] in ["sdes", "des"]:
         if data["initialPermutation"] != "":
             iv = utils.format_str_to_list(data["initialPermutation"])
@@ -199,6 +207,18 @@ def decrypt():
         iv = bytes.fromhex(data["initialPermutation"])
         cleartext = cryptogy.aes.decrypt_text(key, iv, encryptionMode, ciphertext)
         cleartext = cleartext.decode("utf-8")
+
+    elif isinstance(cipher, RSACipher):
+
+        pNumber = int(key[0])
+        qNumber = int(key[1])
+        for i in range(len(ciphertext)):
+            ciphertext[i] = int(ciphertext[i])
+        print(ciphertext)
+        print(pNumber)
+        print(qNumber)
+        cleartext = cipher.decode(pNumber, qNumber, ciphertext)
+
     else:
         cipher.setKey(key)
         cleartext = cipher.decode(ciphertext)
