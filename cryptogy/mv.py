@@ -1,4 +1,4 @@
-from cipher import Cipher
+from .cipher import Cipher
 from dataclasses import dataclass
 
 
