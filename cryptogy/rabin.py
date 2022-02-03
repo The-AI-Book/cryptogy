@@ -1,3 +1,4 @@
+from .cipher import Cipher
 import math
 import random
 import codecs
@@ -72,4 +73,3 @@ def choose(lst):
     return
 
 if __name__ == "__main__":
-    
