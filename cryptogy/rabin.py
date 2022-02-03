@@ -154,8 +154,8 @@ class RabinCipher(Cipher):
 if __name__ == '__main__':
 
     cipher = RabinCipher()
-    p = daaefe652cad1614f17e87f2cd80973f
-    q = f99988626723eef2a54ed484dfa735c7
+    p = "daaefe652cad1614f17e87f2cd80973f"
+    q = "f99988626723eef2a54ed484dfa735c7"
 
     # encryption
     print('\n Rabin-512 Encryption ')
