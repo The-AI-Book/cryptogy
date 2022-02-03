@@ -25,7 +25,10 @@ export class CryptogyService {
            numPartitions: numPartitions, 
            initialPermutation: "",
            schedule: "",
-           encryptionMode: ""
+           encryptionMode: "",
+           numberP : 0,
+           numberQ : 0,
+           numberE : 0,
         }
         //console.log(this.endpoint + "/api/generate_random_key");
         return this.http.post(this.endpoint + "/api/generate_random_key", CryptoData);
@@ -39,7 +42,10 @@ export class CryptogyService {
         numPartitions: string, 
         initialPermutation: string,
         schedule: string, 
-        encryptionMode: string
+        encryptionMode: string,
+        numberP : number,
+        numberQ : number,
+        numberE : number,
     ){
 
         const CryptoData: Crypto = {
@@ -52,7 +58,10 @@ export class CryptogyService {
             numPartitions: numPartitions, 
             initialPermutation: initialPermutation,
             schedule: schedule, 
-            encryptionMode: encryptionMode
+            encryptionMode: encryptionMode,
+            numberP : 0,
+            numberQ : 0,
+            numberE : 0,
         }
         console.log(CryptoData);
         return this.http.post(this.endpoint + "/api/encrypt", CryptoData);
@@ -63,7 +72,10 @@ export class CryptogyService {
         cipher: string, 
         key: string, 
         initialPermutation: string, 
-        encryptionMode: string
+        encryptionMode: string,
+        numberP : number,
+        numberQ : number,
+        numberE : number,
     ){
         console.log(file);
         const data = new FormData();
@@ -81,7 +93,10 @@ export class CryptogyService {
         cipher: string, 
         key: string, 
         initialPermutation: string, 
-        encryptionMode: string
+        encryptionMode: string,
+        numberP : number,
+        numberQ : number,
+        numberE : number,
     ){
         console.log(file);
         const data = new FormData();
@@ -103,7 +118,10 @@ export class CryptogyService {
         numPartitions: string, 
         initialPermutation: string,
         schedule: string,
-        encryptionMode: string
+        encryptionMode: string,
+        numberP: number,
+        numberQ: number,
+        numberE: number,
     ){
         const CryptoData: Crypto = {
             key: key, 
@@ -115,7 +133,10 @@ export class CryptogyService {
             numPartitions: numPartitions, 
             initialPermutation: initialPermutation,
             schedule: schedule,
-            encryptionMode: encryptionMode
+            encryptionMode: encryptionMode,
+            numberP : 0,
+            numberQ : 0,
+            numberE : 0,
         }
         console.log(CryptoData);
         return this.http.post(this.endpoint + "/api/decrypt", CryptoData);
@@ -137,7 +158,10 @@ export class CryptogyService {
             numPartitions: numPartitions, 
             initialPermutation: "",
             schedule: "", 
-            encryptionMode: ""
+            encryptionMode: "",
+            numberP : 0,
+            numberQ : 0,
+            numberE : 0,
         }
         return this.http.post(this.endpoint + "/api/analyze", CryptoData);
     }

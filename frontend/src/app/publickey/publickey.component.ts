@@ -4,130 +4,126 @@ import { CryptogyService } from '../services/cryptogy.service';
 import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
-  selector: 'app-gamma-pentagonal',
-  templateUrl: './gamma-pentagonal.component.html',
-  styleUrls: ['./gamma-pentagonal.component.css']
+  selector: 'app-publickey',
+  templateUrl: './publickey.component.html',
+  styleUrls: ['./publickey.component.css']
 })
-export class GammaPentagonalComponent implements OnInit {
+export class PublickeyComponent implements OnInit {
 
-  constructor(private cryptoService: CryptogyService, private domSanitizer: DomSanitizer) { }
-
-  form: FormGroup;
   randomKeyLoading: boolean = false;
   errorRandomKey: boolean = false;
-  invalidKey: boolean = false;
+
   encryptLoading: boolean = false;
-  errorEncrypt: boolean  = false;
+  errorEncrypt: boolean = false;
+
   decryptLoading: boolean = false;
   errorDecrypt: boolean = false;
 
-  graphImage = null;
+  form: FormGroup;
+  key: string = "";
+  invalidKey: boolean = false;
+  constructor(private cryptoService: CryptogyService, private domSanitizer: DomSanitizer) { }
 
   ngOnInit(): void {
     this.form = new FormGroup({
-      cipher: new FormControl("gamma-pentagonal", { validators: Validators.required }),
-      keyLength: new FormControl(5),
+      cipher: new FormControl("rsa", { validators: Validators.required }),
       key: new FormControl(null, { validators: Validators.required }),
       cleartext: new FormControl(''),
-      ciphertext: new FormControl(''),
-      keyStream: new FormControl(''), 
-      numPartitions: new FormControl(2, {validators: Validators.required}), 
-      file: new FormControl(null)
+      ciphertext: new FormControl('')
     });
     this.generate_random_key();
+
+    this.form.get("key").valueChanges.subscribe(val => {
+       this.form.updateValueAndValidity();
+    });
+
   }
 
-  change_graph(){
-    console.log("change graph!");
-    this.cryptoService.change_graph( 
-      this.form.value.cipher,
-      this.form.value.key, 
-    )  
+  cryptosystem_change() {
+    this.generate_random_key();
+    this.form.patchValue({"cleartext": ""});
+    this.form.patchValue({"ciphertext": ""}); 
+    this.form.updateValueAndValidity();
   }
 
-  show_graph(){
-    console.log("show graph!");
-    console.log(this.form.value.file);
-    this.cryptoService.show_graph(
-      this.form.value.cipher,
-      this.form.value.key, 
-    )
-    .subscribe(
-      data => {
-        //console.log(data);
-        console.log("Loading image!");
-        const reader = new FileReader();
-        reader.readAsDataURL(new Blob([<any> data]));
-        reader.onload = (e) => {
-          let url = e.target.result as string;
-          let secureUrl = this.domSanitizer.bypassSecurityTrustResourceUrl(
-            url
-          );
-          this.graphImage = secureUrl;
-          //console.log(this.graphImage);
-        }
-      }, 
-      err => {
-        console.log(err);
-      }
-    )
-  }
-
-  generate_random_key(){
+  generate_random_key() {
     this.invalidKey = false;
     this.randomKeyLoading = true;
     this.errorRandomKey = false;
     let values = this.form.value;
     this.cryptoService.get_random_key(
-      values.cipher,
+      values.cipher, 
       values.keyLength, 
-      values.numPartitions
-    ).subscribe(
-      data => {
+      "0"
+    )
+      .subscribe(data => {
         //console.log(data);
         this.form.patchValue({"key": data["random_key"] })
         this.form.updateValueAndValidity();
         this.randomKeyLoading = false;
-      },
-      err => {
+      }, err => {
         //console.log(err);
         if(err.error == "Invalid Key"){
           this.invalidKey = true;
         }
         this.errorRandomKey = true;
         this.randomKeyLoading = false;
-    })
+      })
   }
 
-  encrypt(){
-    
-    this.invalidKey = false;
+  encrypt() {
     let values = this.form.value;
+    
+    //if(values.cipher == "aes"){
+    //  if(values.key.length != parseInt(this.form.value.keyLength)){
+    //      this.invalidKey = true;
+    //      return;
+    //  }
+    //}
+
+    this.form.updateValueAndValidity();
+
+    this.invalidKey = false;
     this.encryptLoading = true;
     this.errorEncrypt = false;
-
     let cleartext = values.cleartext;
+    this.invalidKey = false;
 
+  
     this.cryptoService.encrypt(
       values.key,
       values.cipher,
       cleartext, 
-      values.keyLength, 
-      values.numPartitions, 
-      "", 
-      "", 
-      "",
-      0,
-      0,
-      0
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      values.numberP,
+      values.numberQ,
+      values.numberE,
     ).subscribe(
       data => {
         this.encryptLoading = false;
         this.form.patchValue({"ciphertext": data["ciphertext"] });
         this.form.updateValueAndValidity();
-        if(data["key_stream"]){
-          this.form.patchValue({"keyStream": data["key_stream"]});
+        if(data["permutation"]){
+          this.form.patchValue({"initialPermutation": data["permutation"]});
           this.form.updateValueAndValidity();
+        }
+        if(data["schedule"]){
+          this.form.patchValue({"schedule": data["schedule"]});
+          this.form.updateValueAndValidity();
+        }
+        if(data["numberP"]){
+          console.log("numero primo P");
+          if(data["numberP"] != this.form.value.numberP){
+              console.log("change")
+              console.log(this.form.value.numberP);
+              console.log(data["numberP"]);
+              this.form.patchValue({"numberP": data["numberP"]});
+              this.form.updateValueAndValidity();
+          }
         }
       }, err => {
         if(err.error == "Invalid Key"){
@@ -140,26 +136,27 @@ export class GammaPentagonalComponent implements OnInit {
   }
 
   decrypt() {
+
     let values = this.form.value;
     this.decryptLoading = true;
     this.errorDecrypt = false;
-
     let ciphertext = values.ciphertext;
 
     this.cryptoService.decrypt(
       values.key,
       values.cipher,
       ciphertext, 
-      values.keyLength, 
-      values.keyStream, 
-      values.numPartitions, 
-      "", 
-      "", 
-      "",
-      0,
-      0,
-      0
-    ).subscribe(
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      values.numberP,
+      values.numberQ,
+      values.numberE,
+    )
+    .subscribe(
       data => {
         this.decryptLoading = false;
         this.form.patchValue({"cleartext": data["cleartext"]});
@@ -180,5 +177,5 @@ export class GammaPentagonalComponent implements OnInit {
     this.form.patchValue({"ciphertext":""})
     this.form.updateValueAndValidity();
   }
-  
 }
+
