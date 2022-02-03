@@ -157,7 +157,6 @@ def int2string(i, encoding="utf-8", errors="surrogatepass"):
     print(bytes_)
     return bytes_.decode(encoding, errors)
 
-
 # String to int.
 def string2int(text):
     bits_ = text_to_bits(text)
