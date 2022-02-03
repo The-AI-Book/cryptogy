@@ -79,10 +79,8 @@ first_primes_list = [
     349,
 ]
 
-
 def nBitRandom(n):
     return random.randrange(2 ** (n - 1) + 1, 2 ** n - 1)
-
 
 def getLowLevelPrime(n):
     """Generate a prime candidate divisible
@@ -156,6 +154,7 @@ def int2bytes(i):
 # IntToString.
 def int2string(i, encoding="utf-8", errors="surrogatepass"):
     bytes_ = int2bytes(i)
+    print(bytes_)
     return bytes_.decode(encoding, errors)
 
 
@@ -199,7 +198,7 @@ class RSACipher(Cipher):
     def generatePublicKey(self, pNumber: int, qNumber: int):
         n = pNumber * qNumber
         phi_n = (pNumber - 1) * (qNumber - 1)
-
+        eNumber = 1
         for i in range(phi_n - 1, 1, -1):
             if gcd(i, phi_n) == 1:
                 eNumber = i
@@ -248,10 +247,14 @@ class RSACipher(Cipher):
 
 
 if __name__ == "__main__":
-    message = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s"
+    
+    #message = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s"
+    message = "helloworld"
     cipher = RSACipher()
     p, q = cipher.generateRandomKey()
     ciphertext = cipher.encode(p, q, message)
     print(ciphertext)
+    for i in ciphertext:
+        print(type(i))
     cleartext = cipher.decode(p, q, ciphertext)
     print(cleartext)

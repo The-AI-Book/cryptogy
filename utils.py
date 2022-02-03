@@ -104,7 +104,6 @@ def get_cipher(data: dict):
         return cryptogy.TripleDESCipher()
     elif cipher == "aes":
         keyLength = int(data["keyLength"])
-
         key = b"P" * 16
         if keyLength == 16:
             key = b"P" * 16
@@ -118,6 +117,12 @@ def get_cipher(data: dict):
 
     elif cipher == "gamma-pentagonal":
         return cryptogy.GammaPentagonalCipher()
+    elif cipher == "rsa":
+        return cryptogy.RSACipher()
+    elif cipher == "elgamal":
+        return cryptogy.MVCipher()
+    elif cipher == "rabin":
+        return cryptogy.RabinCipher()
 
 import numpy as np
 

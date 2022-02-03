@@ -24,12 +24,12 @@
                 </select>
 
                 <div class="form-group mt-3">
-                    <label for="key" class="mb-2">Prime number (p)</label>
+                    <label for="numberP" class="mb-2">Prime number (p)</label>
                     <input type="text" class="form-control" id="key" formControlName="numberP">
                 </div>
 
                 <div class="form-group mt-3">
-                    <label for="key" class="mb-2">Prime number (q)</label>
+                    <label for="numberQ" class="mb-2">Prime number (q)</label>
                     <input type="text" class="form-control" id="key" formControlName="numberQ">
                 </div>
 
@@ -44,7 +44,7 @@
                 </p>
             </div>
 
-            <div class="col-10 form-group mt-4">
+            <div class="col-10 form-group mt-4" *ngIf = "this.form.value.cipher != 'rsa'">
                 <label for="key" class="mb-2">Enter Key (K)</label>
                 <input type="text" class="form-control" id="key" formControlName="key">
                 <p *ngIf="invalidKey" class="alert alert-danger">

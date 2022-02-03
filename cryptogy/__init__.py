@@ -7,3 +7,6 @@ from .hill_cipher import HillCipher, HillCryptAnalizer
 from .des import SDESCipher, DESCipher, TripleDESCipher
 from .aes import AESCipher
 from .gammapentagonal import GammaPentagonalCipher
+from .rsa import RSACipher
+from .rabin import RabinCipher
+from .mv import MVCipher

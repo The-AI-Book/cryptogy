@@ -14,6 +14,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BlockComponent } from './block/block.component';
 import { GammaPentagonalComponent } from './gamma-pentagonal/gamma-pentagonal.component';
 import { PublickeyComponent } from './publickey/publickey.component';
+import { DssComponent } from './dss/dss.component';
 
 @NgModule({
   declarations: [
@@ -27,6 +28,7 @@ import { PublickeyComponent } from './publickey/publickey.component';
     BlockComponent,
     GammaPentagonalComponent,
     PublickeyComponent,
+    DssComponent,
   ],
   imports: [
     BrowserModule,
