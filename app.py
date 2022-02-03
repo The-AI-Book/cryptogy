@@ -13,7 +13,7 @@ from cryptogy.aes import AESCipher
 import cryptogy.rsa
 from cryptogy.rsa import RSACipher
 import utils
-from base64 import encodebytes
+from base64 import encode, encodebytes
 import io
 from PIL import Image
 from utils import images_key
@@ -88,6 +88,11 @@ def generate_random_key():
     print("CIPHER: ", data["cipher"])
     cipher = utils.get_cipher(data)
     random_key = cipher.generateRandomKey()
+
+    if isinstance(cipher, RSACipher):
+        random_key = list(random_key)
+        random_key[0] = str(random_key[0])
+        random_key[1] = str(random_key[1])
     #print(random_key)
     if isinstance(cipher, HillCipher):
         random_key = utils.format_darray(random_key)
@@ -109,8 +114,6 @@ def encrypt():
     data = request.get_json()
     if data == None:
         data = request.values
-    print("DATAA ")
-    print(data)
     cleartext = data["cleartext"].lower().replace(" ", "")
 
     if data["cipher"] == "aes":
@@ -126,6 +129,7 @@ def encrypt():
         pNumber = int(key[0])
         qNumber = int(key[1])
         encode_text = cipher.encode(pNumber, qNumber, cleartext)
+        encode_text = list(map(lambda x: str(x), encode_text))
     elif data["cipher"] in ["sdes", "des"]:
         if data["initialPermutation"] != "":
             iv = utils.format_str_to_list(data["initialPermutation"])
@@ -153,7 +157,6 @@ def encrypt():
         string = ""
         for list_ in encode_text[2]:  # schedule
             string += utils.format_list(list_) + ";"
-        gc.collect()
         return jsonify(
             {
                 "ciphertext": encode_text[0],
@@ -165,10 +168,8 @@ def encrypt():
     elif isinstance(cipher, AESCipher):
         ciphertext = encode_text[0].hex()
         iv = encode_text[1].hex()
-        gc.collect()
         return jsonify({"ciphertext": ciphertext, "initialPermutation": iv}), 200
     else:
-        gc.collect()
         return jsonify({"ciphertext": encode_text}), 200
 
 
@@ -209,11 +210,12 @@ def decrypt():
         cleartext = cleartext.decode("utf-8")
 
     elif isinstance(cipher, RSACipher):
-
+        print("hola mundo")
         pNumber = int(key[0])
         qNumber = int(key[1])
         for i in range(len(ciphertext)):
             ciphertext[i] = int(ciphertext[i])
+        print("DECODIFICAR LO SIGUIENTE")
         print(ciphertext)
         print(pNumber)
         print(qNumber)
