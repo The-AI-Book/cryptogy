@@ -95,16 +95,13 @@ def generate_random_key():
     print("CIPHER: ", data["cipher"])
     cipher = utils.get_cipher(data)
     random_key = cipher.generateRandomKey()
-<<<<<<< Updated upstream
 
     if isinstance(cipher, RSACipher):
         random_key = list(random_key)
         random_key[0] = str(random_key[0])
         random_key[1] = str(random_key[1])
     #print(random_key)
-=======
     # print(random_key)
->>>>>>> Stashed changes
     if isinstance(cipher, HillCipher):
         random_key = utils.format_darray(random_key)
     elif (
@@ -140,9 +137,7 @@ def encrypt():
         pNumber = int(key[0])
         qNumber = int(key[1])
         encode_text = cipher.encode(pNumber, qNumber, cleartext)
-<<<<<<< Updated upstream
         encode_text = list(map(lambda x: str(x), encode_text))
-=======
     elif data["cipher"] == "elgamal":
         a = int(key[0])
         b = int(key[1])
@@ -154,7 +149,6 @@ def encrypt():
         cipher.setParams(a, b, p, generator)
         message = tuple(map(lambda x: int(x), cleartext.split(",")))
         encode_text = cipher.encode(message, alpha, k)
->>>>>>> Stashed changes
     elif data["cipher"] in ["sdes", "des"]:
         if data["initialPermutation"] != "":
             iv = utils.format_str_to_list(data["initialPermutation"])
