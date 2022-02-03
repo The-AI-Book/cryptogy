@@ -1,10 +1,12 @@
 from flask import Flask, jsonify, request, make_response, send_file
 from flask.helpers import send_from_directory
-#from cryptogy.gammapentagonal import GammaPentagonalCipher
+
+# from cryptogy.gammapentagonal import GammaPentagonalCipher
 from flask_cors import CORS
 import logging
 import cryptogy
 from cryptogy.hill_cipher import HillCipher, HillCryptAnalizer
+from cryptogy.mv import MVCipher
 from cryptogy.stream_ciphers import AutokeyCipher, AutokeyCryptAnalizer, StreamCipher
 import cryptogy.des
 from cryptogy.des import SDESCipher, DESCipher, TripleDESCipher
@@ -29,6 +31,7 @@ app = Flask(__name__)
 cors = CORS(app)
 app.config["CORS_HEADERS"] = "Content-Type"
 
+
 def get_response_image(image_path):
     pil_img = Image.open(image_path, mode="r")  # reads the PIL image
     byte_arr = io.BytesIO()
@@ -36,10 +39,12 @@ def get_response_image(image_path):
     encoded_img = encodebytes(byte_arr.getvalue()).decode("ascii")  # encode as base64
     return encoded_img
 
+
 @app.route("/<path:path>", methods=["GET"])
 def static_proxy(path):
     gc.collect()
     return send_from_directory("./static", path)
+
 
 # Main page.
 @app.route("/", methods=["GET"])
@@ -49,6 +54,7 @@ def root():
     """
     gc.collect()
     return send_from_directory("./static", "index.html")
+
 
 # Main page.
 @app.route("/classic", methods=["GET"])
@@ -79,21 +85,26 @@ def gamma_pentagonal():
     gc.collect()
     return send_from_directory("./static", "index.html")
 
+
 @app.route("/api/generate_random_key", methods=["POST"])
 def generate_random_key():
-    
+
     data = request.get_json()
     if data == None:
         data = request.values
     print("CIPHER: ", data["cipher"])
     cipher = utils.get_cipher(data)
     random_key = cipher.generateRandomKey()
+<<<<<<< Updated upstream
 
     if isinstance(cipher, RSACipher):
         random_key = list(random_key)
         random_key[0] = str(random_key[0])
         random_key[1] = str(random_key[1])
     #print(random_key)
+=======
+    # print(random_key)
+>>>>>>> Stashed changes
     if isinstance(cipher, HillCipher):
         random_key = utils.format_darray(random_key)
     elif (
@@ -110,7 +121,7 @@ def generate_random_key():
 
 @app.route("/api/encrypt", methods=["POST"])
 def encrypt():
-    
+
     data = request.get_json()
     if data == None:
         data = request.values
@@ -123,17 +134,31 @@ def encrypt():
     cipher = utils.get_cipher(data)
     cipher.setKey(key)
 
-    if data["cipher"] not in ["aes", "sdes", "des", "rsa"]:
+    if data["cipher"] not in ["aes", "sdes", "des", "rsa", "elgamal"]:
         encode_text = cipher.encode(cleartext)
     elif data["cipher"] == "rsa":
         pNumber = int(key[0])
         qNumber = int(key[1])
         encode_text = cipher.encode(pNumber, qNumber, cleartext)
+<<<<<<< Updated upstream
         encode_text = list(map(lambda x: str(x), encode_text))
+=======
+    elif data["cipher"] == "elgamal":
+        a = int(key[0])
+        b = int(key[1])
+        p = int(key[2])
+        generator = (int(key[3]), int(key[4]))
+        alpha = int(key[5])
+        k = int(key[6])
+        cipher = MVCipher()
+        cipher.setParams(a, b, p, generator)
+        message = tuple(map(lambda x: int(x), cleartext.split(",")))
+        encode_text = cipher.encode(message, alpha, k)
+>>>>>>> Stashed changes
     elif data["cipher"] in ["sdes", "des"]:
         if data["initialPermutation"] != "":
             iv = utils.format_str_to_list(data["initialPermutation"])
-            #print(iv)
+            # print(iv)
             cipher.setInitialPermutation(iv)
         encode_text = cipher.encode(cleartext)
     else:
@@ -221,6 +246,17 @@ def decrypt():
         print(qNumber)
         cleartext = cipher.decode(pNumber, qNumber, ciphertext)
 
+    elif isinstance(cipher, MVCipher):
+        a = int(key[0])
+        b = int(key[1])
+        p = int(key[2])
+        generator = (int(key[3]), int(key[4]))
+        alpha = int(key[5])
+        k = int(key[6])
+        cipher = MVCipher()
+        cipher.setParams(a, b, p, generator)
+        cleartext = cipher.decode(ciphertext, alpha)
+
     else:
         cipher.setKey(key)
         cleartext = cipher.decode(ciphertext)
@@ -240,7 +276,7 @@ def analyze():
         try:
             results = analyzer.breakCipher(cleartext, ciphertext)
         except Exception as e:
-            #print(str(e))
+            # print(str(e))
             gc.collect()
             return jsonify({"error": str(e)}), 400
     elif isinstance(analyzer, HillCryptAnalizer):
@@ -263,7 +299,7 @@ def analyze():
 
 @app.route("/api/encrypt_image", methods=["POST", "GET"])
 def encrypt_image():
-    #print("ENCRYPT IMAGE")
+    # print("ENCRYPT IMAGE")
     from utils import images_key
 
     data = request.values
@@ -329,8 +365,8 @@ def decrypt_image():
     from utils import images_inv_key
 
     data = request.values
-    #print("DATAA DECRYPT!!")
-    #print(data)
+    # print("DATAA DECRYPT!!")
+    # print(data)
     cipher = data["cipher"]
     # img = request.files.getlist("files")[0]
     # image = "./images/encrypt_temp.png"
@@ -396,7 +432,7 @@ def decrypt_image():
 
 @app.route("/api/change_graph", methods=["POST"])
 def change_graph():
-    #print("1234")
+    # print("1234")
     data = request.get_json()
     if data == None:
         data = request.values
@@ -420,6 +456,7 @@ def show_graph():
     )
     gc.collect()
     return file
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

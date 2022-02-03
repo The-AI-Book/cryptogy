@@ -136,7 +136,7 @@ export class CryptogyService {
             encryptionMode: encryptionMode,
             numberP : 0,
             numberQ : 0,
-            numberE : 0,
+            numberE : 0
         }
         console.log(CryptoData);
         return this.http.post(this.endpoint + "/api/decrypt", CryptoData);

@@ -23,12 +23,12 @@
                     <option value="rabin">Rabin</option>
                 </select>
 
-                <div class="form-group mt-3">
+                <div *ngIf="form.value.cipher == 'rsa'" class="form-group mt-3">
                     <label for="numberP" class="mb-2">Prime number (p)</label>
                     <input type="text" class="form-control" id="key" formControlName="numberP">
                 </div>
 
-                <div class="form-group mt-3">
+                <div *ngIf="form.value.cipher == 'rsa'" class="form-group mt-3">
                     <label for="numberQ" class="mb-2">Prime number (q)</label>
                     <input type="text" class="form-control" id="key" formControlName="numberQ">
                 </div>

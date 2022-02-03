@@ -9,7 +9,10 @@ class Point:
 
 
 class MVCipher(Cipher):
-    def __init__(self, a: int, b: int, p: int, generator: tuple):
+    def __init__(self, key=None):
+        super().__init__()
+
+    def setParams(self, a: int, b: int, p: int, generator: tuple):
         self.a = a
         self.b = b
         self.p = p
@@ -32,9 +35,9 @@ class MVCipher(Cipher):
 
     def add(self, p1, p2):
         if p1 == p2:
-            h = ((3 * p1.x ** 2 + self.a) % self.p * pow(2 * p1.y, -1, self.p)) % 11
+            h = ((3 * p1.x ** 2 + self.a) % self.p * pow(2 * p1.y, -1, self.p)) % self.p
         else:
-            h = ((p2.y - p1.y) % self.p * pow(p2.x - p1.x, -1, self.p)) % 11
+            h = ((p2.y - p1.y) % self.p * pow(p2.x - p1.x, -1, self.p)) % self.p
 
         x3 = (h ** 2 - p1.x - p2.x) % self.p
         y3 = (h * (p1.x - x3) - p1.y) % self.p
@@ -57,17 +60,27 @@ class MVCipher(Cipher):
             return cycle[-1]
         return cycle[key - 1]
 
-    def encode(self, m: Point, a: int, k: int):
-        b = cipher.keyGen(a, cipher.generateCycle(self.generator))
-        x = cipher.keyGen(k, cipher.generateCycle(self.generator))
-        y = cipher.add(m, cipher.keyGen(k, cipher.generateCycle(b)))
-        return (x, y)
-
-    def decode(self, c: tuple, a: int):
-        x, y = c
-        return cipher.add(
-            y, cipher.generateCycle(cipher.keyGen(a, cipher.generateCycle(x)))[-2]
+    def encode(self, m: tuple, a: int, k: int):
+        m = Point(m[0], m[1])
+        b = MVCipher.keyGen(self, a, MVCipher.generateCycle(self, self.generator))
+        x = MVCipher.keyGen(self, k, MVCipher.generateCycle(self, self.generator))
+        y = MVCipher.add(
+            self, m, MVCipher.keyGen(self, k, MVCipher.generateCycle(self, b))
         )
+        return ((x.x, x.y), (y.x, y.y))
+
+    def decode(self, c: str, a: int):
+        c = list(map(lambda x: int(x), c.split(",")))
+        x = Point(c[0], c[1])
+        y = Point(c[2], c[3])
+        r = MVCipher.add(
+            self,
+            y,
+            MVCipher.generateCycle(
+                self, MVCipher.keyGen(self, a, MVCipher.generateCycle(self, x))
+            )[-2],
+        )
+        return (r.x, r.y)
 
 
 if __name__ == "__main__":
@@ -76,9 +89,10 @@ if __name__ == "__main__":
     p = 11
     generator = (2, 7)
 
-    cipher = MVCipher(a, b, p, generator)
+    cipher = MVCipher()
+    cipher.setParams(a, b, p, generator)
 
-    message = Point(10, 9)
+    message = (10, 9)
     alpha = 7
     k = 3
 
