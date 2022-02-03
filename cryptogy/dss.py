@@ -48,19 +48,19 @@ class DSS_Signature(DigitalSignature):
         pkey = DSS_Signature.DSS.new(publickey,'fips-186-3')
         return pkey.verify(hash_obj, signature) == False
 
+if __name__ == "__main__":
+    dss = DSS_Signature()
+    publickey, signature = dss.getSignature(b"Hello")
+    print(type(publickey))
+    print(signature)
+    #message = b"Hello"
+    #hash_obj = SHA256.new(message)
+    #print(hash_obj)
 
-dss = DSS_Signature()
-publickey, signature = dss.getSignature(b"Hello")
-print(type(publickey))
-print(signature)
-#message = b"Hello"
-#hash_obj = SHA256.new(message)
-#print(hash_obj)
+    #signer = DSS.new(key, 'fips-186-3')
+    #signature = signer.sign(hash_obj)
 
-#signer = DSS.new(key, 'fips-186-3')
-#signature = signer.sign(hash_obj)
+    #print(signature)
 
-#print(signature)
-
-#pkey=DSS.new(publickey,'fips-186-3')
-#pkey.verify(hash_obj,signature) == False
+    #pkey=DSS.new(publickey,'fips-186-3')
+    #pkey.verify(hash_obj,signature) == False

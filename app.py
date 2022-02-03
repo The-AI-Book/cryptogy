@@ -8,6 +8,7 @@ from cryptogy.hill_cipher import HillCipher, HillCryptAnalizer
 from cryptogy.stream_ciphers import AutokeyCipher, AutokeyCryptAnalizer, StreamCipher
 import cryptogy.des
 from cryptogy.des import SDESCipher, DESCipher, TripleDESCipher
+from cryptogy.dss import DSS_Signature
 import cryptogy.aes
 from cryptogy.aes import AESCipher
 import cryptogy.rsa
@@ -227,6 +228,16 @@ def decrypt():
     gc.collect()
     return jsonify({"cleartext": cleartext}), 200
 
+@app.route("/api/signature", methods = ["POST"])
+def signature():
+    data = request.get_json()
+    if data == None:
+        data = request.values
+    cleartext = data["cleartext"]
+    dss = DSS_Signature()
+    publickey, signature = dss.getSignature(b'cleartext')
+    print(signature, type(signature))
+    return jsonify({"signature": "e2660bd4c8de5dbaaff36cbd8296263e7869e5fd5bc32af0a7c596063ea154b7"})
 
 @app.route("/api/analyze", methods=["POST"])
 def analyze():

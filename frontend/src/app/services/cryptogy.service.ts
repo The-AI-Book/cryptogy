@@ -88,6 +88,14 @@ export class CryptogyService {
         return this.http.post(this.endpoint + "/api/encrypt_image", data, {responseType: "blob"})
     }
 
+    signature(
+        cleartext: string
+    ){
+        const data = new FormData();
+        data.append("cleartext", cleartext);
+        return this.http.post(this.endpoint + "/api/signature", data);
+    }
+
     decrypt_image(
         file: File, 
         cipher: string, 
