@@ -1,4 +1,4 @@
-from .cipher import Cipher
+from cipher import Cipher
 from dataclasses import dataclass
 
 
@@ -83,6 +83,10 @@ if __name__ == "__main__":
     k = 3
 
     e = cipher.encode(message, alpha, k)
+    print("encode")
+    print(e)
+    print(type(e))
+    print("decode")
     d = cipher.decode(e, alpha)
-    print(e, d)
+    print(d)
 
