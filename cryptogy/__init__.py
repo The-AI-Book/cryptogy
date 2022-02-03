@@ -10,3 +10,4 @@ from .gammapentagonal import GammaPentagonalCipher
 from .rsa import RSACipher
 from .rabin import RabinCipher
 from .mv import MVCipher
+from .dss import DSS_Signature
