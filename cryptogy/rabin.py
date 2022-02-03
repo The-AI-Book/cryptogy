@@ -1,3 +1,4 @@
+from .cipher import Cipher
 import math
 import random
 import codecs
@@ -117,6 +118,7 @@ def choose(lst):
             return i
     return
 
+<<<<<<< HEAD
 def delete_space(string):
     lst = string.split(' ')
     output = ''
@@ -165,3 +167,6 @@ if __name__ == '__main__':
     q = int(delete_space(input('q = ')), 32)  
     plaintext = decryption(ciphertext, p, q)
     print('Plaintext =', add_space(format(plaintext, 'x').zfill(226 // 4)))
+=======
+if __name__ == "__main__":
+>>>>>>> 952b9bec7151753858beeb38dd70775e01bcb060
