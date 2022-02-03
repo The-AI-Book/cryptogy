@@ -70,3 +70,6 @@ def choose(lst):
         if append == binary[-16:]:
             return i
     return
+
+if __name__ == "__main__":
+    
