@@ -23,12 +23,12 @@
                     <option value="rabin">Rabin</option>
                 </select>
 
-                <div *ngIf="form.value.cipher == 'rsa'" class="form-group mt-3">
+                <div *ngIf="form.value.cipher == 'rsa' || form.value.cipher == 'rabin'" class="form-group mt-3">
                     <label for="numberP" class="mb-2">Prime number (p)</label>
                     <input type="text" class="form-control" id="key" formControlName="numberP">
                 </div>
 
-                <div *ngIf="form.value.cipher == 'rsa'" class="form-group mt-3">
+                <div *ngIf="form.value.cipher == 'rsa' || form.value.cipher == 'rabin'" class="form-group mt-3">
                     <label for="numberQ" class="mb-2">Prime number (q)</label>
                     <input type="text" class="form-control" id="key" formControlName="numberQ">
                 </div>
@@ -44,7 +44,7 @@
                 </p>
             </div>
 
-            <div class="col-10 form-group mt-4" *ngIf = "this.form.value.cipher != 'rsa'">
+            <div class="col-10 form-group mt-4" *ngIf = "this.form.value.cipher != 'rsa' && form.value.cipher != 'rabin'">
                 <label for="key" class="mb-2">Enter Key (K)</label>
                 <input type="text" class="form-control" id="key" formControlName="key">
                 <p *ngIf="invalidKey" class="alert alert-danger">

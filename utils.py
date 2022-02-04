@@ -117,12 +117,10 @@ def get_cipher(data: dict):
 
     elif cipher == "gamma-pentagonal":
         return cryptogy.GammaPentagonalCipher()
-    elif cipher == "rsa":
+    elif cipher == "rsa" or cipher == "rabin":
         return cryptogy.RSACipher()
     elif cipher == "elgamal":
         return cryptogy.MVCipher()
-    elif cipher == "rabin":
-        return cryptogy.RabinCipher()
 
 import numpy as np
 
