@@ -149,9 +149,9 @@ def encrypt():
     cipher = utils.get_cipher(data)
     cipher.setKey(key)
 
-    if data["cipher"] not in ["aes", "sdes", "des", "rsa", "elgamal"]:
+    if data["cipher"] not in ["aes", "sdes", "des", "rsa", "elgamal", "rabin"]:
         encode_text = cipher.encode(cleartext)
-    elif data["cipher"] == "rsa":
+    elif data["cipher"] == "rsa" or data["cipher"] == "rabin":
         pNumber = int(key[0])
         qNumber = int(key[1])
         encode_text = cipher.encode(pNumber, qNumber, cleartext)

@@ -18,6 +18,11 @@ class RabinCipher(Cipher):
     def __init__(self):
         pass
 
+    def generateRandomKey(self):
+        pNumber = rsa.generateRandomPrimeNumber()
+        qNumber = rsa.generateRandomPrimeNumber()
+        return (pNumber, qNumber)
+
     @staticmethod
     def padding(plaintext):
         binary_str = bin(plaintext)
@@ -88,7 +93,7 @@ class RabinCipher(Cipher):
 
     @staticmethod
     def choose(lst):
-
+        print("CHOOSE LST", lst)
         for i in lst:
             binary = bin(i)
             append = binary[-16:]
@@ -118,7 +123,8 @@ class RabinCipher(Cipher):
         for i in lst:
             output += i
         return output
-    
+
+
     def encode(self, cleartext, n):
         cleartext = RabinCipher.padding(cleartext)
         return cleartext ** 2 % n
@@ -159,21 +165,13 @@ if __name__ == '__main__':
     q = 9973
 
     n = p*q
-    plaintext = "be000badbebadbadbad00debdeadfacedeafbeefadd00addbed00bed"
+    #plaintext = "be000badbebadbadbad00debdeadfacedeafbeefadd00addbed00bed"
+    plaintext = 1241327457345
     ciphertext = cipher.encode(plaintext, n)
     print(ciphertext)
     # decryption
-    """
-    print('\n Rabin-512 Decryption ')
-    print('\n')
-    
-    ciphertext = int(RabinCipher.delete_space(input('Ciphertext = ')), 32)    
-    print('Private Keys :')
-
-    print('\n')
-    p = int(RabinCipher.delete_space(input('p = ')), 32)  
-    q = int(RabinCipher.delete_space(input('q = ')), 32)  
 
     plaintext = cipher.decode(ciphertext, p, q)
-    print('Plaintext =', RabinCipher.add_space(format(plaintext, 'x').zfill(226 // 4)))
-    """
+    print(plaintext)
+    #print('Plaintext =', RabinCipher.add_space(format(plaintext, 'x').zfill(226 // 4)))
+
