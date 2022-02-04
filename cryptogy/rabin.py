@@ -86,37 +86,6 @@ class RabinCipher(Cipher):
             else:
                 continue
 
-    def encryption(self, plaintext, n):
-        plaintext = RabinCipher.padding(plaintext)
-        return plaintext ** 2 % n
-
-    def decryption(self, a, p, q):
-        n = p * q
-        r, s = 0, 0
-
-        if p % 4 == 3:
-            r = RabinCipher.sqrt3mod4(a, p)
-        elif p % 8 == 5:
-            r = RabinCipher.sqrt5mod8(a, p)
-
-        if q % 4 == 3:
-            s = RabinCipher.sqrt3mod4(a, q)
-        elif q % 8 == 5:
-            s = RabinCipher.sqrt5mod8(a, q)
-
-        gcd, c, d = RabinCipher.egcd(p, q)
-        x = (r * d * q + s * c * p) % n
-        y = (r * d * q - s * c * p) % n
-        lst = [x, n - x, y, n - y]
-        print (lst)
-        plaintext = RabinCipher.choose(lst)
-
-        string = bin(plaintext)
-        string = string[:-16]
-        plaintext = int(string, 2)
-
-        return plaintext
-
     @staticmethod
     def choose(lst):
 
@@ -149,37 +118,62 @@ class RabinCipher(Cipher):
         for i in lst:
             output += i
         return output
+    
+    def encode(self, cleartext, n):
+        cleartext = RabinCipher.padding(cleartext)
+        return cleartext ** 2 % n
+
+    def decode(self, a, p, q):
+        n = p * q
+        r, s = 0, 0
+
+        if p % 4 == 3:
+            r = RabinCipher.sqrt3mod4(a, p)
+        elif p % 8 == 5:
+            r = RabinCipher.sqrt5mod8(a, p)
+
+        if q % 4 == 3:
+            s = RabinCipher.sqrt3mod4(a, q)
+        elif q % 8 == 5:
+            s = RabinCipher.sqrt5mod8(a, q)
+
+        gcd, c, d = RabinCipher.egcd(p, q)
+        x = (r * d * q + s * c * p) % n
+        y = (r * d * q - s * c * p) % n
+        lst = [x, n - x, y, n - y]
+        print (lst)
+        plaintext = RabinCipher.choose(lst)
+
+        string = bin(plaintext)
+        string = string[:-16]
+        plaintext = int(string, 2)
+
+        return plaintext
+
 
 
 if __name__ == '__main__':
 
     cipher = RabinCipher()
-    p = "daaefe652cad1614f17e87f2cd80973f"
-    q = "f99988626723eef2a54ed484dfa735c7"
+    p = 9967
+    q = 9973
 
-    # encryption
-    print('\n Rabin-512 Encryption ')
-    print('\n')
-    # p and q has 128 bits
-    p = int(delete_space(input('p = ')), 32)   # p = daaefe652cad1614f17e87f2cd80973f
-    print('\n')
-    q = int(delete_space(input('q = ')), 32)   # q = f99988626723eef2a54ed484dfa735c7
     n = p*q
-    print("\n\n")
-    #print('n = pq =', add_space(format(n, 'x')))
-   
-    plaintext = int(delete_space(input('Plaintext = ')), 32)   # plaintext = be000badbebadbadbad00debdeadfacedeafbeefadd00addbed00bed
-    ciphertext = encryption(plaintext, n)
-
+    plaintext = "be000badbebadbadbad00debdeadfacedeafbeefadd00addbed00bed"
+    ciphertext = cipher.encode(plaintext, n)
+    print(ciphertext)
     # decryption
+    """
     print('\n Rabin-512 Decryption ')
     print('\n')
     
-    ciphertext = int(delete_space(input('Ciphertext = ')), 32)    
+    ciphertext = int(RabinCipher.delete_space(input('Ciphertext = ')), 32)    
     print('Private Keys :')
 
     print('\n')
-    p = int(delete_space(input('p = ')), 32)  
-    q = int(delete_space(input('q = ')), 32)  
-    plaintext = decryption(ciphertext, p, q)
-    print('Plaintext =', add_space(format(plaintext, 'x').zfill(226 // 4)))
+    p = int(RabinCipher.delete_space(input('p = ')), 32)  
+    q = int(RabinCipher.delete_space(input('q = ')), 32)  
+
+    plaintext = cipher.decode(ciphertext, p, q)
+    print('Plaintext =', RabinCipher.add_space(format(plaintext, 'x').zfill(226 // 4)))
+    """

@@ -260,14 +260,19 @@ def decrypt():
 
 @app.route("/api/signature", methods = ["POST"])
 def signature():
+    print("SIGNATURE: ,")
     data = request.get_json()
     if data == None:
         data = request.values
     cleartext = data["cleartext"]
     dss = DSS_Signature()
-    publickey, signature = dss.getSignature(b'cleartext')
-    print(signature, type(signature))
-    return jsonify({"signature": "e2660bd4c8de5dbaaff36cbd8296263e7869e5fd5bc32af0a7c596063ea154b7"})
+    cleartext = bytes(cleartext, encoding = "utf-8")
+    #print("CLEARTEXT: ")
+    #print(cleartext)
+    publickey, signature = dss.getSignature(cleartext)
+    #print(signature, type(signature))
+    signature = signature.decode("ISO-8859-1").encode("utf-8").decode("utf-8")
+    return jsonify({"signature": signature})
 
 @app.route("/api/analyze", methods=["POST"])
 def analyze():
