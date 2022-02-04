@@ -86,6 +86,7 @@ def gamma_pentagonal():
     gc.collect()
     return send_from_directory("./static", "index.html")
 
+
 # Main page.
 @app.route("/publickey", methods=["GET"])
 def publickey():
@@ -94,6 +95,7 @@ def publickey():
     """
     gc.collect()
     return send_from_directory("./static", "index.html")
+
 
 # Main page.
 @app.route("/dss", methods=["GET"])
@@ -104,6 +106,7 @@ def dss():
     gc.collect()
     return send_from_directory("./static", "index.html")
 
+
 @app.route("/api/generate_random_key", methods=["POST"])
 def generate_random_key():
 
@@ -113,12 +116,13 @@ def generate_random_key():
     print("CIPHER: ", data["cipher"])
     cipher = utils.get_cipher(data)
     random_key = cipher.generateRandomKey()
+    print(random_key)
 
     if isinstance(cipher, RSACipher):
         random_key = list(random_key)
         random_key[0] = str(random_key[0])
         random_key[1] = str(random_key[1])
-    #print(random_key)
+    # print(random_key)
     # print(random_key)
     if isinstance(cipher, HillCipher):
         random_key = utils.format_darray(random_key)
@@ -267,7 +271,7 @@ def decrypt():
         k = int(key[6])
         cipher = MVCipher()
         cipher.setParams(a, b, p, generator)
-        cleartext = cipher.decode(ciphertext, alpha)
+        cleartext = str(cipher.decode(ciphertext, alpha))[1:-1]
 
     else:
         cipher.setKey(key)
@@ -275,7 +279,8 @@ def decrypt():
     gc.collect()
     return jsonify({"cleartext": cleartext}), 200
 
-@app.route("/api/signature", methods = ["POST"])
+
+@app.route("/api/signature", methods=["POST"])
 def signature():
     print("SIGNATURE: ,")
     data = request.get_json()
@@ -283,13 +288,14 @@ def signature():
         data = request.values
     cleartext = data["cleartext"]
     dss = DSS_Signature()
-    cleartext = bytes(cleartext, encoding = "utf-8")
-    #print("CLEARTEXT: ")
-    #print(cleartext)
+    cleartext = bytes(cleartext, encoding="utf-8")
+    # print("CLEARTEXT: ")
+    # print(cleartext)
     publickey, signature = dss.getSignature(cleartext)
-    #print(signature, type(signature))
+    # print(signature, type(signature))
     signature = signature.decode("ISO-8859-1").encode("utf-8").decode("utf-8")
     return jsonify({"signature": signature})
+
 
 @app.route("/api/analyze", methods=["POST"])
 def analyze():

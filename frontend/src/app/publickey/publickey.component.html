@@ -71,7 +71,10 @@
                         [disabled]="form.value.cleartext == ''">Clear</button>
 
                 </div>
-                <p *ngIf="errorEncrypt" class="alert alert-danger mt-2">
+                <p *ngIf="errorEncrypt && form.value.cipher == 'elgamal'" class="alert alert-danger mt-2">
+                    Unexpected error while encrypting clear text. Key is invalid.
+                </p>
+                <p *ngIf="errorEncrypt && form.value.cipher != 'elgamal'" class="alert alert-danger mt-2">
                     Unexpected error while encrypting clear text.
                 </p>
             </div>
