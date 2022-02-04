@@ -86,6 +86,23 @@ def gamma_pentagonal():
     gc.collect()
     return send_from_directory("./static", "index.html")
 
+# Main page.
+@app.route("/publickey", methods=["GET"])
+def publickey():
+    """
+    Return the frontend of the application.
+    """
+    gc.collect()
+    return send_from_directory("./static", "index.html")
+
+# Main page.
+@app.route("/dss", methods=["GET"])
+def dss():
+    """
+    Return the frontend of the application.
+    """
+    gc.collect()
+    return send_from_directory("./static", "index.html")
 
 @app.route("/api/generate_random_key", methods=["POST"])
 def generate_random_key():
